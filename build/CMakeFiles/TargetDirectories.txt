@@ -1,0 +1,13 @@
+D:/projects/gnev/build/CMakeFiles/gnev.dir
+D:/projects/gnev/build/CMakeFiles/gnev_sample.dir
+D:/projects/gnev/build/CMakeFiles/INSTALL.dir
+D:/projects/gnev/build/CMakeFiles/ALL_BUILD.dir
+D:/projects/gnev/build/CMakeFiles/ZERO_CHECK.dir
+D:/projects/gnev/build/3rdparty/glfw/CMakeFiles/uninstall.dir
+D:/projects/gnev/build/3rdparty/glfw/CMakeFiles/INSTALL.dir
+D:/projects/gnev/build/3rdparty/glfw/CMakeFiles/ALL_BUILD.dir
+D:/projects/gnev/build/3rdparty/glfw/src/CMakeFiles/glfw.dir
+D:/projects/gnev/build/3rdparty/glfw/src/CMakeFiles/update_mappings.dir
+D:/projects/gnev/build/3rdparty/glfw/src/CMakeFiles/INSTALL.dir
+D:/projects/gnev/build/3rdparty/glfw/docs/CMakeFiles/docs.dir
+D:/projects/gnev/build/3rdparty/glfw/docs/CMakeFiles/INSTALL.dir
