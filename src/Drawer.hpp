@@ -2,8 +2,9 @@
 
 #include "glad/gl.h"
 
+#include "block/BlockTypeController.hpp"
 #include "view/Camera.hpp"
-#include "texture/TextureChunk.hpp"
+// #include "texture/TextureChunk.hpp"
 
 #include "gl/GLBuffer.hpp"
 #include "gl/GLProgram.hpp"
@@ -14,38 +15,21 @@
 
 namespace gnev {
 
-class __declspec(dllexport) Drawer final {
+class EXPORT Drawer final {
 public:
-    Drawer();
+    Drawer(GLADloadfunc load_func);
     ~Drawer();
 
-    std::pair<bool, std::string> init(GLADloadfunc load_func);
-    void add_voxel(float x, float y, float z);
-
-    std::unique_ptr<Camera> camera;
+    const std::shared_ptr<GladGLContext> ctx;
+    GLProgram program;
+    Camera camera;
 
     void draw() const;
 
 private:
-    std::shared_ptr<GladGLContext> ctx;
+    static std::shared_ptr<GladGLContext> create_glad_ctx(GLADloadfunc load_func);
 
-    std::unique_ptr<GLVertexArray> _voxel_vao;
-    std::unique_ptr<GLBuffer> _voxel_buffer;
-    std::unique_ptr<GLTexture> _voxel_texture_array;
-    std::unique_ptr<TextureChunk> _texture_chunk;
-    std::unique_ptr<GLSampler> _texture_sampler;
 
-    std::unique_ptr<GLShader> _vertex_shader;
-    std::unique_ptr<GLShader> _geometry_shader;
-    std::unique_ptr<GLShader> _fragment_shader;
-    std::unique_ptr<GLProgram> _program;
-
-    GLuint _capacity = 1'000'000'000;
-    GLuint _count = 0;
-
-    static GladGLContext create_glad_ctx(GLADloadfunc load_func);
-
-    static std::unique_ptr<TextureChunk> create_texture_chunk(const std::shared_ptr<GladGLContext> &ctx);
     static std::unique_ptr<GLSampler> create_texture_sampler(const std::shared_ptr<GladGLContext> &ctx);
 };
 

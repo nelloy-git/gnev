@@ -3,76 +3,78 @@
 using namespace gnev;
 
 GLProgram::GLProgram(const std::shared_ptr<GladGLContext> &ctx) :
-    handle(create_program(ctx)),
-    ctx(ctx){
+    GLHandler(ctx, create_handle(ctx), &handle_deleter)
+{
 }
 
-GLProgram::~GLProgram(){
-    ctx->DeleteProgram(handle);
+GLProgram::~GLProgram()
+{
 }
 
-void GLProgram::glAttachShader(GLuint shader){
-    ctx->AttachShader(handle, shader);
+void GLProgram::glAttachShader(GLuint shader)
+{
+    ctx()->AttachShader(handle(), shader);
 }
 
-void GLProgram::glValidateProgram(){
-    ctx->ValidateProgram(handle);
+void GLProgram::glValidateProgram()
+{
+    ctx()->ValidateProgram(handle());
 }
 
-void GLProgram::glLinkProgram(){
-    ctx->LinkProgram(handle);
+void GLProgram::glLinkProgram()
+{
+    ctx()->LinkProgram(handle());
 }
 
-void GLProgram::glUseProgram(){
-    ctx->UseProgram(handle);
+void GLProgram::glUseProgram() const
+{
+    ctx()->UseProgram(handle());
 }
 
-void GLProgram::glGetProgramiv(GLenum pname, GLint *params) const {
-    ctx->GetProgramiv(handle, pname, params);
+void GLProgram::glGetProgramiv(GLenum pname, GLint *params) const
+{
+    ctx()->GetProgramiv(handle(), pname, params);
 }
 
-void GLProgram::glGetProgramInfoLog(GLsizei bufSize, GLsizei *length, GLchar *infoLog) const {
-    ctx->GetProgramInfoLog(handle, bufSize, length, infoLog);
+void GLProgram::glGetProgramInfoLog(GLsizei bufSize, GLsizei *length, GLchar *infoLog) const
+{
+    ctx()->GetProgramInfoLog(handle(), bufSize, length, infoLog);
 }
 
-GLuint GLProgram::glGetUniformBlockIndex(const GLchar *uniformBlockName) const {
-    return ctx->GetUniformBlockIndex(handle, uniformBlockName);
+GLint GLProgram::glGetUniformBlockIndex(const GLchar *uniformBlockName) const
+{
+    return ctx()->GetUniformBlockIndex(handle(), uniformBlockName);
 }
 
-GLint GLProgram::glGetAttribLocation(const GLchar* name) const {
-    return ctx->GetAttribLocation(handle, name);
+void GLProgram::glUniformBlockBinding(GLuint uniformBlockIndex, GLuint uniformBlockBinding) const
+{
+    ctx()->UniformBlockBinding(handle(), uniformBlockIndex, uniformBlockBinding);
 }
 
-std::pair<bool, std::string> GLProgram::validate_with_info_log(){
-    glValidateProgram();
-
-    GLint status;
-    glGetProgramiv(GL_VALIDATE_STATUS, &status);
-
-    GLint len;
-    glGetProgramiv(GL_INFO_LOG_LENGTH, &len);
-
-    std::string dst;
-    dst.resize(len);
-    glGetProgramInfoLog(len, &len, dst.data());
-    return {status, dst};
+GLint GLProgram::glGetAttribLocation(const GLchar* name) const
+{
+    return ctx()->GetAttribLocation(handle(), name);
 }
 
-std::pair<bool, std::string> GLProgram::link_with_info_log(){
-    glLinkProgram();
-
-    GLint status;
-    glGetProgramiv(GL_LINK_STATUS, &status);
-
-    GLint len;
-    glGetProgramiv(GL_INFO_LOG_LENGTH, &len);
-
-    std::string dst;
-    dst.resize(len);
-    glGetProgramInfoLog(len, &len, dst.data());
-    return {status, dst};
+GLint GLProgram::glGetProgramResourceIndex(GLenum programInterface, const GLchar *name) const
+{
+    return ctx()->GetProgramResourceIndex(handle(), programInterface, name);
 }
 
-GLuint GLProgram::create_program(const std::shared_ptr<GladGLContext> &ctx){
-    return ctx->CreateProgram();
+void GLProgram::glShaderStorageBlockBinding(GLuint storageBlockIndex, GLuint storageBlockBinding) const
+{
+    ctx()->ShaderStorageBlockBinding(handle(), storageBlockIndex, storageBlockBinding);
+}
+
+GLuint* GLProgram::create_handle(const std::shared_ptr<GladGLContext> &ctx)
+{
+    GLuint* handle = new GLuint(0);
+    *handle = ctx->CreateProgram();
+    return handle;
+}
+
+void GLProgram::handle_deleter(GLuint* handle, GladGLContext& ctx)
+{
+    ctx.DeleteProgram(*handle);
+    delete handle;
 }

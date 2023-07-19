@@ -109,7 +109,7 @@ const GLchar* const ShaderBuilder::get_input_name(Input input) const {
 
 const std::string& ShaderBuilder::get_vertex_shader_src(){
     static const std::string src = R"(
-#version 410 core
+#version 430 core
 
 in vec3 inPos;
 
@@ -124,7 +124,7 @@ void main(){
 
 const std::string& ShaderBuilder::get_geometry_shader_src(){
     static const std::string src = R"(
-#version 410 core
+#version 430 core
 layout (points) in;
 layout (triangle_strip, max_vertices = 18) out;
 
@@ -148,34 +148,34 @@ void emit_vertex(in vec4 vert_offset, in vec2 tex_coord, in vec4 color, in int s
 }
 
 void emit_cube(){
-    emit_vertex(vec4(0, 0, 0, 0), vec2(0, 0), vec4(0.2, 0.2, 0.2, 1), 0);
-    emit_vertex(vec4(2, 0, 0, 0), vec2(2, 0), vec4(0.2, 0.2, 0.2, 1), 0);
-    emit_vertex(vec4(0, 0, 2, 0), vec2(0, 2), vec4(0.2, 0.2, 0.2, 1), 0);
-    EndPrimitive();
-    
-    emit_vertex(vec4(0, 1, 0, 0), vec2(0, 0), vec4(1, 1, 1, 1), 2);
-    emit_vertex(vec4(0, 1, 2, 0), vec2(2, 0), vec4(1, 1, 1, 1), 2);
-    emit_vertex(vec4(2, 1, 0, 0), vec2(0, 2), vec4(1, 1, 1, 1), 2);
+    emit_vertex(vec4(0, 1, 0, 0), vec2(0, 0), vec4(1, 1, 1, 1), 0);
+    emit_vertex(vec4(0, 1, 2, 0), vec2(2, 0), vec4(1, 1, 1, 1), 0);
+    emit_vertex(vec4(2, 1, 0, 0), vec2(0, 2), vec4(1, 1, 1, 1), 0);
     EndPrimitive();
 
-    emit_vertex(vec4(0, 0, 0, 0), vec2(0, 0), vec4(0.8, 0.8, 0.8, 1), 1);
-    emit_vertex(vec4(0, 0, 2, 0), vec2(2, 0), vec4(0.8, 0.8, 0.8, 1), 1);
-    emit_vertex(vec4(0, 2, 0, 0), vec2(0, 2), vec4(0.8, 0.8, 0.8, 1), 1);
+    emit_vertex(vec4(0, 0, 0, 0), vec2(0, 0), vec4(0.2, 0.2, 0.2, 1), 1);
+    emit_vertex(vec4(2, 0, 0, 0), vec2(2, 0), vec4(0.2, 0.2, 0.2, 1), 1);
+    emit_vertex(vec4(0, 0, 2, 0), vec2(0, 2), vec4(0.2, 0.2, 0.2, 1), 1);
     EndPrimitive();
 
-    emit_vertex(vec4(0, 0, 0, 0), vec2(0, 0), vec4(0.7, 0.7, 0.7, 1), 1);
-    emit_vertex(vec4(0, 2, 0, 0), vec2(0, 2), vec4(0.7, 0.7, 0.7, 1), 1);
-    emit_vertex(vec4(2, 0, 0, 0), vec2(2, 0), vec4(0.7, 0.7, 0.7, 1), 1);
+    emit_vertex(vec4(1, 0,  1, 0), vec2(0, 0), vec4(0.6, 0.6, 0.6, 1), 2);
+    emit_vertex(vec4(1, 0, -1, 0), vec2(2, 0), vec4(0.6, 0.6, 0.6, 1), 2);
+    emit_vertex(vec4(1, 2,  1, 0), vec2(0, 2), vec4(0.6, 0.6, 0.6, 1), 2);
     EndPrimitive();
 
-    emit_vertex(vec4(1, 0,  1, 0), vec2(0, 0), vec4(0.6, 0.6, 0.6, 1), 1);
-    emit_vertex(vec4(1, 0, -1, 0), vec2(2, 0), vec4(0.6, 0.6, 0.6, 1), 1);
-    emit_vertex(vec4(1, 2,  1, 0), vec2(0, 2), vec4(0.6, 0.6, 0.6, 1), 1);
+    emit_vertex(vec4(0, 0, 0, 0), vec2(0, 0), vec4(0.8, 0.8, 0.8, 1), 3);
+    emit_vertex(vec4(0, 0, 2, 0), vec2(2, 0), vec4(0.8, 0.8, 0.8, 1), 3);
+    emit_vertex(vec4(0, 2, 0, 0), vec2(0, 2), vec4(0.8, 0.8, 0.8, 1), 3);
     EndPrimitive();
 
-    emit_vertex(vec4( 1, 0, 1, 0), vec2(0, 0), vec4(0.5, 0.5, 0.5, 1), 1);
-    emit_vertex(vec4( 1, 2, 1, 0), vec2(0, 2), vec4(0.5, 0.5, 0.5, 1), 1);
-    emit_vertex(vec4(-1, 0, 1, 0), vec2(2, 0), vec4(0.5, 0.5, 0.5, 1), 1);
+    emit_vertex(vec4( 1, 0, 1, 0), vec2(0, 0), vec4(0.5, 0.5, 0.5, 1), 4);
+    emit_vertex(vec4( 1, 2, 1, 0), vec2(0, 2), vec4(0.5, 0.5, 0.5, 1), 4);
+    emit_vertex(vec4(-1, 0, 1, 0), vec2(2, 0), vec4(0.5, 0.5, 0.5, 1), 4);
+    EndPrimitive();
+
+    emit_vertex(vec4(0, 0, 0, 0), vec2(0, 0), vec4(0.7, 0.7, 0.7, 1), 5);
+    emit_vertex(vec4(0, 2, 0, 0), vec2(0, 2), vec4(0.7, 0.7, 0.7, 1), 5);
+    emit_vertex(vec4(2, 0, 0, 0), vec2(2, 0), vec4(0.7, 0.7, 0.7, 1), 5);
     EndPrimitive();
 }
 
@@ -188,7 +188,7 @@ void main() {
 
 const std::string& ShaderBuilder::get_fragment_shader_src(){
     static const std::string src = R"(
-#version 410 core
+#version 430 core
 
 uniform sampler2DArray texture_array_0;
 uniform sampler2DArray texture_array_1;
@@ -207,6 +207,14 @@ uniform sampler2DArray texture_array_13;
 uniform sampler2DArray texture_array_14;
 uniform sampler2DArray texture_array_15;
 
+struct Texture {
+    int side[6];
+};
+
+layout (std430) buffer BlockType {
+    Texture block_type[];
+};
+
 in vec2 gTex;
 in vec4 gColor;
 flat in int gSide;
@@ -214,12 +222,13 @@ flat in int gSide;
 out vec4 fColor;
 
 void main(){
-    vec4 color = gColor * texture(texture_array_0, vec3(gTex, gSide));
+    int side = block_type[0].side[gSide];
+    vec4 color = gColor * texture(texture_array_0, vec3(gTex, side));
     if (color.a < 0.05){
         discard;
     }
     fColor = color;
-}
+} 
     )";
     return src;
 }

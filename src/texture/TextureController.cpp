@@ -1,45 +1,57 @@
-// #include "texture/TextureController.hpp"
+#include "texture/TextureController.hpp"
 
-// #define STB_IMAGE_IMPLEMENTATION
-// #include "stb_image.h"
+#include <iostream>
 
-// using namespace gnev;
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
 
-// TextureController::TextureController(const std::shared_ptr<GladGLContext>& ctx) :
-//     _ctx(ctx){
-// }
+using namespace gnev;
 
-// TextureController::~TextureController(){
+TextureController::TextureController(const std::shared_ptr<GladGLContext>& ctx, GLsizei img_width, GLsizei img_height){
+    _chunks.push_back(TextureChunk(ctx, img_width, img_height));
+}
 
-// }
+TextureController::~TextureController(){
+}
 
-// bool TextureController::init(GLsizei width, GLsizei height){
-//     _chunks.emplace_back(_ctx);
-//     _chunks.back().init(width, height);
-// }
+GLuint TextureController::bind(GLenum first_target) const {
+    for (int i = 0; i < _chunks.size(); ++i){
+        ctx()->ActiveTexture(first_target + i);
+        _chunks[i].texture().glBindTexture(GL_TEXTURE_2D_ARRAY);
+    }
+    return _chunks.size();
+}
 
-// GLint TextureController::load(const std::filesystem::path& path){
-//     auto wstr = path.generic_wstring();
-//     auto found = _path_map.find(wstr);
-//     if (found != _path_map.end()){
-//         return found->second;
-//     }
+GLint TextureController::load(const std::filesystem::path& path){
+    auto found = _path_map.find(path.string());
+    if (found != _path_map.end()){
+        return found->second;
+    }
 
-//     stbi_set_flip_vertically_on_load(true);
-//     int width, height, channels;
+    stbi_set_flip_vertically_on_load(true);
+    int width, height, channels;
 
-//     auto img = stbi_load("../3rdparty/minecraft_textures/dirt.png", &width, &height, &channels, 4);
-//     auto id = _chunks.back().add(img);
+    if (!std::filesystem::exists(path)){
+        std::cout << "Do not exist" << std:: endl;
+        return -1;
+    }
 
-//     if (id < 0){
-//         auto img_w = _chunks.back().width();
-//         auto img_h = _chunks.back().height();
+    auto img = stbi_load(path.string().c_str(), &width, &height, &channels, 4);
+    auto id = _chunks.back().add(img);
 
-//         _chunks.emplace_back(_ctx);
-//         _chunks.back().init(width, height);
-//         id = _chunks.back().add(img);
-//     }
-//     stbi_image_free(img);
+    if (id < 0){
+        auto img_w = _chunks.back().width();
+        auto img_h = _chunks.back().height();
 
-    
-// }
+        _chunks.push_back(TextureChunk(ctx(), width, height));
+        id = _chunks.back().add(img);
+    }
+    stbi_image_free(img);
+
+    _path_map[path.string()] = id;
+    return id;
+}
+
+const std::shared_ptr<GladGLContext>& TextureController::ctx() const {
+    return _chunks[0].ctx();
+}

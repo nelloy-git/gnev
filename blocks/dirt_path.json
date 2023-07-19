@@ -1,0 +1,10 @@
+{
+    "Texture": {
+        "Top": "../3rdparty/minecraft_textures/dirt_path_top.png",
+        "Bottom": "../3rdparty/minecraft_textures/dirt.png",
+        "Front": "../3rdparty/minecraft_textures/dirt_path_side.png",
+        "Left": "../3rdparty/minecraft_textures/dirt_path_side.png",
+        "Right": "../3rdparty/minecraft_textures/dirt_path_side.png",
+        "Back": "../3rdparty/minecraft_textures/dirt_path_side.png"
+    }
+}

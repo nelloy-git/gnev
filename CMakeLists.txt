@@ -3,6 +3,7 @@ cmake_minimum_required(VERSION 3.1...3.17 FATAL_ERROR)
 project(gnev VERSION 0.01 LANGUAGES C CXX)
 
 add_subdirectory(./3rdparty/glfw)
+add_subdirectory(./3rdparty/json)
 
 add_compile_definitions(GLWPP_DEBUG)
 
@@ -16,8 +17,10 @@ endif (WIN32)
 
 include_directories(./src)
 include_directories(./sample)
+include_directories(./3rdparty/bimap)
 include_directories(./3rdparty/glad/include)
 include_directories(./3rdparty/glfw/include)
+include_directories(./3rdparty/json/include)
 include_directories(./3rdparty/glm)
 include_directories(./3rdparty/stb)
 include_directories(./3rdparty/VLD/include)
@@ -27,6 +30,9 @@ file(GLOB_RECURSE SRC_FILES "src/**.cpp")
 add_library (${PROJECT_NAME} SHARED
     3rdparty/glad/src/gl.c
     ${SRC_FILES}
+)
+target_link_libraries(${PROJECT_NAME}
+    nlohmann_json
 )
 target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_20)
 

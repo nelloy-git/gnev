@@ -14,33 +14,26 @@ GLint TextureChunk::MAX_CAPACITY(GladGLContext& ctx){
     return MAX_CAP;
 }
 
-TextureChunk::TextureChunk(const std::shared_ptr<GladGLContext>& ctx) :
-    _ctx(ctx){
+TextureChunk::TextureChunk(const std::shared_ptr<GladGLContext>& ctx, GLsizei width, GLsizei height) :
+    _width(width),
+    _height(height),
+    _texture_array(ctx, GL_TEXTURE_2D_ARRAY){
+    _texture_array.glTextureStorage3D(1, GL_RGBA8, width, height, CAPACITY_BASE);
 }
 
 TextureChunk::~TextureChunk(){
 }
 
-std::pair<bool, std::string> TextureChunk::init(GLsizei width, GLsizei height){
-    _width = width;
-    _height = height;
-
-    _texture_array = std::make_unique<GLTexture>(_ctx, GL_TEXTURE_2D_ARRAY);
-    _texture_array->glTextureStorage3D(1, GL_RGBA8, width, height, CAPACITY_BASE);
-
-    return {true, ""};
-}
-
 bool TextureChunk::expand(GLsizei capacity){
-    if (_capacity == MAX_CAPACITY(*_ctx)){
+    if (_capacity == MAX_CAPACITY(*ctx())){
         return false;
     }
-    _capacity = std::min(MAX_CAPACITY(*_ctx), capacity);
+    _capacity = std::min(MAX_CAPACITY(*ctx()), capacity);
 
-    auto new_texture_array = std::make_unique<GLTexture>(_ctx, GL_TEXTURE_2D_ARRAY);
-    new_texture_array->glTextureStorage3D(1, GL_RGBA8, _width, _height, capacity);
-    _texture_array->glCopyImageSubData(GL_TEXTURE_2D_ARRAY, 0, 0, 0, 0, new_texture_array->handle, GL_TEXTURE_2D_ARRAY, 0, 0, 0, 0, _width, _height, _size);
-    _texture_array = std::move(new_texture_array);
+    GLTexture new_texture_array(ctx(), GL_TEXTURE_2D_ARRAY);
+    new_texture_array.glTextureStorage3D(1, GL_RGBA8, _width, _height, capacity);
+    _texture_array.glCopyImageSubData(GL_TEXTURE_2D_ARRAY, 0, 0, 0, 0, new_texture_array.handle(), GL_TEXTURE_2D_ARRAY, 0, 0, 0, 0, _width, _height, _size);
+    _texture_array = new_texture_array;
     return true;
 }
 
@@ -53,8 +46,20 @@ GLint TextureChunk::add(const void* data){
     }
     GLint id = _size;
     ++_size;
-    _texture_array->glTextureSubImage3D(0, 0, 0, id, _width, _height, 1, GL_RGBA, GL_UNSIGNED_BYTE, data);
+    _texture_array.glTextureSubImage3D(0, 0, 0, id, _width, _height, 1, GL_RGBA, GL_UNSIGNED_BYTE, data);
     return id;
+}
+
+GLTexture& TextureChunk::texture(){
+    return _texture_array;
+}
+
+const GLTexture& TextureChunk::texture() const {
+    return _texture_array;
+}
+
+const std::shared_ptr<GladGLContext>& TextureChunk::ctx() const {
+    return texture().ctx();
 }
 
 GLsizei TextureChunk::width() const {
@@ -71,8 +76,4 @@ GLsizei TextureChunk::size() const {
 
 GLsizei TextureChunk::capacity() const {
     return _capacity;
-}
-
-GLint TextureChunk::handle() const {
-    return _texture_array->handle;
 }

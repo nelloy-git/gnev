@@ -1,18 +1,14 @@
 #pragma once
 
-#include <memory>
-
-#include "glad/gl.h"
 #include "glm/glm.hpp"
 
 #include "gl/GLBuffer.hpp"
 
 namespace gnev {
 
-class __declspec(dllexport) Camera {
+class EXPORT Camera {
 public:
     Camera(const std::shared_ptr<GladGLContext> &ctx);
-    Camera(const Camera& other) = default;
     virtual ~Camera();
 
     GLBuffer buffer;

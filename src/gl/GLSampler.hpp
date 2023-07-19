@@ -1,28 +1,22 @@
 #pragma once
 
-#include <memory>
-
-#include "glad/gl.h"
-
-#include "util/Util.hpp"
+#include "gl/GLHandler.hpp"
 
 namespace gnev {
 
-class EXPORT GLSampler final {
+class EXPORT GLSampler : public GLHandler {
 public:
     GLSampler(const std::shared_ptr<GladGLContext> &ctx);
-    ~GLSampler();
+    virtual ~GLSampler();
 
     void glBindSampler(GLuint unit);
     void glSamplerParameteri(GLuint pname, GLint param);
     void glSamplerParameterf(GLuint pname, GLfloat param);
     void glSamplerParameterfv(GLuint pname, const GLfloat* param);
 
-    const std::shared_ptr<GladGLContext> ctx;
-    const GLuint handle;
-
 private:
-    static GLuint create_sampler(const std::shared_ptr<GladGLContext> &ctx);
+    static GLuint* create_handle(const std::shared_ptr<GladGLContext> &ctx);
+    static void handle_deleter(GLuint* handle, GladGLContext& ctx);
     
 };
 

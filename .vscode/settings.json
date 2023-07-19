@@ -76,6 +76,17 @@
         "condition_variable": "cpp",
         "coroutine": "cpp",
         "resumable": "cpp",
-        "filesystem": "cpp"
+        "filesystem": "cpp",
+        "any": "cpp",
+        "csignal": "cpp",
+        "fstream": "cpp",
+        "numeric": "cpp",
+        "ranges": "cpp",
+        "regex": "cpp",
+        "set": "cpp",
+        "span": "cpp",
+        "unordered_set": "cpp",
+        "valarray": "cpp",
+        "variant": "cpp"
     }
 }

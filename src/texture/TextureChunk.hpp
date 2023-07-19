@@ -13,22 +13,23 @@ public:
     static constexpr GLuint CAPACITY_MULT = 2;
     static GLint MAX_CAPACITY(GladGLContext& ctx);
 
-    TextureChunk(const std::shared_ptr<GladGLContext>& ctx);
+    TextureChunk(const std::shared_ptr<GladGLContext>& ctx, GLsizei width, GLsizei height);
     ~TextureChunk(); 
 
-    std::pair<bool, std::string> init(GLsizei width, GLsizei height);
     bool expand(GLsizei capacity);
     GLint add(const void* data);
 
+    GLTexture& texture();
+    const GLTexture& texture() const;
+
+    const std::shared_ptr<GladGLContext>& ctx() const;
     GLsizei width() const;
     GLsizei height() const;
     GLsizei size() const;
     GLsizei capacity() const;
-    GLint handle() const;
 
 private:
-    const std::shared_ptr<GladGLContext> _ctx;
-    std::unique_ptr<GLTexture> _texture_array;
+    GLTexture _texture_array;
 
     GLsizei _width = 0;
     GLsizei _height = 0;
