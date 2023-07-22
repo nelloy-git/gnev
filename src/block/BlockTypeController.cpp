@@ -19,7 +19,7 @@ const std::unordered_map<std::string, BlockSide> BlockTypeController::SIDE_MAP =
 };
 
 BlockTypeController::BlockTypeController(const std::shared_ptr<GladGLContext>& ctx) :
-    _types_buffer(ctx),
+    // _types_buffer(ctx),
     _textures_controller(ctx, TEX_WIDTH, TEX_HEIGHT){
 }
 
@@ -55,17 +55,17 @@ GLint BlockTypeController::add(const std::filesystem::path& path){
         block_type.texture[static_cast<GLuint>(side)] = tex_id;
     }
 
-    _types_buffer.push_back(block_type);
+    // _types_buffer.push_back(block_type);
     return id++;
 }
 
-GLBufferVector<BlockTypeController::BlockTypeData>& BlockTypeController::types_buffer(){
-    return _types_buffer;
-}
+// GLBufferVectorT<BlockTypeController::BlockTypeData>& BlockTypeController::types_buffer(){
+//     return _types_buffer;
+// }
 
-const GLBufferVector<BlockTypeController::BlockTypeData>& BlockTypeController::types_buffer() const {
-    return _types_buffer;
-}
+// const GLBufferVectorT<BlockTypeController::BlockTypeData>& BlockTypeController::types_buffer() const {
+//     return _types_buffer;
+// }
 
 const TextureController& BlockTypeController::textures_controller() const {
     return _textures_controller;

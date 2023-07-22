@@ -1,13 +1,22 @@
 #pragma once
 
-#include <iostream>
-#include <memory>
 #include <stdexcept>
 #include <unordered_map>
 #include <unordered_set>
 
 #include "gl/GLBuffer.hpp"
-#include "util/Util.hpp"
+
+#ifndef GNEV_GL_BUFFER_MAP_CAP_BASE
+#define GNEV_GL_BUFFER_MAP_CAP_BASE 1
+#endif
+
+#ifndef GNEV_GL_BUFFER_MAP_CAP_MULT
+#define GNEV_GL_BUFFER_MAP_CAP_MULT 2
+#endif
+
+#ifndef GNEV_GL_BUFFER_MAP_CAP_ADD
+#define GNEV_GL_BUFFER_MAP_CAP_ADD 0
+#endif
 
 namespace gnev {
 

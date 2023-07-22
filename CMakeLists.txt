@@ -26,10 +26,21 @@ include_directories(./3rdparty/stb)
 include_directories(./3rdparty/VLD/include)
 link_directories(./3rdparty/VLD/lib/Win64)
 
+# Options
+set(GNEV_GL_BUFFER_VECTOR_CAP_BASE 1 CACHE STRING "GLBufferVector: number of reserved elements at creation")
+set(GNEV_GL_BUFFER_VECTOR_CAP_MULT 2 CACHE STRING "GLBufferVector: capacity multiplier if not enought memory available")
+set(GNEV_GL_BUFFER_VECTOR_CAP_ADD  0 CACHE STRING "GLBufferVector: capacity addition if not enought memory available")
+
+
 file(GLOB_RECURSE SRC_FILES "src/**.cpp")
 add_library (${PROJECT_NAME} SHARED
     3rdparty/glad/src/gl.c
     ${SRC_FILES}
+)
+target_compile_definitions(${PROJECT_NAME} PUBLIC
+    GNEV_GL_BUFFER_VECTOR_CAP_BASE=${GNEV_GL_BUFFER_VECTOR_CAP_BASE}
+    GNEV_GL_BUFFER_VECTOR_CAP_MULT=${GNEV_GL_BUFFER_VECTOR_CAP_MULT}
+    GNEV_GL_BUFFER_VECTOR_CAP_ADD=${GNEV_GL_BUFFER_VECTOR_CAP_ADD}
 )
 target_link_libraries(${PROJECT_NAME}
     nlohmann_json
@@ -41,6 +52,7 @@ set_property (TARGET ${PROJECT_NAME}
     # Enable C++20 standard compliance
     CXX_STANDARD 20
 )
+
 
 # Main test
 

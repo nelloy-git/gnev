@@ -14,7 +14,16 @@
 
 #include "Drawer.hpp"
 #include "shader/ProgramBuilder.hpp"
-#include "data/VertexInfo.hpp"
+
+#include "data/Vertex.hpp"
+#include "gl/GLBufferVectorT.hpp"
+
+#include "data/Chunk.hpp"
+
+using enum gnev::VertAttribGLType;
+using VertAttrPos = gnev::VertAttrib<Float, 3, false>;
+
+using Vertex = gnev::Vertex<VertAttrPos>;
 
 const std::string& get_vertex_shader_src(){
     static const std::string src = R"(
@@ -25,13 +34,14 @@ layout (std140) uniform Camera {
 };
 
 in vec3 inPos;
+in vec3 inColor;
 
 out vec4 vPos;
 out vec4 vColor;
 
 void main(){
     vPos = camera_mat * vec4(inPos, 1.0);
-    vColor = vec4(1, 1, 1, 1);
+    vColor = inColor;
     gl_Position = vPos;
 }
     )";
@@ -55,15 +65,19 @@ void main(){
     return src;
 }
 
-gnev::VertexInfo create_vertex_info(gnev::GLProgram& prog){
-    std::vector<gnev::AttributeInfo> attribs {
-        gnev::AttributeInfo(prog.glGetAttribLocation("inPos"), 3, GL_FLOAT, GL_FALSE),
-        // gnev::AttributeInfo(3, GL_FLOAT, true)
-    };
-    return gnev::VertexInfo(attribs);
-}
+const GLfloat prim_vert[] = {
+    0, 1, 0,
+    0, 1, 1,
+    1, 1, 0,
+    1, 1, 1
+};
 
-void init_vertices(gnev::GLBufferVector<GLuint>& ibo, gnev::GLBufferVector<GLfloat[3]>& vbo){
+const GLuint prim_ind[] = {
+    0, 2, 3,
+    0, 3, 1
+};
+
+void init_vertices(gnev::GLBufferVectorT<GLuint>& ibo, gnev::GLBufferVectorT<GLfloat[3]>& vbo){
     vbo.push_back({0, 1, 0});
     vbo.push_back({1, 1, 0});
     vbo.push_back({1, 0, 0});
@@ -79,21 +93,19 @@ void init_vertices(gnev::GLBufferVector<GLuint>& ibo, gnev::GLBufferVector<GLflo
     // ibo.push_back(2);
 }
 
-void init_vao(gnev::GLProgram& prog, gnev::GLVertexArray& vao, gnev::GLBufferVector<GLuint>& ibo, gnev::GLBuffer& vbo){
-    const auto vertex_info = create_vertex_info(prog);
-
+void init_vao(gnev::GLProgram& prog, gnev::GLVertexArray& vao, gnev::GLBufferVectorT<GLuint>& ibo, gnev::GLBuffer& vbo){
     GLint inPos_loc = prog.glGetAttribLocation("inPos");
     std::cout << "inPos: " << inPos_loc << std::endl;
     // GLint inColor_loc = prog.glGetAttribLocation("inColor");
     // std::cout << "inColor: " << inColor_loc << std::endl;
 
-    vao.glVertexArrayElementBuffer(ibo.buffer().handle());
-    vao.glVertexArrayAttribBinding(inPos_loc, 0);
+    vao.glVertexArrayElementBuffer(ibo.handle());
+
     vao.glVertexArrayVertexBuffer(0, vbo.handle(), 0, 3 * sizeof(GLfloat));
-
-    vao.glVertexArrayAttribFormat(inPos_loc, vertex_info.attributes[0].elements, vertex_info.attributes[0].type, vertex_info.attributes[0].normalized, 0);
-
+    vao.glVertexArrayAttribBinding(inPos_loc, 0);
+    // vao.glVertexArrayAttribFormat(inPos_loc, vertex_info.attributes[0].elements, vertex_info.attributes[0].type, vertex_info.attributes[0].normalized, 0);
     vao.glEnableVertexArrayAttrib(inPos_loc);
+
     // vao.glEnableVertexArrayAttrib(inColor_loc);
     // vao.glVertexArrayAttribBinding(inColor_loc, 0);
     // vao.glVertexArrayAttribFormat(inColor_loc, vertex_info.attributes[1].elements, vertex_info.attributes[1].type, vertex_info.attributes[1].normalized, vertex_info.attributes[0].size);
@@ -101,7 +113,6 @@ void init_vao(gnev::GLProgram& prog, gnev::GLVertexArray& vao, gnev::GLBufferVec
 
 int main(int argc, const char** argv) {
     GlfwConveyor conveyor;
-
     conveyor.worker.push([&conveyor](){
         gnev::Drawer drawer(conveyor.get_proc_address());
         gnev::ProgramBuilder program_builder(drawer.ctx);
@@ -120,22 +131,19 @@ int main(int argc, const char** argv) {
             std::cout << program_builder.help().c_str() << std::endl;
         }
 
+        gnev::Chunk<Vertex, Vertex> chunk(drawer.ctx, prim_ind, 6, reinterpret_cast<const Vertex*>(prim_vert), 12);
+        chunk.bind_primitive<0>(drawer.program.glGetAttribLocation("inPos"));
+
         gnev::GLVertexArray vao(drawer.ctx);
-        gnev::GLBufferVector<GLuint> ibo(drawer.ctx);
-        gnev::GLBufferVector<GLfloat[3]> vbo(drawer.ctx);
+        
+        gnev::GLBufferVectorT<GLuint> ibo(drawer.ctx, GL_DYNAMIC_COPY);
+        gnev::GLBufferVectorT<GLfloat[3]> vbo(drawer.ctx, GL_DYNAMIC_COPY);
+
+        gnev::GLBufferVectorT<GLuint> t(gnev::GLBufferVector(drawer.ctx, nullptr, 12, GL_DYNAMIC_DRAW));
+        gnev::GLBufferVector t2 = t;
+        
         init_vertices(ibo, vbo);
         init_vao(drawer.program, vao, ibo, vbo);
-
-        
-        std::cout << "IBO: " << *ibo.get(0) << "\t" << *ibo.get(1) << "\t" << *ibo.get(2) << "\t" << std::endl;
-
-        std::array<GLfloat, 9> vbo_vec;
-        vbo.buffer().glGetBufferSubData(0, 9 * sizeof(GLfloat), &vbo_vec);
-        
-        std::cout << "VBO: " << vbo_vec[0] << "\t" << vbo_vec[1] << "\t" << vbo_vec[2] << "\t" << std::endl;
-        std::cout << "VBO: " << vbo_vec[3] << "\t" << vbo_vec[4] << "\t" << vbo_vec[5] << "\t" << std::endl;
-        std::cout << "VBO: " << vbo_vec[6] << "\t" << vbo_vec[7] << "\t" << vbo_vec[8] << "\t" << std::endl;
-
 
         bool alive = true;
         conveyor.key_callback = [&alive, &drawer](GlfwConveyor* conveyor, int key, int scancode, int action, int mods){
@@ -172,9 +180,12 @@ int main(int argc, const char** argv) {
             conveyor.swap_buffers();
             drawer.draw();
             vao.glBindVertexArray();
-            vbo.buffer().glBindBuffer(GL_ARRAY_BUFFER);
-            drawer.ctx->DrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-            drawer.ctx->DrawArrays(GL_TRIANGLES, 0, 3);
+            drawer.ctx->DrawElements(GL_TRIANGLES, ibo.size(), GL_UNSIGNED_INT, 0);
+
+            chunk._vao.glBindVertexArray();
+            drawer.ctx->DrawElementsInstanced(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0, 1);
+
+            // drawer.ctx->DrawArrays(GL_TRIANGLES, 0, 3);
             auto end = std::chrono::steady_clock::now();
             auto dt = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
             times.push(dt);

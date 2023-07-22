@@ -3,7 +3,7 @@
 #include <filesystem>
 #include <memory>
 
-#include "gl/GLBufferVector.hpp"
+#include "gl/GLBufferVectorT.hpp"
 #include "texture/TextureController.hpp"
 #include "util/Util.hpp"
 
@@ -33,14 +33,14 @@ public:
 
     GLint add(const std::filesystem::path& path);
 
-    GLBufferVector<BlockTypeData>& types_buffer();
-    const GLBufferVector<BlockTypeData>& types_buffer() const;
+    GLBufferVectorT<BlockTypeData>& types_buffer();
+    const GLBufferVectorT<BlockTypeData>& types_buffer() const;
     const TextureController& textures_controller() const;
 
 private:
     GLint id = 0;
 
-    GLBufferVector<BlockTypeData> _types_buffer;
+    // GLBufferVectorT<BlockTypeData> _types_buffer;
     TextureController _textures_controller;
 
 };
