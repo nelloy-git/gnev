@@ -29,6 +29,7 @@ std::optional<GLProgram> ProgramBuilder::build(const std::unordered_map<GLenum, 
     _help = "";
 
     GLProgram program(_ctx);
+    std::vector<GLShader> shaders;
     for (auto& shader_info : sources){
         GLShader shader(_ctx, shader_info.first);
         auto shader_status = compile_shader(shader, shader_info.second);
