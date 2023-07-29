@@ -11,20 +11,26 @@ struct Attrib final
     using type = AttribType<T.type, info.elements>::type;
     using element_type = AttribType<T.type, info.elements>::element_type;
 
-    Attrib(std::initializer_list<GLfloat> src);
+    Attrib(const type& src);
 
-    template<auto N = !T.normalized, std::enable_if_t<N, bool> = true>
-    Attrib(std::initializer_list<GLint> src);
+    template<auto E = info.elements, auto P = info.is_packed, std::enable_if_t<E==1 && !P, bool> = true>
+    Attrib(const element_type& v0);
 
-    template<auto N = !T.normalized, std::enable_if_t<N, bool> = true>
-    Attrib(std::initializer_list<GLuint> src);
+    template<auto E = info.elements, auto P = info.is_packed, std::enable_if_t<E==2 && !P, bool> = true>
+    Attrib(const element_type& v0, const element_type& v1);
+
+    template<auto E = info.elements, auto P = info.is_packed, std::enable_if_t<E==3 && !P, bool> = true>
+    Attrib(const element_type& v0, const element_type& v1, const element_type& v2);
+
+    template<auto E = info.elements, auto P = info.is_packed, std::enable_if_t<E==4 && !P, bool> = true>
+    Attrib(const element_type& v0, const element_type& v1, const element_type& v2, const element_type& v3);
  
     void write(const GLfloat* src);
 
-    template<auto N = !T.normalized, std::enable_if_t<N, bool> = true>
+    template<auto N = T.normalized, std::enable_if_t<!N, bool> = true>
     void write(const GLint* src);
 
-    template<auto N = !T.normalized, std::enable_if_t<N, bool> = true>
+    template<auto N = T.normalized, std::enable_if_t<!N, bool> = true>
     void write(const GLuint* src);
 
     type data;
@@ -44,23 +50,37 @@ concept IsVertAttrib = is_VertAttrib<T>::value;
 
 
 template<AttribInfo T>
-Attrib<T>::Attrib(std::initializer_list<GLfloat> src)
+Attrib<T>::Attrib(const type& src)
+    : data(src)
 {
-    this->write(src.begin());
 }
 
 template<AttribInfo T>
-template<auto N, std::enable_if_t<N, bool>>
-Attrib<T>::Attrib(std::initializer_list<GLint> src)
+template<auto E, auto P, std::enable_if_t<E==1 && !P, bool>>
+Attrib<T>::Attrib(const element_type& v0)
+    : data({v0})
 {
-    this->write(src.begin());
 }
 
 template<AttribInfo T>
-template<auto N, std::enable_if_t<N, bool>>
-Attrib<T>::Attrib(std::initializer_list<GLuint> src)
+template<auto E, auto P, std::enable_if_t<E==2 && !P, bool>>
+Attrib<T>::Attrib(const element_type& v0, const element_type& v1)
+    : data({v0, v1})
 {
-    this->write(src.begin());
+}
+
+template<AttribInfo T>
+template<auto E, auto P, std::enable_if_t<E==3 && !P, bool>>
+Attrib<T>::Attrib(const element_type& v0, const element_type& v1, const element_type& v2)
+    : data({v0, v1, v2})
+{
+}
+
+template<AttribInfo T>
+template<auto E, auto P, std::enable_if_t<E==4 && !P, bool>>
+Attrib<T>::Attrib(const element_type& v0, const element_type& v1, const element_type& v2, const element_type& v3)
+    : data({v0, v1, v2, v3})
+{
 }
 
 template<AttribInfo T>
@@ -91,7 +111,7 @@ void Attrib<T>::write(const GLfloat* src)
 }
 
 template<AttribInfo T>
-template<auto N, std::enable_if_t<N, bool>>
+template<auto N, std::enable_if_t<!N, bool>>
 void Attrib<T>::write(const GLint* src)
 {
     if constexpr (info.is_packed){
@@ -106,7 +126,7 @@ void Attrib<T>::write(const GLint* src)
 }
 
 template<AttribInfo T>
-template<auto N, std::enable_if_t<N, bool>>
+template<auto N, std::enable_if_t<!N, bool>>
 void Attrib<T>::write(const GLuint* src)
 {
     if constexpr (info.is_packed){

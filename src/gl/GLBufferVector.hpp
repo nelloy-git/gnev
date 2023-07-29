@@ -30,7 +30,7 @@ public:
     GLsizeiptr size() const;
     GLsizeiptr capacity() const;
 
-    std::unique_ptr<GLbyte[]> get(GLintptr offset, GLsizeiptr size) const;
+    std::shared_ptr<void> get(GLintptr offset, GLsizeiptr size) const;
     void set(GLintptr offset, GLsizeiptr size, const void* data);
     void push_back(GLsizeiptr size, const void* data);
     void insert(GLintptr offset, GLsizeiptr size, const void* data);
@@ -39,8 +39,8 @@ public:
     void shrink_to_fit();
 
 private:
-    GLsizeiptr _size = 0;
-    GLsizeiptr _cap = CAP_BASE;
+    GLsizeiptr _size;
+    GLsizeiptr _cap;
 
 };
 

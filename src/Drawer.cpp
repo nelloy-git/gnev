@@ -33,8 +33,10 @@ Drawer::Drawer(GLADloadfunc load_func) :
         ctx->DebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, GL_TRUE);
     }
 
-    // ctx->Enable(GL_CULL_FACE);
-    // ctx->Enable(GL_DEPTH_TEST);
+    ctx->ClearColor(0.1, 0.8, 0.1, 1);
+
+    ctx->Enable(GL_CULL_FACE);
+    ctx->Enable(GL_DEPTH_TEST);
 }
 
 Drawer::~Drawer()

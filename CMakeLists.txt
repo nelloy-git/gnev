@@ -31,6 +31,10 @@ set(GNEV_GL_BUFFER_VECTOR_CAP_BASE 1 CACHE STRING "GLBufferVector: number of res
 set(GNEV_GL_BUFFER_VECTOR_CAP_MULT 2 CACHE STRING "GLBufferVector: capacity multiplier if not enought memory available")
 set(GNEV_GL_BUFFER_VECTOR_CAP_ADD  0 CACHE STRING "GLBufferVector: capacity addition if not enought memory available")
 
+set(GNEV_GL_TEXTURE_VECTOR_CAP_BASE 1 CACHE STRING "GLTextureVector: number of reserved elements at creation")
+set(GNEV_GL_TEXTURE_VECTOR_CAP_MULT 2 CACHE STRING "GLTextureVector: capacity multiplier if not enought memory available")
+set(GNEV_GL_TEXTURE_VECTOR_CAP_ADD  0 CACHE STRING "GLTextureVector: capacity addition if not enought memory available")
+
 set(GNEV_VERTEX_INFO_MAX_ATTRIBUTES  16 CACHE STRING "VertexInfo: maximum number of attribute for vertex")
 
 
@@ -43,6 +47,10 @@ target_compile_definitions(${PROJECT_NAME} PUBLIC
     GNEV_GL_BUFFER_VECTOR_CAP_BASE=${GNEV_GL_BUFFER_VECTOR_CAP_BASE}
     GNEV_GL_BUFFER_VECTOR_CAP_MULT=${GNEV_GL_BUFFER_VECTOR_CAP_MULT}
     GNEV_GL_BUFFER_VECTOR_CAP_ADD=${GNEV_GL_BUFFER_VECTOR_CAP_ADD}
+
+    GNEV_GL_TEXTURE_VECTOR_CAP_BASE=${GNEV_GL_TEXTURE_VECTOR_CAP_BASE}
+    GNEV_GL_TEXTURE_VECTOR_CAP_MULT=${GNEV_GL_TEXTURE_VECTOR_CAP_MULT}
+    GNEV_GL_TEXTURE_VECTOR_CAP_ADD=${GNEV_GL_TEXTURE_VECTOR_CAP_ADD}
     
     GNEV_VERTEX_INFO_MAX_ATTRIBUTES=${GNEV_VERTEX_INFO_MAX_ATTRIBUTES}
 )

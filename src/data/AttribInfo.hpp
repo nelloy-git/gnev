@@ -14,9 +14,11 @@ struct AttribInfo {
     const bool normalized;
     const bool is_packed;
     const bool is_signed;
+    const size_t size;
 
     static constexpr bool is_packed_type(GLenum type);
     static constexpr bool is_signed_type(GLenum type);
+    static constexpr size_t get_type_size(GLuint elements, GLenum type);
 };
 
 
@@ -27,7 +29,8 @@ constexpr AttribInfo::AttribInfo(GLuint elements, GLenum type, bool normalized)
       type(type),
       normalized(normalized),
       is_packed(is_packed_type(type)),
-      is_signed(is_signed_type(type))
+      is_signed(is_signed_type(type)),
+      size(get_type_size(elements, type))
 {
     if (elements > 4){
         throw std::exception("Vertex attribute can have maximum 4 components");
@@ -42,7 +45,8 @@ constexpr AttribInfo::AttribInfo(GLuint elements, GLenum type, bool normalized)
     }
 };
 
-constexpr bool AttribInfo::is_packed_type(GLenum type){
+constexpr bool AttribInfo::is_packed_type(GLenum type)
+{
     switch (type)
     {
     case GL_FLOAT:
@@ -62,7 +66,8 @@ constexpr bool AttribInfo::is_packed_type(GLenum type){
     }
 }
 
-constexpr bool AttribInfo::is_signed_type(GLenum type){
+constexpr bool AttribInfo::is_signed_type(GLenum type)
+{
     switch (type)
     {
     case GL_FLOAT:
@@ -76,6 +81,25 @@ constexpr bool AttribInfo::is_signed_type(GLenum type){
     case GL_UNSIGNED_SHORT:
     case GL_UNSIGNED_INT_10_10_10_2:
         return false;
+    
+    default:
+        throw std::exception("Unknown attribute type");
+    }
+}
+
+constexpr size_t AttribInfo::get_type_size(GLuint elements, GLenum type)
+{
+    switch (type)
+    {
+    case GL_FLOAT: return elements * sizeof(GLfloat);
+    case GL_BYTE: return elements * sizeof(GLbyte);
+    case GL_UNSIGNED_BYTE: return elements * sizeof(GLubyte);
+    case GL_SHORT: return elements * sizeof(GLshort);
+    case GL_UNSIGNED_SHORT: return elements * sizeof(GLushort);
+    case GL_INT: return elements * sizeof(GLint);
+    case GL_UNSIGNED_INT: return elements * sizeof(GLuint);
+
+    case GL_UNSIGNED_INT_10_10_10_2: return sizeof(GLuint);
     
     default:
         throw std::exception("Unknown attribute type");

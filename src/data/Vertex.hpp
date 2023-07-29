@@ -3,13 +3,13 @@
 #include "data/Attrib.hpp"
 
 namespace gnev {
-
+    
 template<AttribInfo ... A>
 class Vertex {
+    using helper_type = std::tuple<Attrib<A>...>;
 public:
-    using type = std::tuple<Attrib<A>...>;
     template<size_t I>
-    using attrib_type = std::tuple_element_t<I, type>;
+    using attrib_type = std::tuple_element_t<I, helper_type>;
 
     Vertex(const Attrib<A>&...);
 
@@ -22,12 +22,17 @@ public:
     template<size_t I>
     static constexpr GLuint get_offset();
 
-    type data;
+    GLbyte data[sizeof(helper_type)];
     
 private:
     template<size_t... I>
     static constexpr GLuint _get_offset(const std::index_sequence<I...>&);
 
+    template<size_t... Is>
+    void _init_data(const auto& input, const std::index_sequence<Is...>&);
+
+    template<size_t I>
+    void _init_attrib_data(const auto& input);
 };
 
 template <typename derived>
@@ -46,17 +51,16 @@ template <typename derived>
 concept IsVertex = is_Vertex_v<derived>;
 
 template<AttribInfo ... A>
-Vertex<A...>::Vertex(const Attrib<A>&... data)
-    : data({data...})
+Vertex<A...>::Vertex(const Attrib<A>&... input)
 {
-
+    _init_data(std::forward_as_tuple(input...), std::make_index_sequence<sizeof...(A)>{});
 }
 
 template<AttribInfo ... A>
 template<size_t I>
 inline auto& Vertex<A...>::get_attrib()
 {
-    return std::get<I>(data);
+    return *reinterpret_cast<attrib_type<I>*>(&data[get_offset<I>()]);
 }
 
 template<AttribInfo ... A>
@@ -86,6 +90,19 @@ constexpr GLuint Vertex<A...>::_get_offset(const std::index_sequence<I...>&)
     } else {
         return (get_size<I>() + ...);
     }
+}
+
+template<AttribInfo ... A>
+template<size_t... Is>
+void Vertex<A...>::_init_data(const auto& input, const std::index_sequence<Is...>&)
+{
+    (_init_attrib_data<Is>(input), ...);
+}
+
+template<AttribInfo ... A>
+template<size_t I>
+void Vertex<A...>::_init_attrib_data(const auto& input){
+    get_attrib<I>() = std::get<I>(input);
 }
 
 }

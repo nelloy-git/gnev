@@ -8,79 +8,145 @@
 
 namespace gnev {
 
-template<IsVertex Attr, IsVertex Prim>
 class Chunk {
+    template<typename T>
+    static constexpr bool is_index_type = std::is_same_v<T, GLubyte>
+                                          || std::is_same_v<T, GLushort>
+                                          || std::is_same_v<T, GLuint>;
+
+    template<typename T>
+    static constexpr GLenum gl_index_type = std::is_same_v<T, GLubyte> ? GL_UNSIGNED_BYTE 
+                                            : std::is_same_v<T, GLushort> ? GL_UNSIGNED_SHORT
+                                            : GL_UNSIGNED_INT;
+
 public:
+    template<typename IT, AttribInfo... PA, AttribInfo... IA,
+             std::enable_if_t<is_index_type<IT>, bool> = true>
     Chunk(const std::shared_ptr<GladGLContext>& ctx,
-          const GLuint* primitive_indices, GLuint primitive_indices_count,
-          const Prim* primitive_vertices, GLuint primitive_vertices_count);
+          const GLBufferArrayT<IT>& primitive_indices,
+          const GLBufferArrayT<Vertex<PA...>>& primitive_vertices,
+          const GLBufferVectorT<Vertex<IA...>>& instance_vertices);
     virtual ~Chunk();
 
-    template<GLuint primitive_attribindex>
-    void bind_primitive(GLint shader_attribindex);
+    void bind_primitive(GLint shader_attribindex, GLuint primitive_attrib);
+    void bind_instance(GLint shader_attribindex, GLuint instance_attrib);
 
-    template<GLuint primitive_attribindex>
-    void bind_attrubute(GLint shader_attribindex);
+    void draw() const;
 
 // private:
     GLVertexArray _vao;
-    GLBufferArrayT<GLuint> _prim_ibo;
-    GLBufferArrayT<Prim> _prim_vbo;
-    GLBufferVectorT<Attr> _attributes;
+    const GLenum _index_type;
+    const GLenum _index_size;
+    const std::vector<AttribInfo> _primitive_attrib_infos;
+    const std::vector<AttribInfo> _instance_attrib_infos;
+    GLBufferArray _primitive_indices;
+    GLBufferArray _primitive_vertices;
+    GLBufferVector _instaces;
+
+    size_t get_primitive_attrib_offset(size_t attribindex) const;
+    size_t get_instance_attrib_offset(size_t attribindex) const;
+    static size_t get_index_type_size(GLenum index_type);
 
 };
 
-template<IsVertex Attr, IsVertex Prim>
-Chunk<Attr, Prim>::Chunk(const std::shared_ptr<GladGLContext>& ctx,
-                         const GLuint* primitive_indices, GLuint primitive_indices_count,
-                         const Prim* primitive_vertices, GLuint primitive_vertices_count) :
-    _vao(ctx),
-    _prim_ibo(ctx, primitive_indices, primitive_indices_count, 0),
-    _prim_vbo(ctx, primitive_vertices, primitive_vertices_count, 0),
-    _attributes(ctx, GL_DYNAMIC_DRAW)
+template<typename IT, AttribInfo... PA, AttribInfo... IA,
+         std::enable_if_t<Chunk::is_index_type<IT>, bool>>
+Chunk::Chunk(const std::shared_ptr<GladGLContext>& ctx,
+             const GLBufferArrayT<IT>& primitive_indices,
+             const GLBufferArrayT<Vertex<PA...>>& primitive_vertices,
+             const GLBufferVectorT<Vertex<IA...>>& instance_vertices)
+    : _vao(ctx),
+      _index_type(gl_index_type<IT>),
+      _index_size(get_index_type_size(gl_index_type<IT>)),
+      _primitive_attrib_infos{PA...},
+      _instance_attrib_infos{IA...},
+      _primitive_indices(primitive_indices),
+      _primitive_vertices(primitive_vertices),
+      _instaces(instance_vertices)
 {
-    _vao.glVertexArrayElementBuffer(_prim_ibo.handle());
-    _vao.glVertexArrayVertexBuffer(0, _prim_vbo.handle(), 0, sizeof(Prim));
-    _vao.glVertexArrayVertexBuffer(1, _attributes.handle(), 0, sizeof(Attr));
+    _vao.glVertexArrayElementBuffer(_primitive_indices.handle());
+    _vao.glVertexArrayVertexBuffer(0, _primitive_vertices.handle(), 0, sizeof(Vertex<PA...>));
+    _vao.glVertexArrayVertexBuffer(1, _instaces.handle(), 0, sizeof(Vertex<IA...>));
+    _vao.glVertexArrayBindingDivisor(1, 1);
 }   
 
-template<IsVertex Attr, IsVertex Prim>
-Chunk<Attr, Prim>::~Chunk()
+Chunk::~Chunk()
 {
 }
 
-template<IsVertex Attr, IsVertex Prim>
-template<GLuint primitive_attribindex>
-void Chunk<Attr, Prim>::bind_primitive(GLint shader_attribindex)
+void Chunk::bind_primitive(GLint shader_attribindex, GLuint primitive_attrib)
 {
-    static constexpr GLuint I = primitive_attribindex;
-    static constexpr auto OFFSET = Prim::template get_offset<I>();
-    static constexpr auto INFO = Prim::attrib_type<I>::info;
+    auto& info = _primitive_attrib_infos[primitive_attrib];
+    auto offset = get_primitive_attrib_offset(primitive_attrib);
 
     _vao.glVertexArrayAttribBinding(shader_attribindex, 0);
-    _vao.glVertexArrayAttribFormat(shader_attribindex, INFO.elements, INFO.type, INFO.normalized ? GL_TRUE : GL_FALSE, OFFSET);
+    _vao.glVertexArrayAttribFormat(shader_attribindex, info.elements, info.type, info.normalized ? GL_TRUE : GL_FALSE, offset);
     _vao.glEnableVertexArrayAttrib(shader_attribindex);
 
-    std::cout << "bind_primitive " << I << " to " << shader_attribindex
-              << " elements: " << INFO.elements
-              << " type: " << INFO.type
-              << " norm: " << (INFO.normalized ? "true" : "false")
+    std::cout << "Binded shader attrib " << shader_attribindex
+              << " to primitive buffer attrib " << primitive_attrib
+              << "; elements: " << info.elements
+              << "; type: " << info.type
+              << "; normalized: " << info.normalized
+              << "; offset: " << offset
               << std::endl;
 }
 
-template<IsVertex Attr, IsVertex Prim>
-template<GLuint primitive_attribindex>
-void Chunk<Attr, Prim>::bind_attrubute(GLint shader_attribindex)
+void Chunk::bind_instance(GLint shader_attribindex, GLuint instance_attrib)
 {
-    static constexpr GLuint I = primitive_attribindex;
-    static constexpr auto OFFSET = Prim::template get_offset<I>();
-    static constexpr auto INFO = Prim::attrib_type<I>::info;
+    auto& info = _instance_attrib_infos[instance_attrib];
+    auto offset = get_instance_attrib_offset(instance_attrib);
 
     _vao.glVertexArrayAttribBinding(shader_attribindex, 1);
-    _vao.glVertexArrayAttribFormat(shader_attribindex, INFO.elements, INFO.type, INFO.normalized, OFFSET);
+    _vao.glVertexArrayAttribFormat(shader_attribindex, info.elements, info.type, info.normalized ? GL_TRUE : GL_FALSE, offset);
     _vao.glEnableVertexArrayAttrib(shader_attribindex);
+
+    std::cout << "Binded shader attrib " << shader_attribindex
+              << " to instance buffer attrib " << instance_attrib
+              << "; elements: " << info.elements
+              << "; type: " << info.type
+              << "; normalized: " << info.normalized
+              << "; offset: " << offset
+              << std::endl;
 }
 
+void Chunk::draw() const
+{
+    _vao.glBindVertexArray();
+    _vao.ctx()->PolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    _vao.ctx()->DrawElementsInstanced(GL_TRIANGLES, _primitive_indices.size() / _index_size, _index_type, 0, 2);
+    _vao.ctx()->PolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+}
 
+size_t Chunk::get_primitive_attrib_offset(size_t attribindex) const
+{
+    size_t offset = 0;
+    for (size_t i = 0; i < attribindex; ++i){
+        offset += _primitive_attrib_infos[i].size;
+    }
+    return offset;
+}
+
+size_t Chunk::get_instance_attrib_offset(size_t attribindex) const
+{
+    size_t offset = 0;
+    for (size_t i = 0; i < attribindex; ++i){
+        offset += _instance_attrib_infos[i].size;
+    }
+    return offset;
+}
+
+size_t Chunk::get_index_type_size(GLenum index_type)
+{
+    switch (index_type)
+    {
+    case GL_UNSIGNED_BYTE: return sizeof(GLubyte);
+    case GL_UNSIGNED_SHORT: return sizeof(GLubyte);
+    case GL_UNSIGNED_INT: return sizeof(GLuint);
+    
+    default:
+        throw std::runtime_error("");
+    }
+}
 
 }
