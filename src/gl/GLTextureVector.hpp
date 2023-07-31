@@ -16,7 +16,7 @@
 
 namespace gnev {
 
-class GLTextureVector : public GLTexture {
+class EXPORT GLTextureVector : public GLTexture {
 
 public:
     static constexpr GLsizeiptr CAP_BASE = GNEV_GL_TEXTURE_VECTOR_CAP_BASE;
@@ -30,8 +30,8 @@ public:
     GLsizeiptr capacity() const;
     GLsizeiptr max_size() const;
 
-    void set(GLsizei i, GLenum format, GLenum type, const void* img);
-    void push_back(GLenum format, GLenum type, const void* img);
+    void set(GLsizei i, GLint level, GLenum format, GLenum type, const void* img);
+    void push_back(GLint level, GLenum format, GLenum type, const void* img);
     void reserve(GLsizei capacity);
 
 private:
@@ -40,7 +40,7 @@ private:
     GLsizei _size;
     GLsizei _cap;
 
-    GLint get_parameteri(GLenum pname) const;
+    GLint get_level_parameteri(GLint level, GLenum pname) const;
 
 };
 

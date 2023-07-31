@@ -1,17 +1,20 @@
 #include "material/MaterialFactory.hpp"
 
+#include <algorithm>
 #include <iostream>
 #include <fstream>
 #include <stdexcept>
 #include <thread>
 
-#include "nlohmann/json.hpp"
-
 using namespace gnev;
-using json = nlohmann::json;
 
-MaterialFactory::MaterialFactory(const std::shared_ptr<GladGLContext>& ctx, GLsizei tex_mipmap_levels, GLsizei tex_width, GLsizei tex_height)
-    : _texture_loader(ctx, tex_mipmap_levels, tex_width, tex_height, 4),
+MaterialFactory::MaterialFactory(const std::shared_ptr<GladGLContext>& ctx, 
+                                 GLsizei diffuse_mipmap_levels, GLsizei diffuse_width, GLsizei diffuse_height,
+                                 GLsizei normal_mipmap_levels, GLsizei normal_width, GLsizei normal_height,
+                                 GLsizei specular_mipmap_levels, GLsizei specular_width, GLsizei specular_height)
+    : _diffuse_loader(ctx, diffuse_mipmap_levels, diffuse_width, diffuse_height, 4),
+      _normal_loader(ctx, normal_mipmap_levels, normal_width, normal_height, 4),
+      _specular_loader(ctx, normal_mipmap_levels, normal_width, normal_height, 4),
       _buffer(ctx, nullptr, 0, GL_STATIC_DRAW)
 {
 }
@@ -19,9 +22,24 @@ MaterialFactory::MaterialFactory(const std::shared_ptr<GladGLContext>& ctx, GLsi
 MaterialFactory::~MaterialFactory(){   
 }
 
-const MaterialTextureLoader& MaterialFactory::texture_loader() const
+const GLBufferVectorT<Material>& MaterialFactory::material_buffer() const
 {
-    return _texture_loader;
+    return _buffer;
+}
+
+const MaterialTextureLoader& MaterialFactory::diffuse_loader() const 
+{
+    return _diffuse_loader;
+}
+
+const MaterialTextureLoader& MaterialFactory::normal_loader() const 
+{
+    return _normal_loader;
+}
+
+const MaterialTextureLoader& MaterialFactory::specular_loader() const 
+{
+    return _specular_loader;
 }
 
 GLint MaterialFactory::register_material(const std::wstring& name, const MaterialInfo& info)
@@ -36,25 +54,68 @@ GLint MaterialFactory::register_material(const std::wstring& name, const Materia
     }
 
     Material material;
-    _load_color_texture(material, info);
+    std::copy(info.color, info.color + std::size(material.color), material.color);
+    std::copy(info.normal, info.normal + std::size(material.normal), material.normal);
+    std::copy(info.specular, info.specular + std::size(material.specular), material.specular);
 
+    _load_diffuse_texture(material, info);
+    _load_normal_texture(material, info);
+    _load_specular_texture(material, info);
+
+    _buffer.push_back(material);
+    return _buffer.size() - 1;
 }
 
-void MaterialFactory::_load_color_texture(Material& material, const MaterialInfo& info)
+void MaterialFactory::_load_diffuse_texture(Material& material, const MaterialInfo& info)
 {
-    if (info.texture.color_path.has_value()){
-        auto& path = info.texture.color_path.value();
+    if (info.texture.diffuse_path.has_value()){
+        auto& path = info.texture.diffuse_path.value();
         GLint array_index = -1;
         GLint pos_index = -1;
         try {
-            auto loc = _texture_loader.load(path);
+            auto loc = _diffuse_loader.load(path);
             array_index = loc.array_index;
             pos_index = loc.pos_index;
         } catch (std::exception& e){
             std::cout << "can not load texture" << std::endl;
         }
-        material.texture.color_binding_index = array_index;
-        material.texture.color_element_index = pos_index;
+        material.texture.diffuse_array_index = array_index;
+        material.texture.diffuse_element_index = pos_index;
     }
- 
+}
+
+void MaterialFactory::_load_normal_texture(Material& material, const MaterialInfo& info)
+{
+    if (info.texture.normal_path.has_value()){
+        auto& path = info.texture.normal_path.value();
+        GLint array_index = -1;
+        GLint pos_index = -1;
+        try {
+            auto loc = _normal_loader.load(path);
+            array_index = loc.array_index;
+            pos_index = loc.pos_index;
+        } catch (std::exception& e){
+            std::cout << "can not load texture" << std::endl;
+        }
+        material.texture.normal_array_index = array_index;
+        material.texture.normal_element_index = pos_index;
+    }
+}
+
+void MaterialFactory::_load_specular_texture(Material& material, const MaterialInfo& info)
+{
+    if (info.texture.specular_path.has_value()){
+        auto& path = info.texture.specular_path.value();
+        GLint array_index = -1;
+        GLint pos_index = -1;
+        try {
+            auto loc = _specular_loader.load(path);
+            array_index = loc.array_index;
+            pos_index = loc.pos_index;
+        } catch (std::exception& e){
+            std::cout << "can not load texture" << std::endl;
+        }
+        material.texture.specular_array_index = array_index;
+        material.texture.specular_element_index = pos_index;
+    }
 }

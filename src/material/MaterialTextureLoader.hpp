@@ -24,10 +24,9 @@ public:
     const std::shared_ptr<GladGLContext>& ctx() const;
 
     TextureLocation load(const std::filesystem::path& path);
+    const std::vector<GLTextureVector>& textures() const;
 
 private:
-    const std::shared_ptr<GladGLContext> _ctx;
-
     const GLsizei _mipmap_levels;
     const GLsizei _width;
     const GLsizei _height;
@@ -35,7 +34,7 @@ private:
     const GLenum _storage_format;
     const GLenum _image_format;
 
-    std::unordered_map<std::filesystem::path, TextureLocation> _path_map;
+    std::unordered_map<std::wstring, TextureLocation> _path_map;
     std::vector<GLTextureVector> _textures;
 
     static GLenum get_storage_format(GLsizei img_components);

@@ -15,7 +15,8 @@ using namespace gnev;
 Drawer::Drawer(GLADloadfunc load_func) :
     ctx(create_glad_ctx(load_func)),
     camera(ctx),
-    program(ctx)
+    program(ctx),
+    sampler(create_texture_sampler(ctx))
 {
     gladLoadGLContext(ctx.get(), load_func);
 
@@ -50,6 +51,7 @@ void Drawer::draw() const
     auto camera_index = program.glGetUniformBlockIndex("Camera");
     program.glUniformBlockBinding(camera_index, 0);
     camera.buffer.glBindBufferBase(GL_UNIFORM_BUFFER, 0);
+
 }
 
 std::shared_ptr<GladGLContext> Drawer::create_glad_ctx(GLADloadfunc load_func)
@@ -59,17 +61,17 @@ std::shared_ptr<GladGLContext> Drawer::create_glad_ctx(GLADloadfunc load_func)
     return ctx;
 }
 
-std::unique_ptr<GLSampler> Drawer::create_texture_sampler(const std::shared_ptr<GladGLContext> &ctx)
+GLSampler Drawer::create_texture_sampler(const std::shared_ptr<GladGLContext> &ctx)
 {
     static const float BORDER_COLOR[] = { 1.0f, 1.0f, 1.0f, 0.0f };
 
-    auto sampler = std::make_unique<GLSampler>(ctx);
+    auto sampler = GLSampler(ctx);
 
-    sampler->glSamplerParameteri(GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
-    sampler->glSamplerParameteri(GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
-    sampler->glSamplerParameteri(GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    sampler->glSamplerParameteri(GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    sampler->glSamplerParameterfv(GL_TEXTURE_BORDER_COLOR, BORDER_COLOR);
+    sampler.glSamplerParameteri(GL_TEXTURE_WRAP_S, GL_REPEAT);
+    sampler.glSamplerParameteri(GL_TEXTURE_WRAP_T, GL_REPEAT);
+    sampler.glSamplerParameteri(GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    sampler.glSamplerParameteri(GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    // sampler.glSamplerParameterfv(GL_TEXTURE_BORDER_COLOR, BORDER_COLOR);
 
     return sampler;
 }

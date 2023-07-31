@@ -12,6 +12,7 @@ public:
     void glBindTexture(GLenum target) const;
     void glTextureParameteri(GLenum pname, GLint param);
     void glGetTextureParameteriv(GLenum pname, GLint* params) const;
+    void glGetTextureLevelParameteriv(GLint level, GLenum pname, GLint* params) const;
     void glTextureParameterfv(GLenum pname, const GLfloat* param);
     void glTextureStorage3D(GLsizei levels, GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth);
     void glTextureSubImage3D(GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, const void *pixels);

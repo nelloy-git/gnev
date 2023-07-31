@@ -22,14 +22,14 @@ public:
     const std::shared_ptr<GladGLContext> ctx;
     GLProgram program;
     Camera camera;
+    GLSampler sampler;
 
     void draw() const;
 
 private:
+
     static std::shared_ptr<GladGLContext> create_glad_ctx(GLADloadfunc load_func);
-
-
-    static std::unique_ptr<GLSampler> create_texture_sampler(const std::shared_ptr<GladGLContext> &ctx);
+    static GLSampler create_texture_sampler(const std::shared_ptr<GladGLContext> &ctx);
 };
 
 }

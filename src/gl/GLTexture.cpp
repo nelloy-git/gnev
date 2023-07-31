@@ -26,6 +26,11 @@ void GLTexture::glGetTextureParameteriv(GLenum pname, GLint* params) const
     ctx()->GetTextureParameteriv(handle(), pname, params);
 }
 
+void GLTexture::glGetTextureLevelParameteriv(GLint level, GLenum pname, GLint* params) const
+{
+    ctx()->GetTextureLevelParameteriv(handle(), level, pname, params);
+}
+
 void GLTexture::glTextureParameterfv(GLenum pname, const GLfloat* param)
 {
     ctx()->TextureParameterfv(handle(), pname, param);

@@ -6,6 +6,12 @@
 
 namespace gnev {
 
+struct CameraBuffer {
+    glm::mat4 mat;
+    glm::vec3 viewPos;
+    glm::vec3 viewDir;
+};
+
 class EXPORT Camera {
 public:
     Camera(const std::shared_ptr<GladGLContext> &ctx);

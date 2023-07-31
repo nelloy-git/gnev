@@ -51,11 +51,6 @@ void GLProgram::glUniformBlockBinding(GLuint uniformBlockIndex, GLuint uniformBl
     ctx()->UniformBlockBinding(handle(), uniformBlockIndex, uniformBlockBinding);
 }
 
-GLint GLProgram::glGetAttribLocation(const GLchar* name) const
-{
-    return ctx()->GetAttribLocation(handle(), name);
-}
-
 GLint GLProgram::glGetProgramResourceIndex(GLenum programInterface, const GLchar *name) const
 {
     return ctx()->GetProgramResourceIndex(handle(), programInterface, name);
@@ -64,6 +59,16 @@ GLint GLProgram::glGetProgramResourceIndex(GLenum programInterface, const GLchar
 void GLProgram::glShaderStorageBlockBinding(GLuint storageBlockIndex, GLuint storageBlockBinding) const
 {
     ctx()->ShaderStorageBlockBinding(handle(), storageBlockIndex, storageBlockBinding);
+}
+
+GLint GLProgram::glGetAttribLocation(const GLchar* name) const
+{
+    return ctx()->GetAttribLocation(handle(), name);
+}
+
+GLint GLProgram::glGetUniformLocation(const GLchar* name) const
+{
+    return ctx()->GetUniformLocation(handle(), name);
 }
 
 GLuint* GLProgram::create_handle(const std::shared_ptr<GladGLContext> &ctx)

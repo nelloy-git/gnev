@@ -18,6 +18,7 @@ public:
     GLint glGetUniformBlockIndex(const GLchar *uniformBlockName) const;
     void glUniformBlockBinding(GLuint uniformBlockIndex, GLuint uniformBlockBinding) const;
     GLint glGetAttribLocation(const GLchar* name) const;
+    GLint glGetUniformLocation(const GLchar* name) const;
 
     GLint glGetProgramResourceIndex(GLenum programInterface, const GLchar *name) const;
     void glShaderStorageBlockBinding(GLuint storageBlockIndex, GLuint storageBlockBinding) const;
