@@ -165,6 +165,8 @@ void bind_camera_controll(GlfwConveyor& conveyor, gnev::Drawer& drawer, bool& al
 
         if (action == GLFW_PRESS || action == GLFW_REPEAT){
             bool moved = false;
+            bool draw_polygons = false;
+
             switch (key){
             case GLFW_KEY_A: drawer.camera.pos.x += vel; moved = true; break;
             case GLFW_KEY_D: drawer.camera.pos.x -= vel; moved = true; break;
@@ -172,6 +174,10 @@ void bind_camera_controll(GlfwConveyor& conveyor, gnev::Drawer& drawer, bool& al
             case GLFW_KEY_SPACE: drawer.camera.pos.y -= vel; moved = true; break;
             case GLFW_KEY_W: drawer.camera.pos.z += vel; moved = true; break;
             case GLFW_KEY_S: drawer.camera.pos.z -= vel; moved = true; break;
+            case GLFW_KEY_P:
+                draw_polygons = !draw_polygons; 
+                drawer.ctx->PolygonMode(GL_FRONT_AND_BACK, draw_polygons ? GL_LINE : GL_FILL);
+                break;
             default: break;
             }
             if (moved){
@@ -241,11 +247,15 @@ int main(int argc, const char** argv)
                                                4, 128, 128,
                                                4, 128, 128,
                                                4, 128, 128);
+        auto current_dir = std::filesystem::current_path();
+        auto diffuse_path = current_dir / "..\\3rdparty\\minecraft_textures\\gravel.png";
+        auto normal_path = current_dir / "..\\3rdparty\\minecraft_textures\\gravel_n.png";
+        auto specular_path = current_dir / "..\\3rdparty\\minecraft_textures\\gravel_s.png";
         gnev::MaterialInfo gravel_info = {
             .texture = {
-                .diffuse_path = "D:\\projects\\gnev\\3rdparty\\minecraft_textures\\gravel.png",
-                .normal_path = "D:\\projects\\gnev\\3rdparty\\minecraft_textures\\gravel_n.png",
-                .specular_path = "D:\\projects\\gnev\\3rdparty\\minecraft_textures\\gravel_s.png"
+                .diffuse_path = diffuse_path,
+                .normal_path = normal_path,
+                .specular_path = specular_path
             }
         };
         auto gravel_id = material_factory.register_material(L"gravel", gravel_info);

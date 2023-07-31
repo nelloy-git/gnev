@@ -1,5 +1,10 @@
 #include "utils/Worker.hpp"
 
+#include <atomic>
+#include <mutex>
+#include <optional>
+#include <queue>
+
 class Worker::State {
     using Cmd = std::function<void()>;
 public:

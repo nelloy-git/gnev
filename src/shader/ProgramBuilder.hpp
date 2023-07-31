@@ -2,6 +2,7 @@
 
 #include <optional>
 #include <unordered_map>
+#include <string>
 
 #include "gl/GLShader.hpp"
 #include "gl/GLProgram.hpp"

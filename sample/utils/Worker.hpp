@@ -1,10 +1,6 @@
 #pragma once
 
-#include <atomic>
-#include <queue>
 #include <functional>
-#include <memory>
-#include <mutex>
 #include <thread>
 
 class Worker {
