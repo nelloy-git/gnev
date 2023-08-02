@@ -14,6 +14,7 @@ public:
     ~GLBufferStructT();
 
     T* glMapBuffer(GLenum access);
+    T* glMapBufferRange(GLbitfield access);
 
     std::shared_ptr<T> get() const;
     void set(const T& value);
@@ -40,6 +41,12 @@ template<typename T>
 T* GLBufferStructT<T>::glMapBuffer(GLenum access)
 {
     return static_cast<T*>(GLBufferArray::glMapBuffer(access));
+}
+
+template<typename T>
+T* GLBufferStructT<T>::glMapBufferRange(GLbitfield access)
+{
+    return static_cast<T*>(GLBufferArray::glMapBufferRange(0, ELEM_SIZE, acces s));
 }
 
 template<typename T>

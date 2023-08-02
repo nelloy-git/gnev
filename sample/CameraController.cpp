@@ -35,15 +35,14 @@ namespace {
 }
 
 CameraController::CameraController(const std::shared_ptr<GladGLContext> &ctx)
-    : _camera(ctx, &default_camera, GL_MAP_READ_BIT | GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT)
+    : _camera(ctx, &default_camera, GL_MAP_READ_BIT | GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT),
+      _map(_camera.glMapBufferRange(GL_MAP_READ_BIT | GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT))
 {
-    auto map = _camera.glMapBuffer(GL_READ_WRITE);
-    map->position = glm::vec4{1, 1, 1, 0};
-    map->direction = glm::normalize(glm::vec4{-1, -1, -1, 0});
-    map->view_mat = glm::lookAt(glm::vec3{1, 1, 1}, {0, 0, 0}, {0, 1, 0});
-    map->projection_mat = glm::perspectiveFov(map->fov, static_cast<float>(map->width), static_cast<float>(map->height), map->near_z, map->far_z);
-    map->result_mat = map->projection_mat * map->view_mat;
-    _camera.glUnmapBuffer();
+    _map->position = glm::vec4{1, 1, 1, 0};
+    _map->direction = glm::normalize(glm::vec4{-1, -1, -1, 0});
+    _map->view_mat = glm::lookAt(glm::vec3{1, 1, 1}, {0, 0, 0}, {0, 1, 0});
+    _map->projection_mat = glm::perspectiveFov(_map->fov, static_cast<float>(_map->width), static_cast<float>(_map->height), _map->near_z, _map->far_z);
+    _map->result_mat = _map->projection_mat * _map->view_mat;
 }
 
 CameraController::~CameraController()
@@ -58,25 +57,20 @@ gnev::GLBuffer& CameraController::buffer()
 
 GLfloat CameraController::get_fov()
 {
-    auto map = _camera.glMapBuffer(GL_READ_ONLY);
-    auto fov = map->fov;
-    _camera.glUnmapBuffer();
-    return fov;
+    return _map->fov;
 }
 
 void CameraController::set_fov(GLfloat fov)
 {
-    auto map = _camera.glMapBuffer(GL_READ_WRITE);
-    map->fov = fov;
-    map->projection_mat = glm::perspectiveFov(map->fov, static_cast<float>(map->width), static_cast<float>(map->height), map->near_z, map->far_z);
-    map->result_mat = map->projection_mat * map->view_mat;
-    _camera.glUnmapBuffer();
+    _map->fov = fov;
+    _map->projection_mat = glm::perspectiveFov(_map->fov, static_cast<float>(_map->width), static_cast<float>(_map->height), _map->near_z, _map->far_z);
+    _map->result_mat = _map->projection_mat * _map->view_mat;
 }
 
 GLfloat CameraController::get_width()
 {
     auto map = _camera.glMapBuffer(GL_READ_ONLY);
-    auto width = map->width;
+    auto width = _map->width;
     _camera.glUnmapBuffer();
     return width;
 }
@@ -84,16 +78,16 @@ GLfloat CameraController::get_width()
 void CameraController::set_width(GLfloat width)
 {
     auto map = _camera.glMapBuffer(GL_READ_WRITE);
-    map->width = width;
-    map->projection_mat = glm::perspectiveFov(map->fov, static_cast<float>(map->width), static_cast<float>(map->height), map->near_z, map->far_z);
-    map->result_mat = map->projection_mat * map->view_mat;
+    _map->width = width;
+    _map->projection_mat = glm::perspectiveFov(_map->fov, static_cast<float>(_map->width), static_cast<float>(_map->height), _map->near_z, _map->far_z);
+    _map->result_mat = _map->projection_mat * _map->view_mat;
     _camera.glUnmapBuffer();
 }
 
 GLfloat CameraController::get_height()
 {
     auto map = _camera.glMapBuffer(GL_READ_ONLY);
-    auto height = map->height;
+    auto height = _map->height;
     _camera.glUnmapBuffer();
     return height;
 }
@@ -101,16 +95,16 @@ GLfloat CameraController::get_height()
 void CameraController::set_height(GLfloat height)
 {
     auto map = _camera.glMapBuffer(GL_READ_WRITE);
-    map->height = height;
-    map->projection_mat = glm::perspectiveFov(map->fov, static_cast<float>(map->width), static_cast<float>(map->height), map->near_z, map->far_z);
-    map->result_mat = map->projection_mat * map->view_mat;
+    _map->height = height;
+    _map->projection_mat = glm::perspectiveFov(_map->fov, static_cast<float>(_map->width), static_cast<float>(_map->height), _map->near_z, _map->far_z);
+    _map->result_mat = _map->projection_mat * _map->view_mat;
     _camera.glUnmapBuffer();
 }
 
 GLfloat CameraController::get_near_z()
 {
     auto map = _camera.glMapBuffer(GL_READ_ONLY);
-    auto near_z = map->near_z;
+    auto near_z = _map->near_z;
     _camera.glUnmapBuffer();
     return near_z;
 }
@@ -118,16 +112,16 @@ GLfloat CameraController::get_near_z()
 void CameraController::set_near_z(GLfloat near_z)
 {
     auto map = _camera.glMapBuffer(GL_READ_WRITE);
-    map->near_z = near_z;
-    map->projection_mat = glm::perspectiveFov(map->fov, static_cast<float>(map->width), static_cast<float>(map->height), map->near_z, map->far_z);
-    map->result_mat = map->projection_mat * map->view_mat;
+    _map->near_z = near_z;
+    _map->projection_mat = glm::perspectiveFov(_map->fov, static_cast<float>(_map->width), static_cast<float>(_map->height), _map->near_z, _map->far_z);
+    _map->result_mat = _map->projection_mat * _map->view_mat;
     _camera.glUnmapBuffer();
 }
 
 GLfloat CameraController::get_far_z()
 {
     auto map = _camera.glMapBuffer(GL_READ_ONLY);
-    auto far_z = map->far_z;
+    auto far_z = _map->far_z;
     _camera.glUnmapBuffer();
     return far_z;
 }
@@ -135,16 +129,16 @@ GLfloat CameraController::get_far_z()
 void CameraController::set_far_z(GLfloat far_z)
 {
     auto map = _camera.glMapBuffer(GL_READ_WRITE);
-    map->far_z = far_z;
-    map->projection_mat = glm::perspectiveFov(map->fov, static_cast<float>(map->width), static_cast<float>(map->height), map->near_z, map->far_z);
-    map->result_mat = map->projection_mat * map->view_mat;
+    _map->far_z = far_z;
+    _map->projection_mat = glm::perspectiveFov(_map->fov, static_cast<float>(_map->width), static_cast<float>(_map->height), _map->near_z, _map->far_z);
+    _map->result_mat = _map->projection_mat * _map->view_mat;
     _camera.glUnmapBuffer();
 }
 
 const glm::vec4 CameraController::get_position()
 {
     auto map = _camera.glMapBuffer(GL_READ_ONLY);
-    auto position = map->position;
+    auto position = _map->position;
     _camera.glUnmapBuffer();
     return position;
 }
@@ -152,16 +146,16 @@ const glm::vec4 CameraController::get_position()
 void CameraController::set_position(glm::vec4 position)
 {
     auto map = _camera.glMapBuffer(GL_READ_WRITE);
-    map->position = position;
-    map->view_mat = glm::lookAt(glm::vec3(map->position), glm::vec3(map->position + map->direction), glm::vec3(map->top));
-    map->result_mat = map->projection_mat * map->view_mat;
+    _map->position = position;
+    _map->view_mat = glm::lookAt(glm::vec3(_map->position), glm::vec3(_map->position + _map->direction), glm::vec3(_map->top));
+    _map->result_mat = _map->projection_mat * _map->view_mat;
     _camera.glUnmapBuffer();
 }
 
 const glm::vec4 CameraController::get_direction()
 {
     auto map = _camera.glMapBuffer(GL_READ_ONLY);
-    auto direction = map->direction;
+    auto direction = _map->direction;
     _camera.glUnmapBuffer();
     return direction;
 }
@@ -169,9 +163,9 @@ const glm::vec4 CameraController::get_direction()
 void CameraController::set_direction(glm::vec4 direction)
 {
     auto map = _camera.glMapBuffer(GL_READ_WRITE);
-    map->direction = glm::normalize(direction);
-    map->view_mat = glm::lookAt(glm::vec3(map->position), glm::vec3(map->position + map->direction), glm::vec3(map->top));
-    map->result_mat = map->projection_mat * map->view_mat;
+    _map->direction = glm::normalize(direction);
+    _map->view_mat = glm::lookAt(glm::vec3(_map->position), glm::vec3(_map->position + _map->direction), glm::vec3(_map->top));
+    _map->result_mat = _map->projection_mat * _map->view_mat;
     _camera.glUnmapBuffer();
 }
 
@@ -197,24 +191,24 @@ void CameraController::capture(GlfwConveyor& conveyor)
         prev_y = pos_y;
 
         auto map = _camera.glMapBuffer(GL_READ_WRITE);
-        auto top = glm::vec3(map->top);
-        auto dir = glm::vec3(map->direction);
+        auto top = glm::vec3(_map->top);
+        auto dir = glm::vec3(_map->direction);
         auto right = glm::normalize(glm::cross(dir, top));
         dir = glm::rotate(dir, offset_yaw, -top);
         dir = glm::rotate(dir, offset_pitch, -right);
         _camera.glUnmapBuffer();
         set_direction(glm::vec4(glm::normalize(dir), 0));
     };
-    conveyor.cursor_pos_callbacks.emplace_back(std::move(cursor_pos_cb));
+    // conveyor.cursor_pos_callbacks.emplace_back(std::move(cursor_pos_cb));
 
     float speed = 0.1;
     auto key_cb = [this, speed](GlfwConveyor* conveyor, int key, int scancode, int action, int mods){
         std::cout << "Key pressed" << std::endl;
         if (action == GLFW_PRESS || action == GLFW_REPEAT){
             auto map = _camera.glMapBuffer(GL_READ_WRITE);
-            auto pos = glm::vec3(map->position);
-            auto top = glm::vec3(map->top);
-            auto dir = glm::vec3(map->direction);
+            auto pos = glm::vec3(_map->position);
+            auto top = glm::vec3(_map->top);
+            auto dir = glm::vec3(_map->direction);
             auto right = glm::normalize(glm::cross(dir, top));
             _camera.glUnmapBuffer();
 
@@ -231,5 +225,5 @@ void CameraController::capture(GlfwConveyor& conveyor)
             set_position(glm::vec4(pos, 0));
         }
     };
-    conveyor.key_callbacks.emplace_back(std::move(key_cb));
+    // conveyor.key_callbacks.emplace_back(std::move(key_cb));
 }

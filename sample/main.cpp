@@ -83,11 +83,13 @@ int main(int argc, const char** argv)
     conveyor.worker.push([&conveyor](){
         bool alive = true;
 
-        conveyor.key_callbacks.push_back([&alive](GlfwConveyor* conveyor, int key, int scancode, int action, int mods){
+        auto exit_cb = [&alive](GlfwConveyor* conveyor, int key, int scancode, int action, int mods){
             if (key == GLFW_KEY_ESCAPE && action == GLFW_RELEASE){
                 alive = false;
             }
-        });
+        };
+        conveyor.key_callbacks.push_back(exit_cb);
+        sizeof(exit_cb);
 
 
         gnev::Drawer drawer(conveyor.get_proc_address());

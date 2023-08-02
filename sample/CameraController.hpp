@@ -61,6 +61,7 @@ public:
 
 private:
     gnev::GLBufferStructT<Camera> _camera;
+    Camera *_map;
 
     double _cursor_sensivity = 0.0015;
 };
