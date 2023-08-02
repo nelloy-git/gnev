@@ -17,9 +17,12 @@ GlfwConveyor::GlfwConveyor() :
     glfwSetWindowUserPointer(window, this);
 
     _previous_key_callback = glfwSetKeyCallback(window, glfw_key_callback);
+    _previous_cursor_pos_callback = glfwSetCursorPosCallback(window, glfw_cursor_pos_callback);
 }
 
 GlfwConveyor::~GlfwConveyor(){
+    key_callbacks.clear();
+    cursor_pos_callbacks.clear();
     worker.push([window = window](){
         destroy_glfw_window(window);
     });
@@ -90,7 +93,23 @@ void GlfwConveyor::glfw_key_callback(GLFWwindow* window, int key, int scancode, 
         conveyor->_previous_key_callback(window, key, scancode, action, mods);
     }
 
-    if (conveyor->key_callback){
-        conveyor->key_callback(conveyor, key, scancode, action, mods);
+    for (auto& callback : conveyor->key_callbacks){
+        callback(conveyor, key, scancode, action, mods);
+    }
+}
+
+void GlfwConveyor::glfw_cursor_pos_callback(GLFWwindow* window, double pos_x, double pos_y){
+    GlfwConveyor* conveyor = static_cast<GlfwConveyor*>(glfwGetWindowUserPointer(window));
+
+    if (!conveyor){
+        return;
+    }
+
+    if (conveyor->_previous_cursor_pos_callback){
+        conveyor->_previous_cursor_pos_callback(window, pos_x, pos_y);
+    }
+
+    for (auto& callback : conveyor->cursor_pos_callbacks){
+        callback(conveyor, pos_x, pos_y);
     }
 }

@@ -21,11 +21,15 @@ public:
     const Worker worker;
     GLFWwindow* const window;
 
-    std::function<void(GlfwConveyor* conveyor, int key, int scancode, int action, int mods)> key_callback;
+    std::vector<std::function<void(GlfwConveyor* conveyor, int key, int scancode, int action, int mods)>> key_callbacks;
+    std::vector<std::function<void(GlfwConveyor* conveyor, double pos_x, double pos_y)>> cursor_pos_callbacks;
 
 private:
     typedef void (*GlfwKeyCallback)(GLFWwindow* window, int key, int scancode, int action, int mods);
     GlfwKeyCallback _previous_key_callback;
+
+    typedef void (*GlfwCursorPosCallback)(GLFWwindow* window, double pos_x, double pos_y);
+    GlfwCursorPosCallback _previous_cursor_pos_callback;
     
     // std::unique_ptr<GLFWwindow, void(*)(GLFWwindow*)> _window;
 
@@ -33,4 +37,5 @@ private:
     static void destroy_glfw_window(GLFWwindow* window);
 
     static void glfw_key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
+    static void glfw_cursor_pos_callback(GLFWwindow* window, double pos_x, double pos_y);
 };

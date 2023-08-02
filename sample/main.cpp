@@ -4,10 +4,12 @@
 
 #include <chrono>
 #include <iostream>
+#include <fstream>
 
 #define GLFW_INCLUDE_NONE
 #include "GLFW/glfw3.h"
 #include "GlfwConveyor.hpp"
+#include "CameraController.hpp"
 
 #include "gl/GLBuffer.hpp"
 #include "gl/GLVertexArray.hpp"
@@ -22,181 +24,38 @@
 #include "data/PlateChunk.hpp"
 #include "material/MaterialFactory.hpp"
 
-const std::string& get_vertex_shader_src(){
-    static const std::string src = R"(
-#version 430 core
-
-layout (std140) uniform Camera {
-    mat4 camera_mat;
-    vec3 view_pos;
-    vec3 view_dir;
-};
-
-in vec3 inPos;
-in vec2 inUV;
-in int inMaterialId;
-
-out vec4 vPos;
-out vec2 vUV;
-flat out int vMaterialId;
-
-void main(){
-    vPos = camera_mat * vec4(inPos, 1.0);
-    vUV = inUV;
-    vMaterialId = inMaterialId;
-    gl_Position = vPos;
-}
-    )";
-    return src;
-}
-
-const std::string& get_fragment_shader_src(){
-    static const std::string src = R"(
-#version 430 core
-
-struct MaterialTexture {
-    int diffuse_array_index;
-    int diffuse_element_index;
-    int normal_array_index;
-    int normal_element_index;
-    int specular_array_index;
-    int specular_element_index;
-};
-
-struct Material
-{
-    vec4 color;
-    vec4 normal;
-    vec4 specular;
-    MaterialTexture texture;
-};
-
-layout (std430) buffer MaterialBuffer
-{
-    Material materials[];
-};
-
-layout (std140) uniform Camera {
-    mat4 camera_mat;
-    vec3 view_pos;
-    vec3 view_dir;
-};
-
-struct PointLight { 
-    vec3 position;
-    
-    float constant;
-    float linear;
-    float quadratic;  
-
-    vec3 ambient;
-    vec3 diffuse;
-    vec3 specular;
-};
-
-layout (std430) buffer PointLightBuffer
-{
-    PointLight lights[];
-};
-
-uniform sampler2DArray diffuse_0;
-// uniform sampler2DArray diffuse_1;
-uniform sampler2DArray normal_0;
-// uniform sampler2DArray normal_1;
-uniform sampler2DArray specular_0;
-// uniform sampler2DArray specular_1;
-
-in vec4 vPos;
-in vec2 vUV;
-flat in int vMaterialId;
-
-out vec4 fColor;
-
-vec3 CalcPointLight(PointLight light, Material material, vec3 fragPos, vec3 viewDir)
-{
-    vec3 diffuse = texture(diffuse_0, vec3(vUV, material.texture.diffuse_element_index)).rgb;
-    vec3 normal = texture(normal_0, vec3(vUV, material.texture.normal_element_index)).rgb;
-    vec3 specular = texture(specular_0, vec3(vUV, material.texture.specular_element_index)).rgb;
-
-    vec3 lightDir = normalize(light.position - fragPos);
-    // diffuse shading
-    float diff = max(dot(normal, lightDir), 0.0);
-    // specular shading
-    vec3 reflectDir = reflect(-lightDir, normal);
-    float shininess = 100;
-    float spec = pow(max(dot(viewDir, reflectDir), 0.0), shininess);
-    // attenuation
-    float distance    = length(light.position - fragPos);
-    float attenuation = 1.0 / (light.constant + light.linear * distance + 
-  			     light.quadratic * (distance * distance));    
-    // combine results
-    vec3 ambient_light  = light.ambient  * diffuse;
-    vec3 diffuse_light  = light.diffuse  * diff * diffuse;
-    vec3 specular_light = light.specular * spec * specular;
-    ambient_light  *= attenuation;
-    diffuse_light  *= attenuation;
-    specular_light *= attenuation;
-    return (ambient_light + diffuse_light + specular_light);
-} 
-
-void main(){
-    Material material = materials[vMaterialId];
-    fColor = vec4(CalcPointLight(lights[0], material, vPos.rgb, view_dir), 1);
-} 
-    
-)";
-    return src;
-}
-
 static constexpr gnev::AttribInfo AttribPos(3, GL_FLOAT, false);
 static constexpr gnev::AttribInfo AttribUV(2, GL_FLOAT, false);
 static constexpr gnev::AttribInfo AttribMaterialID(1, GL_INT, false);
 
 using Vertex = gnev::Vertex<AttribPos, AttribUV, AttribMaterialID>;
 
-void bind_camera_controll(GlfwConveyor& conveyor, gnev::Drawer& drawer, bool& alive)
+void read_text_file(std::string& dst, const std::filesystem::path& path)
 {
-    conveyor.key_callback = [&alive, &drawer](GlfwConveyor* conveyor, int key, int scancode, int action, int mods){
-        const float vel = 0.05;
+    std::cout << "Loading shader " << path.string().c_str() << std::endl;
+    if (!std::filesystem::exists(path)){
+        throw std::runtime_error("File not found");
+    }
 
-        if (key == GLFW_KEY_ESCAPE && action == GLFW_RELEASE){
-            alive = false;
-        }
-
-        if (action == GLFW_PRESS || action == GLFW_REPEAT){
-            bool moved = false;
-            bool draw_polygons = false;
-
-            switch (key){
-            case GLFW_KEY_A: drawer.camera.pos.x += vel; moved = true; break;
-            case GLFW_KEY_D: drawer.camera.pos.x -= vel; moved = true; break;
-            case GLFW_KEY_LEFT_CONTROL: drawer.camera.pos.y += vel; moved = true; break;
-            case GLFW_KEY_SPACE: drawer.camera.pos.y -= vel; moved = true; break;
-            case GLFW_KEY_W: drawer.camera.pos.z += vel; moved = true; break;
-            case GLFW_KEY_S: drawer.camera.pos.z -= vel; moved = true; break;
-            case GLFW_KEY_P:
-                draw_polygons = !draw_polygons; 
-                drawer.ctx->PolygonMode(GL_FRONT_AND_BACK, draw_polygons ? GL_LINE : GL_FILL);
-                break;
-            default: break;
-            }
-            if (moved){
-                drawer.camera.applyLookAt({0,0,0});
-            }
-        }
-    };
+    std::ifstream t(path.wstring());
+    t.seekg(0, std::ios::end);
+    size_t size = t.tellg();
+    dst.resize(size, ' ');
+    t.seekg(0);
+    t.read(dst.data(), size);
 }
 
 struct PointLight {
-    float pos[3];
+    GLfloat pos[4];
 
-    float constant;
-    float linearic;
-    float quadratic;
+    GLfloat constant;
+    GLfloat linearic;
+    GLfloat quadratic;
+    GLfloat reserve;
 
-    float ambient[3];
-    float diffuse[3];
-    float specular[3];
+    GLfloat ambient[4];
+    GLfloat diffuse[4];
+    GLfloat specular[4];
 };
 
 gnev::GLBufferVectorT<PointLight> create_lights(const std::shared_ptr<GladGLContext>& ctx)
@@ -208,9 +67,9 @@ gnev::GLBufferVectorT<PointLight> create_lights(const std::shared_ptr<GladGLCont
         .constant = 1.0f,
         .linearic = 0.18f,
         .quadratic = 0.032f,
-        .ambient = {1, 1, 1},
-        .diffuse = {1, 1, 1},
-        .specular = {1, 1, 1}
+        .ambient = {1.0f, 1.0f, 1.0f},
+        .diffuse = {1.0f, 1.0f, 1.0f},
+        .specular = {1.0f, 1.0f, 1.0f}
     };
     buffer.push_back(light);
 
@@ -220,15 +79,29 @@ gnev::GLBufferVectorT<PointLight> create_lights(const std::shared_ptr<GladGLCont
 int main(int argc, const char** argv)
 {
     GlfwConveyor conveyor;
+   
     conveyor.worker.push([&conveyor](){
         bool alive = true;
+
+        conveyor.key_callbacks.push_back([&alive](GlfwConveyor* conveyor, int key, int scancode, int action, int mods){
+            if (key == GLFW_KEY_ESCAPE && action == GLFW_RELEASE){
+                alive = false;
+            }
+        });
+
 
         gnev::Drawer drawer(conveyor.get_proc_address());
         gnev::ProgramBuilder program_builder(drawer.ctx);
 
+        auto current_dir = std::filesystem::current_path();
+        std::string vertex_shader_src;
+        read_text_file(vertex_shader_src, current_dir / "sample" / "shader" / "vertex.vs");
+        std::string fragment_shader_src;
+        read_text_file(fragment_shader_src, current_dir / "sample" / "shader" / "fragment.fs");
+
         auto program = program_builder.build({
-            {GL_VERTEX_SHADER, get_vertex_shader_src()},
-            {GL_FRAGMENT_SHADER, get_fragment_shader_src()},
+            {GL_VERTEX_SHADER, vertex_shader_src},
+            {GL_FRAGMENT_SHADER, fragment_shader_src},
         });
         if (program.has_value()){
             drawer.program = program.value();
@@ -239,7 +112,12 @@ int main(int argc, const char** argv)
         if (program_builder.help().size() > 0){
             std::cout << program_builder.help().c_str() << std::endl;
         }
-        bind_camera_controll(conveyor, drawer, alive);
+
+        CameraController camera(drawer.ctx);
+        camera.capture(conveyor);
+        drawer.program.glUniformBlockBinding(drawer.program.glGetUniformBlockIndex("Camera"), 0);
+        camera.buffer().glBindBufferBase(GL_UNIFORM_BUFFER, 0);
+        glfwSetInputMode(conveyor.window, GLFW_CURSOR, GLFW_CURSOR_DISABLED); 
 
         // Material
 
@@ -247,10 +125,9 @@ int main(int argc, const char** argv)
                                                4, 128, 128,
                                                4, 128, 128,
                                                4, 128, 128);
-        auto current_dir = std::filesystem::current_path();
-        auto diffuse_path = current_dir / "..\\3rdparty\\minecraft_textures\\gravel.png";
-        auto normal_path = current_dir / "..\\3rdparty\\minecraft_textures\\gravel_n.png";
-        auto specular_path = current_dir / "..\\3rdparty\\minecraft_textures\\gravel_s.png";
+        auto diffuse_path = current_dir / "3rdparty/minecraft_textures/gravel.png";
+        auto normal_path = current_dir / "3rdparty/minecraft_textures/gravel_n.png";
+        auto specular_path = current_dir / "3rdparty/minecraft_textures/gravel_s.png";
         gnev::MaterialInfo gravel_info = {
             .texture = {
                 .diffuse_path = diffuse_path,

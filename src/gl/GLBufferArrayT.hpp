@@ -15,9 +15,8 @@ public:
 
     GLuint size() const;
 
-    T* map(GLenum access);
-    T* map(GLuint first, GLuint length, GLbitfield access);
-    void unmap();
+    T* glMapBuffer(GLenum access);
+    T* glMapBufferRange(GLuint first, GLuint length, GLbitfield access);
 
     std::shared_ptr<T> get(GLuint i) const;
     void set(GLuint i, const T& value);
@@ -47,24 +46,18 @@ GLuint GLBufferArrayT<T>::size() const
 }
 
 template<typename T>
-T* GLBufferArrayT<T>::map(GLenum access)
+T* GLBufferArrayT<T>::glMapBuffer(GLenum access)
 {
     return glMapBuffer(access);
 }
 
 template<typename T>
-T* GLBufferArrayT<T>::map(GLuint first, GLuint length, GLbitfield access)
+T* GLBufferArrayT<T>::glMapBufferRange(GLuint first, GLuint length, GLbitfield access)
 {
     if (first + length >= _size){
         throw std::out_of_range("");
     }
     return glMapBufferRange(first * ELEM_SIZE, length * ELEM_SIZE, access);
-}
-
-template<typename T>
-void GLBufferArrayT<T>::unmap()
-{
-    glUnmapBuffer();
 }
 
 template<typename T>

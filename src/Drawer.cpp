@@ -20,8 +20,8 @@ Drawer::Drawer(GLADloadfunc load_func) :
 {
     gladLoadGLContext(ctx.get(), load_func);
 
-    camera.pos = {1.5, 1.5, 1.5};
-    camera.applyLookAt({0, 0, 0});
+    // camera.pos = {1.5, 1.5, 1.5};
+    // camera.applyLookAt({0, 0, 0});
 
     // Enable debug
     GLint context_flags;
@@ -48,9 +48,9 @@ void Drawer::draw() const
 {
     ctx->Clear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     program.glUseProgram();
-    auto camera_index = program.glGetUniformBlockIndex("Camera");
-    program.glUniformBlockBinding(camera_index, 0);
-    camera.buffer.glBindBufferBase(GL_UNIFORM_BUFFER, 0);
+    // auto camera_index = program.glGetUniformBlockIndex("Camera");
+    // program.glUniformBlockBinding(camera_index, 0);
+    // camera.buffer.glBindBufferBase(GL_UNIFORM_BUFFER, 0);
 
 }
 

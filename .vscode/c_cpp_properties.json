@@ -5,6 +5,7 @@
             "includePath": [
                 "${default}",
                 "src",
+                "sample",
                 "3rdparty/bimap",
                 "3rdparty/glfw/include",
                 "3rdparty/json/include",
@@ -21,6 +22,7 @@
             "includePath": [
                 "${default}",
                 "src",
+                "sample",
                 "3rdparty/bimap",
                 "3rdparty/glfw/include",
                 "3rdparty/json/include",
