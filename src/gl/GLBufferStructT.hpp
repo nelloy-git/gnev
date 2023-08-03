@@ -46,7 +46,7 @@ T* GLBufferStructT<T>::glMapBuffer(GLenum access)
 template<typename T>
 T* GLBufferStructT<T>::glMapBufferRange(GLbitfield access)
 {
-    return static_cast<T*>(GLBufferArray::glMapBufferRange(0, ELEM_SIZE, acces s));
+    return static_cast<T*>(GLBufferArray::glMapBufferRange(0, ELEM_SIZE, access));
 }
 
 template<typename T>

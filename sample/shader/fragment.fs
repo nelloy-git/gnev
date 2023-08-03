@@ -22,7 +22,7 @@ layout (std430) buffer MaterialBuffer
     Material materials[];
 };
 
-layout (std140) uniform Camera {
+struct Camera {
     mat4 view_mat;
     mat4 projection_mat;
     mat4 result_mat;
@@ -35,6 +35,10 @@ layout (std140) uniform Camera {
     float near_z;
     float far_z;
     float reserved_alighment[3];
+};
+
+layout (std140) uniform CameraBuffer {
+    CameraBuffer camera;
 };
 
 struct PointLight { 
@@ -99,5 +103,5 @@ vec3 CalcPointLight(PointLight light, Material material, vec3 fragPos, vec3 view
 
 void main(){
     Material material = materials[vMaterialId];
-    fColor = vec4(CalcPointLight(lights[0], material, vPos.rgb, direction.rgb), 1);
+    fColor = vec4(CalcPointLight(lights[0], material, vPos.rgb, camera.direction.rgb), 1);
 } 

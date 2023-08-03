@@ -11,21 +11,16 @@ std::atomic<unsigned int>& glfw_windows_counter(){
     return counter;
 }
 
-GlfwConveyor::GlfwConveyor() :
-    worker(), 
-    window(create_glfw_window(worker)){
-    glfwSetWindowUserPointer(window, this);
+GlfwConveyor::GlfwConveyor()
+    : window(create_glfw_window()){
+    glfwSetWindowUserPointer(window.get(), this);
 
-    _previous_key_callback = glfwSetKeyCallback(window, glfw_key_callback);
-    _previous_cursor_pos_callback = glfwSetCursorPosCallback(window, glfw_cursor_pos_callback);
+    _previous_key_callback = glfwSetKeyCallback(window.get(), glfw_key_callback);
+    _previous_cursor_pos_callback = glfwSetCursorPosCallback(window.get(), glfw_cursor_pos_callback);
 }
 
-GlfwConveyor::~GlfwConveyor(){
-    key_callbacks.clear();
-    cursor_pos_callbacks.clear();
-    worker.push([window = window](){
-        destroy_glfw_window(window);
-    });
+GlfwConveyor::~GlfwConveyor()
+{
 }
 
 GlfwConveyor::GLFWGetProcAddress GlfwConveyor::get_proc_address() const {
@@ -37,41 +32,36 @@ void GlfwConveyor::poll_events() const {
 }
 
 void GlfwConveyor::swap_buffers() const {
-    glfwSwapBuffers(window);
+    glfwSwapBuffers(window.get());
 }
 
-GLFWwindow* GlfwConveyor::create_glfw_window(const Worker& worker){
-    auto promise = std::make_shared<std::promise<GLFWwindow*>>();
-    auto future = promise->get_future();
+std::unique_ptr<GLFWwindow, void(*)(GLFWwindow*)> GlfwConveyor::create_glfw_window()
+{
+    if (glfw_windows_counter().fetch_add(1) == 0 && !glfwInit())
+    {
+        return {nullptr, &destroy_glfw_window};
+    }
 
-    worker.push([promise](){
-        if (glfw_windows_counter().fetch_add(1) == 0 && !glfwInit()){
-            promise->set_value(nullptr);
-            return;
-        }
+    std::vector<std::pair<int, int>> hints = {
+        {GLFW_CONTEXT_VERSION_MAJOR, 4},
+        {GLFW_CONTEXT_VERSION_MINOR, 6},
+        // {GLFW_REFRESH_RATE, 60},
+        {GLFW_OPENGL_DEBUG_CONTEXT, true}
+    };
 
-        std::vector<std::pair<int, int>> hints = {
-            {GLFW_CONTEXT_VERSION_MAJOR, 4},
-            {GLFW_CONTEXT_VERSION_MINOR, 6},
-            // {GLFW_REFRESH_RATE, 60},
-            {GLFW_OPENGL_DEBUG_CONTEXT, true}
-        };
+    for (auto& hint : hints){
+        glfwWindowHint(hint.first, hint.second);
+    }
 
-        for (auto& hint : hints){
-            glfwWindowHint(hint.first, hint.second);
-        }
+    auto window = glfwCreateWindow(1920, 1080, "GLFW", NULL, NULL);
+    glfwMakeContextCurrent(window);
+    glfwSwapInterval(0); // Disable vsync
 
-        auto window = glfwCreateWindow(1920, 1080, "GLFW", NULL, NULL);
-        glfwMakeContextCurrent(window);
-        glfwSwapInterval(0); // Disable vsync
-
-        promise->set_value(window);
-    });
-
-    return future.get();
+    return {window, &destroy_glfw_window};
 }
 
-void GlfwConveyor::destroy_glfw_window(GLFWwindow* window){
+void GlfwConveyor::destroy_glfw_window(GLFWwindow* window)
+{
     if (!window){
         return;
     }
@@ -82,7 +72,8 @@ void GlfwConveyor::destroy_glfw_window(GLFWwindow* window){
     }
 }
 
-void GlfwConveyor::glfw_key_callback(GLFWwindow* window, int key, int scancode, int action, int mods){
+void GlfwConveyor::glfw_key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
+{
     GlfwConveyor* conveyor = static_cast<GlfwConveyor*>(glfwGetWindowUserPointer(window));
 
     if (!conveyor){
@@ -98,7 +89,8 @@ void GlfwConveyor::glfw_key_callback(GLFWwindow* window, int key, int scancode, 
     }
 }
 
-void GlfwConveyor::glfw_cursor_pos_callback(GLFWwindow* window, double pos_x, double pos_y){
+void GlfwConveyor::glfw_cursor_pos_callback(GLFWwindow* window, double pos_x, double pos_y)
+{
     GlfwConveyor* conveyor = static_cast<GlfwConveyor*>(glfwGetWindowUserPointer(window));
 
     if (!conveyor){

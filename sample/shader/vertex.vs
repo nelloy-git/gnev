@@ -1,6 +1,6 @@
 #version 430 core
 
-layout (std140) uniform Camera {
+struct Camera {
     mat4 view_mat;
     mat4 projection_mat;
     mat4 result_mat;
@@ -13,6 +13,10 @@ layout (std140) uniform Camera {
     float near_z;
     float far_z;
     float reserved_alighment[3];
+};
+
+layout (std140) uniform CameraBuffer {
+    CameraBuffer camera;
 };
 
 in vec3 inPos;

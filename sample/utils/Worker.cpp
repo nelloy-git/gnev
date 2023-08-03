@@ -5,6 +5,8 @@
 #include <optional>
 #include <queue>
 
+#include <iostream>
+
 class Worker::State {
     using Cmd = std::function<void()>;
 public:
@@ -55,7 +57,9 @@ Worker::Worker() :
 
 Worker::~Worker(){
     _state->terminate();
+    std::cout << "Joined worker" << std::endl;
     _worker_thread.join();
+    std::cout << "Worker finished" << std::endl;
 }
 
 void Worker::push(const std::function<void()>& cmd) const {
