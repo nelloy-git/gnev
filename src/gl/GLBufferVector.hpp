@@ -33,6 +33,7 @@ public:
     std::shared_ptr<void> get(GLintptr offset, GLsizeiptr size) const;
     void set(GLintptr offset, GLsizeiptr size, const void* data);
     void push_back(GLsizeiptr size, const void* data);
+    void pop_back(GLsizeiptr size);
     void insert(GLintptr offset, GLsizeiptr size, const void* data);
     void remove(GLintptr offset, GLsizeiptr size);
     void reserve(GLsizeiptr capacity);

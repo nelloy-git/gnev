@@ -4,7 +4,7 @@
 #include <unordered_map>
 #include <queue>
 
-#include <data/Vertex.hpp>
+#include "data/Vertex.hpp"
 #include "gl/GLBufferVectorT.hpp"
 #include "gl/GLVertexArray.hpp"
 
@@ -35,8 +35,8 @@ public:
 template<IsVertex V>
 PlateChunk<V>::PlateChunk(const std::shared_ptr<GladGLContext> &ctx)
     : _vao(ctx),
-      _indices(ctx, nullptr, 0, GL_DYNAMIC_DRAW),
-      _vertices(ctx, nullptr, 0, GL_DYNAMIC_DRAW)
+      _indices(ctx, nullptr, 0, GL_DYNAMIC_COPY),
+      _vertices(ctx, nullptr, 0, GL_DYNAMIC_COPY)
 {
     _vao.glVertexArrayElementBuffer(_indices.handle());
     _vao.glVertexArrayVertexBuffer(0, _vertices.handle(), 0, sizeof(V));

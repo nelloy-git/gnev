@@ -15,7 +15,7 @@ MaterialFactory::MaterialFactory(const std::shared_ptr<GladGLContext>& ctx,
     : _diffuse_loader(ctx, diffuse_mipmap_levels, diffuse_width, diffuse_height, 4),
       _normal_loader(ctx, normal_mipmap_levels, normal_width, normal_height, 4),
       _specular_loader(ctx, normal_mipmap_levels, normal_width, normal_height, 4),
-      _buffer(ctx, nullptr, 0, GL_STATIC_DRAW)
+      _buffer(ctx, nullptr, 0, GL_STATIC_COPY)
 {
 }
 

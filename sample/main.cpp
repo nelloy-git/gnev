@@ -22,6 +22,7 @@
 
 #include "data/Chunk.hpp"
 #include "data/PlateChunk.hpp"
+#include "data/RectangleMap.hpp"
 #include "material/MaterialFactory.hpp"
 
 static constexpr gnev::AttribInfo AttribPos(3, GL_FLOAT, false);
@@ -76,26 +77,32 @@ gnev::GLBufferVectorT<PointLight> create_lights(const std::shared_ptr<GladGLCont
     return buffer;
 }
 
-void test_lambda(GlfwConveyor* conveyor, int key, int scancode, int action, int mods)
+GLint shader_storage_block_index()
 {
-
+    static GLint i = 0;
+    return i++;
 }
 
 int main(int argc, const char** argv)
 {
     GlfwConveyor conveyor;
+    gnev::Drawer drawer(conveyor.get_proc_address());
+    gnev::ProgramBuilder program_builder(drawer.ctx);
    
     bool alive = true;
+    bool show_polygons = false;
 
-    auto exit_cb = [&alive](GlfwConveyor* conveyor, int key, int scancode, int action, int mods){
+    auto exit_cb = [&](GlfwConveyor* conveyor, int key, int scancode, int action, int mods){
         if (key == GLFW_KEY_ESCAPE && action == GLFW_RELEASE){
             alive = false;
         }
+
+        if (key == GLFW_KEY_P && action == GLFW_PRESS){
+            drawer.ctx->PolygonMode(GL_FRONT_AND_BACK, show_polygons ? GL_LINE : GL_FILL);
+            show_polygons = !show_polygons;
+        }
     };
     conveyor.key_callbacks.emplace_back(exit_cb);
-
-    gnev::Drawer drawer(conveyor.get_proc_address());
-    gnev::ProgramBuilder program_builder(drawer.ctx);
 
     auto current_dir = std::filesystem::current_path();
     std::string vertex_shader_src;
@@ -119,8 +126,11 @@ int main(int argc, const char** argv)
 
     CameraController camera(drawer.ctx);
     camera.capture(conveyor);
-    drawer.program.glUniformBlockBinding(drawer.program.glGetUniformBlockIndex("Camera"), 0);
-    camera.buffer().glBindBufferBase(GL_UNIFORM_BUFFER, 0);
+    auto camera_buffer_index = drawer.program.glGetProgramResourceIndex(GL_SHADER_STORAGE_BLOCK, "CameraBuffer");
+    auto camera_buffer_binding = shader_storage_block_index();
+    drawer.program.glShaderStorageBlockBinding(camera_buffer_index, camera_buffer_binding);
+    camera.buffer().glBindBufferBase(GL_SHADER_STORAGE_BUFFER, camera_buffer_binding);
+
     glfwSetInputMode(conveyor.window.get(), GLFW_CURSOR, GLFW_CURSOR_DISABLED); 
 
     // Material
@@ -149,30 +159,52 @@ int main(int argc, const char** argv)
     ch.bind<2>(drawer.program.glGetAttribLocation("inMaterialId"));
 
     GLuint rm_id;
-    {
-        Vertex v0{{0.0f, 0.0f, 0.0f}, {0, 0}, {gravel_id}};
-        Vertex v1{{2.0f, 0.0f, 0.0f}, {2, 0}, {gravel_id}};
-        Vertex v2{{2.0f, 2.0f, 0.0f}, {2, 2}, {gravel_id}};
-        Vertex v3{{0.0f, 2.0f, 0.0f}, {0, 2}, {gravel_id}};
-        rm_id = ch.add({v0, v1, v2, v3});
-    }
-    {
-        Vertex v0{{0.0f, 0.0f, 2.0f}, {0, 2}, {gravel_id}};
-        Vertex v1{{0.0f, 0.0f, 0.0f}, {0, 0}, {gravel_id}};
-        Vertex v2{{0.0f, 2.0f, 0.0f}, {2, 0}, {gravel_id}};
-        Vertex v3{{0.0f, 2.0f, 2.0f}, {2, 2}, {gravel_id}};
-        ch.add({v0, v1, v2, v3});
-    }
-    ch.remove(rm_id);
+    // {
+    //     Vertex v0{{0.0f, 0.0f, 0.0f}, {0, 0}, {gravel_id}};
+    //     Vertex v1{{2.0f, 0.0f, 0.0f}, {2, 0}, {gravel_id}};
+    //     Vertex v2{{2.0f, 2.0f, 0.0f}, {2, 2}, {gravel_id}};
+    //     Vertex v3{{0.0f, 2.0f, 0.0f}, {0, 2}, {gravel_id}};
+    //     rm_id = ch.add({v0, v1, v2, v3});
+    // }
+    // {
+    //     Vertex v0{{0.0f, 0.0f, 2.0f}, {0, 2}, {gravel_id}};
+    //     Vertex v1{{0.0f, 0.0f, 0.0f}, {0, 0}, {gravel_id}};
+    //     Vertex v2{{0.0f, 2.0f, 0.0f}, {2, 0}, {gravel_id}};
+    //     Vertex v3{{0.0f, 2.0f, 2.0f}, {2, 2}, {gravel_id}};
+    //     ch.add({v0, v1, v2, v3});
+    // }
+    // ch.remove(rm_id);
+
+
+    gnev::RectagleMap<GLuint, Vertex> tm(drawer.ctx);
+    tm.bind<0>(drawer.program.glGetAttribLocation("inPos"));
+    tm.bind<1>(drawer.program.glGetAttribLocation("inUV"));
+    tm.bind<2>(drawer.program.glGetAttribLocation("inMaterialId"));
+
+    tm.set(0, {
+        Vertex{{0.0f, 0.0f, 0.0f}, {0, 0}, {gravel_id}},
+        Vertex{{2.0f, 0.0f, 0.0f}, {2, 0}, {gravel_id}},
+        Vertex{{2.0f, 2.0f, 0.0f}, {2, 2}, {gravel_id}},
+        Vertex{{0.0f, 2.0f, 0.0f}, {0, 2}, {gravel_id}},
+    });
+    tm.set(1, {
+        Vertex{{0.0f, 0.0f, 2.0f}, {0, 0}, {gravel_id}},
+        Vertex{{0.0f, 0.0f, 0.0f}, {2, 0}, {gravel_id}},
+        Vertex{{0.0f, 2.0f, 0.0f}, {2, 2}, {gravel_id}},
+        Vertex{{0.0f, 2.0f, 2.0f}, {0, 2}, {gravel_id}},
+    });
+
 
     auto lights_buffer = create_lights(drawer.ctx);
     auto lights_buffer_index = drawer.program.glGetProgramResourceIndex(GL_SHADER_STORAGE_BLOCK, "PointLightBuffer");
-    drawer.program.glShaderStorageBlockBinding(lights_buffer_index, 0);
-    lights_buffer.glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0);
+    auto lights_buffer_binding = shader_storage_block_index();
+    drawer.program.glShaderStorageBlockBinding(lights_buffer_index, lights_buffer_binding);
+    lights_buffer.glBindBufferBase(GL_SHADER_STORAGE_BUFFER, lights_buffer_binding);
     
     auto material_buffer_index = drawer.program.glGetProgramResourceIndex(GL_SHADER_STORAGE_BLOCK, "MaterialBuffer");
-    drawer.program.glShaderStorageBlockBinding(material_buffer_index, 1);
-    material_factory.material_buffer().glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1);
+    auto material_buffer_binding = shader_storage_block_index();
+    drawer.program.glShaderStorageBlockBinding(material_buffer_index, material_buffer_binding);
+    material_factory.material_buffer().glBindBufferBase(GL_SHADER_STORAGE_BUFFER, material_buffer_binding);
 
     auto last_print = std::chrono::steady_clock::now();
     std::queue<std::chrono::microseconds> times;
@@ -199,6 +231,7 @@ int main(int argc, const char** argv)
         material_factory.specular_loader().textures()[0].glBindTexture(GL_TEXTURE_2D_ARRAY);
 
         ch.draw();
+        tm.draw();
         // test_vao.glBindVertexArray();
         // drawer.ctx->DrawElementsInstanced(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0, 1);
 

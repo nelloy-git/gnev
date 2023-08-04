@@ -5,7 +5,6 @@
 #include <unordered_map>
 
 #include "gl/GLTextureVector.hpp"
-#include "texture/TextureChunk.hpp"
 #include "util/Util.hpp"
 
 namespace gnev {
@@ -40,13 +39,6 @@ private:
     static GLenum get_storage_format(GLsizei img_components);
     static GLenum get_image_format(GLsizei img_components);
 
-    // GLTextureVector _color;
-    // GLTextureVector _normal;
-    // GLTextureVector _specular;
-
-    // std::unordered_map<std::string, GLint> _color_path_map;
-    // std::unordered_map<std::string, GLint> _normal_path_map;
-    // std::unordered_map<std::string, GLint> _specular_path_map;
 };
 
 }

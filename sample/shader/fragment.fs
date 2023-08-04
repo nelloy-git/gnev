@@ -22,7 +22,8 @@ layout (std430) buffer MaterialBuffer
     Material materials[];
 };
 
-struct Camera {
+struct Camera
+{
     mat4 view_mat;
     mat4 projection_mat;
     mat4 result_mat;
@@ -37,8 +38,8 @@ struct Camera {
     float reserved_alighment[3];
 };
 
-layout (std140) uniform CameraBuffer {
-    CameraBuffer camera;
+layout (std430) buffer CameraBuffer {
+    Camera camera;
 };
 
 struct PointLight { 

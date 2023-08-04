@@ -55,6 +55,11 @@ void GLBufferVector::push_back(GLsizeiptr size, const void* data)
     set(offset, size, data);
 }
 
+void GLBufferVector::pop_back(GLsizeiptr size)
+{
+    _size -= size;
+}
+
 void GLBufferVector::insert(GLintptr offset, GLsizeiptr size, const void* data) 
 {
     while (_size + size > _cap){

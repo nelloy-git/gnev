@@ -29,8 +29,6 @@ private:
 
     typedef void (*GlfwCursorPosCallback)(GLFWwindow* window, double pos_x, double pos_y);
     GlfwCursorPosCallback _previous_cursor_pos_callback;
-    
-    // std::unique_ptr<GLFWwindow, void(*)(GLFWwindow*)> _window;
 
     static std::unique_ptr<GLFWwindow, void(*)(GLFWwindow*)> create_glfw_window();
     static void destroy_glfw_window(GLFWwindow* window);

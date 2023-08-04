@@ -23,6 +23,8 @@ public:
     std::shared_ptr<T> get(GLuint i) const;
     void set(GLuint i, const T& value);
     void push_back(const T& value);
+    void pop_back(GLuint count = 1);
+    void copy_elements(GLuint dst, GLuint src, GLuint count);
     void insert(GLuint i, const T& value);
     void remove(GLuint i);
     void reserve(GLuint capacity);
@@ -89,6 +91,21 @@ template<typename T>
 void GLBufferVectorT<T>::push_back(const T& value)
 {
     GLBufferVector::push_back(ELEM_SIZE, static_cast<const void*>(&value));
+}
+
+template<typename T>
+void GLBufferVectorT<T>::pop_back(GLuint count)
+{
+    GLBufferVector::pop_back(count * ELEM_SIZE);
+}
+
+template<typename T>
+void GLBufferVectorT<T>::copy_elements(GLuint dst, GLuint src, GLuint count)
+{
+    if (dst >= _size || src >= _size){
+        throw std::out_of_range("");
+    }
+    GLBuffer::glCopyBufferSubData(handle(), src * ELEM_SIZE, dst * ELEM_SIZE, count * ELEM_SIZE);
 }
 
 template<typename T>

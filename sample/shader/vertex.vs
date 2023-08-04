@@ -1,6 +1,7 @@
 #version 430 core
 
-struct Camera {
+struct Camera
+{
     mat4 view_mat;
     mat4 projection_mat;
     mat4 result_mat;
@@ -15,8 +16,8 @@ struct Camera {
     float reserved_alighment[3];
 };
 
-layout (std140) uniform CameraBuffer {
-    CameraBuffer camera;
+layout (std430) buffer CameraBuffer {
+    Camera camera;
 };
 
 in vec3 inPos;
@@ -28,7 +29,7 @@ out vec2 vUV;
 flat out int vMaterialId;
 
 void main(){
-    vPos = result_mat * vec4(inPos, 1.0);
+    vPos = camera.result_mat * vec4(inPos, 1.0);
     vUV = inUV;
     vMaterialId = inMaterialId;
     gl_Position = vPos;
