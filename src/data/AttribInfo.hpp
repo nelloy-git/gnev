@@ -9,13 +9,14 @@ namespace gnev {
 struct AttribInfo {
     constexpr AttribInfo(GLuint elements, GLenum type, bool normalized);
 
-    const GLuint elements;
-    const GLenum type;
-    const bool normalized;
-    const bool is_packed;
-    const bool is_signed;
-    const size_t size;
+    GLuint elements;
+    GLenum type;
+    bool normalized;
+    bool is_packed;
+    bool is_signed;
+    size_t size;
 
+private:
     static constexpr bool is_packed_type(GLenum type);
     static constexpr bool is_signed_type(GLenum type);
     static constexpr size_t get_type_size(GLuint elements, GLenum type);
@@ -43,7 +44,7 @@ constexpr AttribInfo::AttribInfo(GLuint elements, GLenum type, bool normalized)
     if (type == GL_UNSIGNED_INT_10_10_10_2 && elements != 4){
         throw std::exception("UInt_10_10_10_2 can be 4 components only");
     }
-};
+}
 
 constexpr bool AttribInfo::is_packed_type(GLenum type)
 {
