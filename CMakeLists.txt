@@ -29,7 +29,7 @@ link_directories(./3rdparty/VLD/lib/Win64)
 # Options
 set(GNEV_GL_VERTEX_INFO_MAX_ATTRIBUTES 16 CACHE STRING "VertexInfo: maximum number of attributes for vertex")
 
-set(GNEV_GL_BUFFER_VECTOR_CAP_BASE 1 CACHE STRING "GLBufferVector: number of reserved elements at creation")
+set(GNEV_GL_BUFFER_VECTOR_CAP_BASE 8 CACHE STRING "GLBufferVector: number of reserved elements at creation")
 set(GNEV_GL_BUFFER_VECTOR_CAP_MULT 2 CACHE STRING "GLBufferVector: capacity multiplier if not enought memory available")
 set(GNEV_GL_BUFFER_VECTOR_CAP_ADD  0 CACHE STRING "GLBufferVector: capacity addition if not enought memory available")
 

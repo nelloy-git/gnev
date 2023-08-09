@@ -11,16 +11,17 @@
 namespace gnev {
 
 template<typename K, IsVertex V>
-class TriangleMap {
+class TriangleMapT {
 public:
-    TriangleMap(const std::shared_ptr<GladGLContext> &ctx);
-    virtual ~TriangleMap();
+    TriangleMapT(const std::shared_ptr<GladGLContext> &ctx);
+    virtual ~TriangleMapT();
 
     template<size_t vertex_attrib>
     void bind(GLint attrib_index);
     void draw();
 
     void set(const K& key, const std::array<V, 3>& triangle);
+    void set(const K& key, const V& v0, const V& v1, , const V& v2);
     void erase(const K& key);
 
 private:
@@ -39,7 +40,7 @@ private:
 
 
 template<typename K, IsVertex V>
-TriangleMap<K, V>::TriangleMap(const std::shared_ptr<GladGLContext> &ctx)
+TriangleMapT<K, V>::TriangleMapT(const std::shared_ptr<GladGLContext> &ctx)
     : _vao(ctx),
       _indices(ctx, nullptr, 0, GL_DYNAMIC_COPY),
       _vertices(ctx, nullptr, 0, GL_DYNAMIC_COPY)
@@ -49,13 +50,13 @@ TriangleMap<K, V>::TriangleMap(const std::shared_ptr<GladGLContext> &ctx)
 }
 
 template<typename K, IsVertex V>
-TriangleMap<K, V>::~TriangleMap()
+TriangleMapT<K, V>::~TriangleMapT()
 {
 }
 
 template<typename K, IsVertex V>
 template<size_t vertex_attrib>
-void TriangleMap<K, V>::bind(GLint attrib_index)
+void TriangleMapT<K, V>::bind(GLint attrib_index)
 {
     constexpr auto INFO = V::attrib_type<vertex_attrib>::info;
     constexpr auto OFFSET = V::template get_offset<vertex_attrib>();
@@ -74,14 +75,14 @@ void TriangleMap<K, V>::bind(GLint attrib_index)
 }
 
 template<typename K, IsVertex V>
-void TriangleMap<K, V>::draw()
+void TriangleMapT<K, V>::draw()
 {
     _vao.glBindVertexArray();
     _vao.ctx()->DrawElements(GL_TRIANGLES, 3 * _indices.size(), GL_UNSIGNED_INT, 0);
 }
 
 template<typename K, IsVertex V>
-void TriangleMap<K, V>::set(const K& key, const std::array<V, 3>& triangle)
+void TriangleMapT<K, V>::set(const K& key, const std::array<V, 3>& triangle)
 {
     auto found = _pos_map.find(key);
     if (found == _pos_map.end()){
@@ -92,7 +93,7 @@ void TriangleMap<K, V>::set(const K& key, const std::array<V, 3>& triangle)
 }
 
 template<typename K, IsVertex V>
-void TriangleMap<K, V>::_insert(const K& key, const std::array<V, 3>& triangle)
+void TriangleMapT<K, V>::_insert(const K& key, const std::array<V, 3>& triangle)
 {
     GLuint pos;
     if (_unused_poses.empty()){
@@ -109,14 +110,14 @@ void TriangleMap<K, V>::_insert(const K& key, const std::array<V, 3>& triangle)
 }
 
 template<typename K, IsVertex V>
-void TriangleMap<K, V>::_assign(const auto& iter, const std::array<V, 3>& triangle)
+void TriangleMapT<K, V>::_assign(const auto& iter, const std::array<V, 3>& triangle)
 {
     GLuint pos = iter->second;
     _vertices.set(pos, triangle);
 }
 
 template<typename K, IsVertex V>
-void TriangleMap<K, V>::erase(const K& key)
+void TriangleMapT<K, V>::erase(const K& key)
 {
     auto found = _pos_map.find(key);
     if (found == _pos_map.end()){

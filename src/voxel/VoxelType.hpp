@@ -1,27 +1,36 @@
 #pragma once
 
-namespace gnev {
-    
-enum class VoxelSide {
-    Top,
-    Bottom,
-    Front,
-    Back,
-    Right,
-    Left
-};
+#include <memory>
 
-class VoxelType {
+#include "voxel/VoxelRect.hpp"
+#include "util/Cube.hpp"
+#include "util/Util.hpp"
+
+namespace gnev {
+
+class EXPORT VoxelType {
 public:
-    VoxelType(bool transparent);
+    using size_type = unsigned int;
+
+    VoxelType();
     virtual ~VoxelType();
 
-    virtual bool is_transparent_for(VoxelSide side) const;
-    virtual bool can_merge_with(VoxelSide size, const VoxelType& other) const;
+    struct RectVertices {
+        size_type indices_count;
+        unsigned int indices_type; // GLenum
+        std::shared_ptr<const void> indices_data;
+        size_type vertices_count;
+        size_type vertex_size;
+        std::shared_ptr<const void> vertices_data;
+    };
+    virtual RectVertices get_rect_mesh(const VoxelRect& rectangle) const = 0;
+
+    virtual bool is_visible(VoxelSide side, const VoxelType& neighbour) const;
 
 private:
-    const bool _trasparent;
-
 };
+
+
+
 
 }

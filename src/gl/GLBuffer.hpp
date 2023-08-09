@@ -20,6 +20,7 @@ public:
     void glGetBufferParameteriv(GLenum pname, GLint* params) const;
     void* glMapBuffer(GLenum access);
     void* glMapBufferRange(GLintptr offset, GLsizeiptr length, GLbitfield access);
+    void glFlushMappedBufferRange(GLintptr offset, GLsizeiptr length);
     void glUnmapBuffer();
 
 private:

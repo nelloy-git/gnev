@@ -2,8 +2,8 @@
 
 using namespace gnev;
 
-VoxelType::VoxelType(bool transparent)
-    : _trasparent(transparent)
+
+VoxelType::VoxelType()
 {
 }
 
@@ -11,12 +11,7 @@ VoxelType::~VoxelType()
 {
 }
 
-bool VoxelType::is_transparent_for(VoxelSide side) const
+bool VoxelType::is_visible(VoxelSide side, const VoxelType& neighbour) const
 {
-    return _trasparent;
-}
-
-bool VoxelType::can_merge_with(VoxelSide size, const VoxelType& other) const
-{
-    return (this == &other);
+    return true;
 }

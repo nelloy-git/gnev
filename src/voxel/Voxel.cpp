@@ -1,22 +1,17 @@
-#include "Voxel.hpp"
+#include "voxel/Voxel.hpp"
+
+#include "voxel/VoxelType.hpp"
 
 using namespace gnev;
 
-Voxel::Voxel(const std::shared_ptr<const VoxelType>& type)
-    : type(type)
+Voxel::Voxel(const std::shared_ptr<const VoxelType>& type, size_t x, size_t y, size_t z)
+    : type(type),
+      x(x),
+      y(y),
+      z(z)
 {    
 }
 
 Voxel::~Voxel()
 {
-}
-
-bool Voxel::is_transparent_for(VoxelSide side) const
-{
-    return type->is_transparent_for(side);
-}
-
-bool Voxel::can_merge_with(VoxelSide side, const Voxel& other) const
-{
-    return type->can_merge_with(side, *other.type);
 }

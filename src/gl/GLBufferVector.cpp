@@ -76,7 +76,7 @@ void GLBufferVector::remove(GLintptr offset, GLsizeiptr size)
         throw std::out_of_range("");
     }
 
-    glCopyBufferSubData(handle(), offset + size, offset, size);
+    glCopyBufferSubData(handle(), offset + size, offset, _size - offset);
     _size -= size;
 }
 
@@ -113,4 +113,9 @@ void GLBufferVector::shrink_to_fit()
     glBufferData(_size, nullptr, usage);
     tmp_buffer.glCopyBufferSubData(handle(), 0, 0, _size);
     _cap = _size;
+}
+
+void GLBufferVector::clear()
+{
+    _size = 0;
 }

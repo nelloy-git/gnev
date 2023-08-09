@@ -13,8 +13,13 @@ public:
 
     Vertex(const Attrib<A>&...);
 
+    static constexpr auto size = sizeof(helper_type);
+
     template<size_t I>
     auto& get_attrib();
+
+    template<size_t I>
+    const auto& get_attrib() const;
 
     template<size_t I>
     static constexpr GLuint get_size();
@@ -61,6 +66,13 @@ template<size_t I>
 inline auto& Vertex<A...>::get_attrib()
 {
     return *reinterpret_cast<attrib_type<I>*>(&data[get_offset<I>()]);
+}
+
+template<AttribInfo ... A>
+template<size_t I>
+inline const auto& Vertex<A...>::get_attrib() const
+{
+    return *reinterpret_cast<const attrib_type<I>*>(&data[get_offset<I>()]);
 }
 
 template<AttribInfo ... A>

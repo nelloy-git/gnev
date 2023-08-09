@@ -9,8 +9,7 @@ class EXPORT GLBufferVectorT : public GLBufferVector {
 public:
     static constexpr GLuint ELEM_SIZE = sizeof(T);
 
-    GLBufferVectorT(const GLBufferVector&) = delete;
-    GLBufferVectorT(GLBufferVector&& untyped_vector);
+    GLBufferVectorT(const GLBufferVector&);
     GLBufferVectorT(const std::shared_ptr<GladGLContext> &ctx, const T* initial_data, GLsizeiptr initial_size, GLenum usage);
     virtual ~GLBufferVectorT();
 
@@ -32,8 +31,8 @@ public:
 };
 
 template<typename T>
-GLBufferVectorT<T>::GLBufferVectorT(GLBufferVector&& untyped_vector)
-    : GLBufferVector(untyped_vector)
+GLBufferVectorT<T>::GLBufferVectorT(const GLBufferVector& reinterpret)
+    : GLBufferVector(reinterpret)
 {
 }
 

@@ -38,6 +38,7 @@ public:
     void remove(GLintptr offset, GLsizeiptr size);
     void reserve(GLsizeiptr capacity);
     void shrink_to_fit();
+    void clear();
 
 private:
     GLsizeiptr _size;

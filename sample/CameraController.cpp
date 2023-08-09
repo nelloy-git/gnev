@@ -38,11 +38,12 @@ CameraController::CameraController(const std::shared_ptr<GladGLContext> &ctx)
     : _camera(ctx, &default_camera, GL_MAP_READ_BIT | GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT),
       _map(_camera.glMapBufferRange(GL_MAP_READ_BIT | GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT))
 {
-    _map->position = glm::vec4{1, 1, 1, 0};
+    _map->position = glm::vec4{2, 2, 2, 0};
     _map->direction = glm::normalize(glm::vec4{-1, -1, -1, 0});
-    _map->view_mat = glm::lookAt(glm::vec3{1, 1, 1}, {0, 0, 0}, {0, 1, 0});
+    _map->view_mat = glm::lookAt(glm::vec3{_map->position}, glm::vec3(_map->position + _map->direction), {0, 1, 0});
     _map->projection_mat = glm::perspectiveFov(_map->fov, static_cast<float>(_map->width), static_cast<float>(_map->height), _map->near_z, _map->far_z);
     _map->result_mat = _map->projection_mat * _map->view_mat;
+    _camera.glFlushMappedBufferRange(0, sizeof(Camera));
 }
 
 CameraController::~CameraController()

@@ -125,6 +125,11 @@ void* GLBuffer::glMapBufferRange(GLintptr offset, GLsizeiptr length, GLbitfield 
     return ptr;
 }
 
+void GLBuffer::glFlushMappedBufferRange(GLintptr offset, GLsizeiptr length)
+{
+    ctx()->FlushMappedNamedBufferRange(handle(), offset, length);
+}
+
 void GLBuffer::glUnmapBuffer(){
     if (ctx()->VERSION_4_5){
         ctx()->UnmapNamedBuffer(handle());
