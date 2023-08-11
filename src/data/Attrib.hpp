@@ -5,25 +5,25 @@
 namespace gnev {
 
 template<AttribInfo T>
-struct Attrib final
+struct VertexAttribute final
 {
     static constexpr AttribInfo info = T;
-    using type = AttribType<T.type, info.elements>::type;
-    using element_type = AttribType<T.type, info.elements>::element_type;
+    using type = AttributeType<T.type, info.elements>::type;
+    using element_type = AttributeType<T.type, info.elements>::element_type;
 
-    Attrib(const type& src);
+    VertexAttribute(const type& src);
 
     template<auto E = info.elements, auto P = info.is_packed, std::enable_if_t<E==1 && !P, bool> = true>
-    Attrib(const element_type& v0);
+    VertexAttribute(const element_type& v0);
 
     template<auto E = info.elements, auto P = info.is_packed, std::enable_if_t<E==2 && !P, bool> = true>
-    Attrib(const element_type& v0, const element_type& v1);
+    VertexAttribute(const element_type& v0, const element_type& v1);
 
     template<auto E = info.elements, auto P = info.is_packed, std::enable_if_t<E==3 && !P, bool> = true>
-    Attrib(const element_type& v0, const element_type& v1, const element_type& v2);
+    VertexAttribute(const element_type& v0, const element_type& v1, const element_type& v2);
 
     template<auto E = info.elements, auto P = info.is_packed, std::enable_if_t<E==4 && !P, bool> = true>
-    Attrib(const element_type& v0, const element_type& v1, const element_type& v2, const element_type& v3);
+    VertexAttribute(const element_type& v0, const element_type& v1, const element_type& v2, const element_type& v3);
  
     void write(const GLfloat* src);
 
@@ -37,54 +37,54 @@ struct Attrib final
 };
         
 template<typename derived>
-struct is_VertAttrib
+struct is_VertexAttribute
 {
     template<AttribInfo T>
-    static constexpr std::true_type  test(const Attrib<T> *);
+    static constexpr std::true_type  test(const VertexAttribute<T> *);
     static constexpr std::false_type test(...);
     static constexpr bool value = decltype(test(std::declval<derived*>()))::value;
 };
 
 template<typename T>
-concept IsVertAttrib = is_VertAttrib<T>::value;
+concept IsVertexAttribute = is_VertexAttribute<T>::value;
 
 
 template<AttribInfo T>
-Attrib<T>::Attrib(const type& src)
+VertexAttribute<T>::VertexAttribute(const type& src)
     : data(src)
 {
 }
 
 template<AttribInfo T>
 template<auto E, auto P, std::enable_if_t<E==1 && !P, bool>>
-Attrib<T>::Attrib(const element_type& v0)
+VertexAttribute<T>::VertexAttribute(const element_type& v0)
     : data({v0})
 {
 }
 
 template<AttribInfo T>
 template<auto E, auto P, std::enable_if_t<E==2 && !P, bool>>
-Attrib<T>::Attrib(const element_type& v0, const element_type& v1)
+VertexAttribute<T>::VertexAttribute(const element_type& v0, const element_type& v1)
     : data({v0, v1})
 {
 }
 
 template<AttribInfo T>
 template<auto E, auto P, std::enable_if_t<E==3 && !P, bool>>
-Attrib<T>::Attrib(const element_type& v0, const element_type& v1, const element_type& v2)
+VertexAttribute<T>::VertexAttribute(const element_type& v0, const element_type& v1, const element_type& v2)
     : data({v0, v1, v2})
 {
 }
 
 template<AttribInfo T>
 template<auto E, auto P, std::enable_if_t<E==4 && !P, bool>>
-Attrib<T>::Attrib(const element_type& v0, const element_type& v1, const element_type& v2, const element_type& v3)
+VertexAttribute<T>::VertexAttribute(const element_type& v0, const element_type& v1, const element_type& v2, const element_type& v3)
     : data({v0, v1, v2, v3})
 {
 }
 
 template<AttribInfo T>
-void Attrib<T>::write(const GLfloat* src)
+void VertexAttribute<T>::write(const GLfloat* src)
 {
     if constexpr (info.is_packed){
         []<bool B = false>(){static_assert(B, "Unsupported ElementT");}();
@@ -112,7 +112,7 @@ void Attrib<T>::write(const GLfloat* src)
 
 template<AttribInfo T>
 template<auto N, std::enable_if_t<!N, bool>>
-void Attrib<T>::write(const GLint* src)
+void VertexAttribute<T>::write(const GLint* src)
 {
     if constexpr (info.is_packed){
         []<bool B = false>(){static_assert(B, "Unsupported ElementT");}();
@@ -127,7 +127,7 @@ void Attrib<T>::write(const GLint* src)
 
 template<AttribInfo T>
 template<auto N, std::enable_if_t<!N, bool>>
-void Attrib<T>::write(const GLuint* src)
+void VertexAttribute<T>::write(const GLuint* src)
 {
     if constexpr (info.is_packed){
         []<bool B = false>(){static_assert(B, "Unsupported ElementT");}();

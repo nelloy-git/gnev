@@ -2,9 +2,8 @@
 
 #include <memory>
 
-#include "voxel/VoxelRect.hpp"
-#include "util/Cube.hpp"
-#include "util/Util.hpp"
+#include "data/AttribInfo.hpp"
+#include "voxel/VoxelRectangle.hpp"
 
 namespace gnev {
 
@@ -15,19 +14,17 @@ public:
     VoxelType();
     virtual ~VoxelType();
 
-    struct RectVertices {
-        size_type indices_count;
-        unsigned int indices_type; // GLenum
-        std::shared_ptr<const void> indices_data;
-        size_type vertices_count;
-        size_type vertex_size;
-        std::shared_ptr<const void> vertices_data;
-    };
-    virtual RectVertices get_rect_mesh(const VoxelRect& rectangle) const = 0;
+    virtual VoxelRectMesh get_rect_mesh(const VoxelRectInfo& info, 
+                                        size_type base_index,
+                                        GLenum index_type,
+                                        const std::vector<AttribInfo>& vertex_info) = 0;
 
-    virtual bool is_visible(VoxelSide side, const VoxelType& neighbour) const;
+    virtual bool is_visible(VoxelSide side, const std::shared_ptr<const VoxelType>& neighbour) const;
+    virtual bool is_neighbour_side_visible(VoxelSide neighbour_pos, const VoxelType& neighbour) const;
 
 private:
+    static VoxelSide _get_opposite(VoxelSide side);
+
 };
 
 

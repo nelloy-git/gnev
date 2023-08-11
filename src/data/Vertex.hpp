@@ -5,15 +5,17 @@
 namespace gnev {
     
 template<AttribInfo ... A>
-class Vertex {
-    using helper_type = std::tuple<Attrib<A>...>;
+struct Vertex final {
+private:
+    using helper_type = std::tuple<VertexAttribute<A>...>;
 public:
     template<size_t I>
     using attrib_type = std::tuple_element_t<I, helper_type>;
 
-    Vertex(const Attrib<A>&...);
+    Vertex(const VertexAttribute<A>&...);
 
     static constexpr auto size = sizeof(helper_type);
+    static constexpr std::initializer_list<AttribInfo> info {A...};
 
     template<size_t I>
     auto& get_attrib();
@@ -56,7 +58,7 @@ template <typename derived>
 concept IsVertex = is_Vertex_v<derived>;
 
 template<AttribInfo ... A>
-Vertex<A...>::Vertex(const Attrib<A>&... input)
+Vertex<A...>::Vertex(const VertexAttribute<A>&... input)
 {
     _init_data(std::forward_as_tuple(input...), std::make_index_sequence<sizeof...(A)>{});
 }

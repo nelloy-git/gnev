@@ -15,8 +15,8 @@ public:
     GLHandler(const std::shared_ptr<GladGLContext>& ctx, GLuint* handle, const Deleter& deleter);
     virtual ~GLHandler();
 
-    const std::shared_ptr<GladGLContext>& ctx() const;
-    GLuint handle() const;
+    virtual const std::shared_ptr<GladGLContext>& ctx() const;
+    virtual GLuint handle() const;
 
 private:
     std::shared_ptr<GladGLContext> _ctx;

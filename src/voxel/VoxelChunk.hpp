@@ -24,8 +24,14 @@ private:
     VertexContainer _mesh;
 
     Array3d<std::shared_ptr<VoxelType>> _voxels;
-    VoxelSideMap _top;
+    VoxelSideMap _top_side_map;
+    VoxelSideMap _bottom_side_map;
+    VoxelSideMap _front_side_map;
+    VoxelSideMap _back_side_map;
+    VoxelSideMap _right_side_map;
+    VoxelSideMap _left_side_map;
 
+    void _insert_side_map(size_type& base_index, VoxelSideMap& side_map);
 };
 
 }

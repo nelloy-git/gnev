@@ -27,7 +27,7 @@
 #include "material/MaterialFactory.hpp"
 
 #include "voxel/VoxelChunk.hpp"
-#include "VoxelTypeGravel.hpp"
+#include "VoxelTypeTest.hpp"
 
 
 void read_text_file(std::string& dst, const std::filesystem::path& path)
@@ -150,8 +150,8 @@ int main(int argc, const char** argv)
     };
     auto gravel_id = material_factory.register_material(L"gravel", gravel_info);
 
-    auto voxel_type = std::make_shared<VoxelTypeGravel>(gravel_id);
-    gnev::VoxelChunk chunk(drawer.ctx, GL_UNSIGNED_INT, {AttribPos, AttribUV, AttribMaterialID}, 10, 10, 10);
+    auto voxel_type = std::make_shared<VoxelTypeTest>(gravel_id);
+    gnev::VoxelChunk chunk(drawer.ctx, GL_UNSIGNED_INT, {AttribPos, AttribUV, AttribMaterialID}, 3, 3, 3);
     chunk.mesh().vao().glVertexArrayAttribBinding(drawer.program.glGetAttribLocation("inPos"), 0);
     chunk.mesh().vao().glVertexArrayAttribFormat(drawer.program.glGetAttribLocation("inPos"), AttribPos.elements, AttribPos.type, AttribPos.normalized, 0);
     chunk.mesh().vao().glEnableVertexArrayAttrib(drawer.program.glGetAttribLocation("inPos"));
@@ -166,9 +166,12 @@ int main(int argc, const char** argv)
 
     chunk.set(voxel_type, 0, 0, 0);
     chunk.set(voxel_type, 1, 0, 0);
-    chunk.set(voxel_type, 1, 0, 1);
+    // chunk.set(voxel_type, 1, 0, 1);
     chunk.set(voxel_type, 0, 0, 1);
     chunk.set(voxel_type, 0, 1, 0);
+    chunk.set(voxel_type, 1, 1, 0);
+    // chunk.set(voxel_type, 1, 1, 1);
+    chunk.set(voxel_type, 0, 1, 1);
     chunk.apply_mesh();
 
     gnev::GLBufferVectorT<GLuint> ind(chunk.mesh().indices());
@@ -208,18 +211,18 @@ int main(int argc, const char** argv)
     tm.bind<1>(drawer.program.glGetAttribLocation("inUV"));
     tm.bind<2>(drawer.program.glGetAttribLocation("inMaterialId"));
 
-    tm.set(0, {
-        Vertex{{0.0f, 0.0f, 0.0f}, {0, 0}, {gravel_id}},
-        Vertex{{2.0f, 0.0f, 0.0f}, {2, 0}, {gravel_id}},
-        Vertex{{2.0f, 2.0f, 0.0f}, {2, 2}, {gravel_id}},
-        Vertex{{0.0f, 2.0f, 0.0f}, {0, 2}, {gravel_id}},
-    });
-    tm.set(1, {
-        Vertex{{0.0f, 0.0f, 2.0f}, {0, 0}, {gravel_id}},
-        Vertex{{0.0f, 0.0f, 0.0f}, {2, 0}, {gravel_id}},
-        Vertex{{0.0f, 2.0f, 0.0f}, {2, 2}, {gravel_id}},
-        Vertex{{0.0f, 2.0f, 2.0f}, {0, 2}, {gravel_id}},
-    });
+    // tm.set(0, {
+    //     Vertex{{0.0f, 0.0f, 0.0f}, {0, 0}, {gravel_id}},
+    //     Vertex{{2.0f, 0.0f, 0.0f}, {2, 0}, {gravel_id}},
+    //     Vertex{{2.0f, 2.0f, 0.0f}, {2, 2}, {gravel_id}},
+    //     Vertex{{0.0f, 2.0f, 0.0f}, {0, 2}, {gravel_id}},
+    // });
+    // tm.set(1, {
+    //     Vertex{{0.0f, 0.0f, 2.0f}, {0, 0}, {gravel_id}},
+    //     Vertex{{0.0f, 0.0f, 0.0f}, {2, 0}, {gravel_id}},
+    //     Vertex{{0.0f, 2.0f, 0.0f}, {2, 2}, {gravel_id}},
+    //     Vertex{{0.0f, 2.0f, 2.0f}, {0, 2}, {gravel_id}},
+    // });
 
 
     auto lights_buffer = create_lights(drawer.ctx);
