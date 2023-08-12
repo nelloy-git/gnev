@@ -18,7 +18,7 @@ VoxelTypeTest::~VoxelTypeTest()
 gnev::VoxelRectMesh VoxelTypeTest::get_rect_mesh(const gnev::VoxelRectInfo& rect, 
                                                  size_type base_index,
                                                  GLenum index_type,
-                                                 const std::vector<gnev::AttribInfo>& vertex_info)
+                                                 const gnev::VertexInfo& vertex_info)
 {
     if (index_type != GL_UNSIGNED_INT){
         return gnev::VoxelRectMesh{};
@@ -45,9 +45,9 @@ gnev::VoxelRectMesh VoxelTypeTest::get_rect_mesh(const gnev::VoxelRectInfo& rect
     // for (int i = 0; i < 4; ++i){
     //     auto& cur = static_cast<const Vertex*>(mesh.vertices_data.get())[i];
     //     std::cout << "\t" << i << ": "
-    //         << "{" << cur.get_attrib<0>().data[0] << ", " << cur.get_attrib<0>().data[1] << ", " << cur.get_attrib<0>().data[2] << "}"
-    //         << "{" << cur.get_attrib<1>().data[0] << ", " << cur.get_attrib<1>().data[1] << "}"
-    //         << "{" << cur.get_attrib<2>().data[0] << "}"
+    //         << "{" << cur.get<0>().data[0] << ", " << cur.get<0>().data[1] << ", " << cur.get<0>().data[2] << "}"
+    //         << "{" << cur.get<1>().data[0] << ", " << cur.get<1>().data[1] << "}"
+    //         << "{" << cur.get<2>().data[0] << "}"
     //         << std::endl;
     // }
 }

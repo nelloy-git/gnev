@@ -95,7 +95,7 @@ VoxelTypeSolidCube::UVArray VoxelTypeSolidCube::get_uv(const VoxelRectInfo& rect
             std::array<float, 2>{float(rect.size_z), float(rect.size_x)},
             std::array<float, 2>{0, float(rect.size_x)},
         };
-    case VoxelSide::Bottom:
+    case VoxelSide::Bottom: 
         return {
             std::array<float, 2>{0, 0},
             std::array<float, 2>{0, float(rect.size_x)},

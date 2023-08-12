@@ -5,6 +5,7 @@
 #include <chrono>
 #include <iostream>
 #include <fstream>
+#include <queue>
 
 #define GLFW_INCLUDE_NONE
 #include "GLFW/glfw3.h"
@@ -21,9 +22,6 @@
 
 #include "gl/GLBufferVectorT.hpp"
 
-#include "data/Chunk.hpp"
-#include "data/PlateChunk.hpp"
-#include "data/RectangleMap.hpp"
 #include "material/MaterialFactory.hpp"
 
 #include "voxel/VoxelChunk.hpp"
@@ -151,19 +149,11 @@ int main(int argc, const char** argv)
     auto gravel_id = material_factory.register_material(L"gravel", gravel_info);
 
     auto voxel_type = std::make_shared<VoxelTypeTest>(gravel_id);
-    gnev::VoxelChunk chunk(drawer.ctx, GL_UNSIGNED_INT, {AttribPos, AttribUV, AttribMaterialID}, 3, 3, 3);
-    chunk.mesh().vao().glVertexArrayAttribBinding(drawer.program.glGetAttribLocation("inPos"), 0);
-    chunk.mesh().vao().glVertexArrayAttribFormat(drawer.program.glGetAttribLocation("inPos"), AttribPos.elements, AttribPos.type, AttribPos.normalized, 0);
-    chunk.mesh().vao().glEnableVertexArrayAttrib(drawer.program.glGetAttribLocation("inPos"));
-
-    chunk.mesh().vao().glVertexArrayAttribBinding(drawer.program.glGetAttribLocation("inUV"), 0);
-    chunk.mesh().vao().glVertexArrayAttribFormat(drawer.program.glGetAttribLocation("inUV"), AttribUV.elements, AttribUV.type, AttribUV.normalized, AttribPos.size);
-    chunk.mesh().vao().glEnableVertexArrayAttrib(drawer.program.glGetAttribLocation("inUV"));
+    gnev::VoxelChunk chunk(drawer.ctx, GL_UNSIGNED_INT, Vertex::info, 3, 3, 3);
+    chunk.mesh().bind_attribute(drawer.program.glGetAttribLocation("inPos"), 0);
+    chunk.mesh().bind_attribute(drawer.program.glGetAttribLocation("inUV"), 1);
+    chunk.mesh().bind_attribute(drawer.program.glGetAttribLocation("inMaterialId"), 2);
     
-    chunk.mesh().vao().glVertexArrayAttribBinding(drawer.program.glGetAttribLocation("inMaterialId"), 0);
-    chunk.mesh().vao().glVertexArrayAttribFormat(drawer.program.glGetAttribLocation("inMaterialId"), AttribMaterialID.elements, AttribMaterialID.type, AttribMaterialID.normalized, AttribPos.size + AttribUV.size);
-    chunk.mesh().vao().glEnableVertexArrayAttrib(drawer.program.glGetAttribLocation("inMaterialId"));
-
     chunk.set(voxel_type, 0, 0, 0);
     chunk.set(voxel_type, 1, 0, 0);
     // chunk.set(voxel_type, 1, 0, 1);
@@ -172,6 +162,7 @@ int main(int argc, const char** argv)
     chunk.set(voxel_type, 1, 1, 0);
     // chunk.set(voxel_type, 1, 1, 1);
     chunk.set(voxel_type, 0, 1, 1);
+    chunk.set(nullptr, 0, 1, 1);
     chunk.apply_mesh();
 
     gnev::GLBufferVectorT<GLuint> ind(chunk.mesh().indices());
@@ -185,44 +176,11 @@ int main(int argc, const char** argv)
     for (int i = 0; i < vert.size(); ++i){
         auto cur = vert.get(i);
         std::cout << "\t" << i << ": "
-            << "{" << cur->get_attrib<0>().data[0] << ", " << cur->get_attrib<0>().data[1] << ", " << cur->get_attrib<0>().data[2] << "}"
-            << "{" << cur->get_attrib<1>().data[0] << ", " << cur->get_attrib<1>().data[1] << "}"
-            << "{" << cur->get_attrib<2>().data[0] << "}"
+            << "{" << cur->get<0>().data[0] << ", " << cur->get<0>().data[1] << ", " << cur->get<0>().data[2] << "}"
+            << "{" << cur->get<1>().data[0] << ", " << cur->get<1>().data[1] << "}"
+            << "{" << cur->get<2>().data[0] << "}"
             << std::endl;
     }
-    
-
-    // gnev::VoxelType<Vertex> gravel_type(false);
-    // gravel_type.set_side(gnev::VoxelSide::Top, {{
-    //     Vertex{{0.0f, 0.0f, 0.0f}, {0, 0}, {gravel_id}},
-    //     Vertex{{2.0f, 0.0f, 0.0f}, {2, 0}, {gravel_id}},
-    //     Vertex{{2.0f, 2.0f, 0.0f}, {2, 2}, {gravel_id}}
-    // }, {
-    //     Vertex{{2.0f, 2.0f, 0.0f}, {2, 2}, {gravel_id}},
-    //     Vertex{{0.0f, 2.0f, 0.0f}, {0, 2}, {gravel_id}},
-    //     Vertex{{0.0f, 0.0f, 0.0f}, {0, 0}, {gravel_id}},
-    // }});
-
-    // gnev::VoxelChunk<Vertex> vc(drawer.ctx, 10, 10, 10);
-
-
-    gnev::RectagleMap<GLuint, Vertex> tm(drawer.ctx);
-    tm.bind<0>(drawer.program.glGetAttribLocation("inPos"));
-    tm.bind<1>(drawer.program.glGetAttribLocation("inUV"));
-    tm.bind<2>(drawer.program.glGetAttribLocation("inMaterialId"));
-
-    // tm.set(0, {
-    //     Vertex{{0.0f, 0.0f, 0.0f}, {0, 0}, {gravel_id}},
-    //     Vertex{{2.0f, 0.0f, 0.0f}, {2, 0}, {gravel_id}},
-    //     Vertex{{2.0f, 2.0f, 0.0f}, {2, 2}, {gravel_id}},
-    //     Vertex{{0.0f, 2.0f, 0.0f}, {0, 2}, {gravel_id}},
-    // });
-    // tm.set(1, {
-    //     Vertex{{0.0f, 0.0f, 2.0f}, {0, 0}, {gravel_id}},
-    //     Vertex{{0.0f, 0.0f, 0.0f}, {2, 0}, {gravel_id}},
-    //     Vertex{{0.0f, 2.0f, 0.0f}, {2, 2}, {gravel_id}},
-    //     Vertex{{0.0f, 2.0f, 2.0f}, {0, 2}, {gravel_id}},
-    // });
 
 
     auto lights_buffer = create_lights(drawer.ctx);
@@ -260,18 +218,9 @@ int main(int argc, const char** argv)
         drawer.ctx->Uniform1i(drawer.program.glGetUniformLocation("specular_0"), 2);
         material_factory.specular_loader().textures()[0].glBindTexture(GL_TEXTURE_2D_ARRAY);
 
-        tm.draw();
-
         chunk.mesh().vao().glBindVertexArray();
         drawer.ctx->DrawElements(GL_TRIANGLES, chunk.mesh().indices().size() / sizeof(GLuint), GL_UNSIGNED_INT, 0);
 
-        // test_vao.glBindVertexArray();
-        // drawer.ctx->DrawElementsInstanced(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0, 1);
-
-        // chunk._vao.glBindVertexArray();
-        // drawer.ctx->DrawElementsInstanced(GL_TRIANGLES, 6, GL_UNSIGNED_BYTE, 0, 1);
-
-        // drawer.ctx->DrawArrays(GL_TRIANGLES, 0, 3);
         auto end = std::chrono::steady_clock::now();
         auto dt = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
         times.push(dt);

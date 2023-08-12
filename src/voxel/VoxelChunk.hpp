@@ -10,15 +10,15 @@ public:
     using size_type = unsigned int;
 
     VoxelChunk(const std::shared_ptr<GladGLContext> &ctx,
-               GLenum index_type, const std::initializer_list<AttribInfo>& vertex_info,
+               GLenum index_type, const VertexInfo& vertex_info,
                size_type size_x, size_type size_y, size_type size_z);
     virtual ~VoxelChunk();
 
     VertexContainer& mesh();
 
+    const std::shared_ptr<const VoxelType>& get(GLuint x, GLuint y, GLuint z) const;
     void set(const std::shared_ptr<VoxelType>& voxel_type, GLuint x, GLuint y, GLuint z);
     void apply_mesh();
-
 
 private:
     VertexContainer _mesh;

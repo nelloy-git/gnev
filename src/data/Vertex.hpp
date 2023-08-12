@@ -1,40 +1,36 @@
 #pragma once
 
-#include "data/Attrib.hpp"
+#include "data/VertexInfo.hpp"
 
 namespace gnev {
     
-template<AttribInfo ... A>
-struct Vertex final {
-private:
-    using helper_type = std::tuple<VertexAttribute<A>...>;
+template<VertexAttributeInfo ... A>
+struct EXPORT Vertex final {
 public:
-    template<size_t I>
-    using attrib_type = std::tuple_element_t<I, helper_type>;
+    static constexpr VertexInfo info {A...};
+    static constexpr auto size = info.size;
+    static constexpr auto count = info.count;
+
+    template<size_t I, std::enable_if_t<(I >= 0 && I < info.count), bool> = true>
+    using attribute_type = VertexAttribute<info.attributes[I]>;
+
+    template<size_t I, std::enable_if_t<(I >= 0 && I < info.count), bool> = true>
+    static constexpr auto attribute_size = info.attributes[I];
+
+    template<size_t I, std::enable_if_t<(I >= 0 && I < info.count), bool> = true>
+    static constexpr auto attribute_offset = info.offsets[I];
 
     Vertex(const VertexAttribute<A>&...);
 
-    static constexpr auto size = sizeof(helper_type);
-    static constexpr std::initializer_list<AttribInfo> info {A...};
+    template<size_t I>
+    auto& get();
 
     template<size_t I>
-    auto& get_attrib();
+    const auto& get() const;
 
-    template<size_t I>
-    const auto& get_attrib() const;
-
-    template<size_t I>
-    static constexpr GLuint get_size();
-
-    template<size_t I>
-    static constexpr GLuint get_offset();
-
-    GLbyte data[sizeof(helper_type)];
+    GLbyte data[size];
     
 private:
-    template<size_t... I>
-    static constexpr GLuint _get_offset(const std::index_sequence<I...>&);
-
     template<size_t... Is>
     void _init_data(const auto& input, const std::index_sequence<Is...>&);
 
@@ -45,7 +41,7 @@ private:
 template <typename derived>
 struct is_Vertex
 {
-    template<AttribInfo... Ts>
+    template<VertexAttributeInfo... Ts>
     static constexpr std::true_type  test(const Vertex<Ts...> *);
     static constexpr std::false_type test(...);
     static constexpr bool value = decltype(test(std::declval<derived*>()))::value;
@@ -57,66 +53,38 @@ static constexpr bool is_Vertex_v = is_Vertex<derived>::value;
 template <typename derived>
 concept IsVertex = is_Vertex_v<derived>;
 
-template<AttribInfo ... A>
+template<VertexAttributeInfo ... A>
 Vertex<A...>::Vertex(const VertexAttribute<A>&... input)
 {
+    static_assert(sizeof(*this) == info.size);
     _init_data(std::forward_as_tuple(input...), std::make_index_sequence<sizeof...(A)>{});
 }
 
-template<AttribInfo ... A>
+template<VertexAttributeInfo ... A>
 template<size_t I>
-inline auto& Vertex<A...>::get_attrib()
+inline auto& Vertex<A...>::get()
 {
-    return *reinterpret_cast<attrib_type<I>*>(&data[get_offset<I>()]);
+    return *reinterpret_cast<attribute_type<I>*>(&data[attribute_offset<I>]);
 }
 
-template<AttribInfo ... A>
+template<VertexAttributeInfo ... A>
 template<size_t I>
-inline const auto& Vertex<A...>::get_attrib() const
+inline const auto& Vertex<A...>::get() const
 {
-    return *reinterpret_cast<const attrib_type<I>*>(&data[get_offset<I>()]);
+    return *reinterpret_cast<const attribute_type<I>*>(&data[attribute_offset<I>]);
 }
 
-template<AttribInfo ... A>
-template<size_t I>
-constexpr GLuint Vertex<A...>::get_size()
-{
-    return sizeof(attrib_type<I>);
-}
-
-template<AttribInfo ... A>
-template<size_t I>
-constexpr GLuint Vertex<A...>::get_offset()
-{
-    if constexpr (I == 0){
-        return 0;
-    } else {
-        return _get_offset(std::make_index_sequence<I>{});
-    }
-}
-
-template<AttribInfo ... A>
-template<size_t... I>
-constexpr GLuint Vertex<A...>::_get_offset(const std::index_sequence<I...>&)
-{
-    if constexpr (sizeof...(I) == 0){
-        return 0;
-    } else {
-        return (get_size<I>() + ...);
-    }
-}
-
-template<AttribInfo ... A>
+template<VertexAttributeInfo ... A>
 template<size_t... Is>
 void Vertex<A...>::_init_data(const auto& input, const std::index_sequence<Is...>&)
 {
     (_init_attrib_data<Is>(input), ...);
 }
 
-template<AttribInfo ... A>
+template<VertexAttributeInfo ... A>
 template<size_t I>
 void Vertex<A...>::_init_attrib_data(const auto& input){
-    get_attrib<I>() = std::get<I>(input);
+    get<I>() = std::get<I>(input);
 }
 
 }

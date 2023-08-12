@@ -2,7 +2,7 @@
 
 #include <memory>
 
-#include "data/AttribInfo.hpp"
+#include "data/VertexInfo.hpp"
 #include "voxel/VoxelRectangle.hpp"
 
 namespace gnev {
@@ -17,7 +17,7 @@ public:
     virtual VoxelRectMesh get_rect_mesh(const VoxelRectInfo& info, 
                                         size_type base_index,
                                         GLenum index_type,
-                                        const std::vector<AttribInfo>& vertex_info) = 0;
+                                        const VertexInfo& vertex_info) = 0;
 
     virtual bool is_visible(VoxelSide side, const std::shared_ptr<const VoxelType>& neighbour) const;
     virtual bool is_neighbour_side_visible(VoxelSide neighbour_pos, const VoxelType& neighbour) const;

@@ -2,20 +2,21 @@
 
 #include "gl/GLBufferVector.hpp"
 #include "gl/GLVertexArray.hpp"
-#include "data/AttribInfo.hpp"
+#include "data/VertexInfo.hpp"
 
 namespace gnev {
 
 class EXPORT VertexContainer {
 public:
     VertexContainer(const VertexContainer&) = default;
-    VertexContainer(const std::shared_ptr<GladGLContext> &ctx, GLenum index_type, const std::initializer_list<AttribInfo>& vertex_info);
+    VertexContainer(const std::shared_ptr<GladGLContext> &ctx, GLenum index_type, const VertexInfo& vertex_info);
     virtual ~VertexContainer();
 
     const GLenum index_type;
-    const GLenum index_size;
-    const std::vector<AttribInfo> vertex_info;
-    const GLuint vertex_size;
+    const unsigned int index_size;
+    const VertexInfo& vertex_info;
+
+    void bind_attribute(GLint shader_loc, GLint attribute_loc);
 
     GLVertexArray& vao();
     const GLVertexArray& vao() const;
@@ -32,7 +33,7 @@ private:
     GLBufferVector _vertices;
 
     static GLuint _get_index_size(GLenum index_type);
-    static GLuint _get_vertex_size(const std::initializer_list<AttribInfo>& vertex_info);
+    // static GLuint _get_vertex_size(const std::initializer_list<VertexAttributeInfo>& vertex_info);
 };
 
 }

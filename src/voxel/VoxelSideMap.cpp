@@ -5,8 +5,9 @@
 
 using namespace gnev;
 
-VoxelSideMap::VoxelSideMap(VoxelSide side, size_type size_x, size_type size_y, size_type size_z)
+VoxelSideMap::VoxelSideMap(VoxelChunk* owner, VoxelSide side, size_type size_x, size_type size_y, size_type size_z)
     : side(side),
+      _owner(owner),
       _map(size_x, size_y, size_z)
 {
 }

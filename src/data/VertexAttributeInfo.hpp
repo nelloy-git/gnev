@@ -2,12 +2,12 @@
 
 #include <stdexcept>
 
-#include "data/AttribType.hpp"
+#include "data/VertexAttributeType.hpp"
 
 namespace gnev {
 
-struct AttribInfo {
-    constexpr AttribInfo(GLuint elements, GLenum type, bool normalized);
+struct VertexAttributeInfo {
+    constexpr VertexAttributeInfo(GLuint elements, GLenum type, bool normalized);
 
     GLuint elements;
     GLenum type;
@@ -25,7 +25,7 @@ private:
 
 
 
-constexpr AttribInfo::AttribInfo(GLuint elements, GLenum type, bool normalized)
+constexpr VertexAttributeInfo::VertexAttributeInfo(GLuint elements, GLenum type, bool normalized)
     : elements(elements),
       type(type),
       normalized(normalized),
@@ -46,7 +46,7 @@ constexpr AttribInfo::AttribInfo(GLuint elements, GLenum type, bool normalized)
     }
 }
 
-constexpr bool AttribInfo::is_packed_type(GLenum type)
+constexpr bool VertexAttributeInfo::is_packed_type(GLenum type)
 {
     switch (type)
     {
@@ -67,7 +67,7 @@ constexpr bool AttribInfo::is_packed_type(GLenum type)
     }
 }
 
-constexpr bool AttribInfo::is_signed_type(GLenum type)
+constexpr bool VertexAttributeInfo::is_signed_type(GLenum type)
 {
     switch (type)
     {
@@ -88,7 +88,7 @@ constexpr bool AttribInfo::is_signed_type(GLenum type)
     }
 }
 
-constexpr size_t AttribInfo::get_type_size(GLuint elements, GLenum type)
+constexpr size_t VertexAttributeInfo::get_type_size(GLuint elements, GLenum type)
 {
     switch (type)
     {
