@@ -1,13 +1,13 @@
 #pragma once
 
-#include "gl/GLHandler.hpp"
+#include "gl/Handler.hpp"
 
-namespace gnev {
+namespace gnev::gl {
 
-class EXPORT GLShader : public GLHandler {
+class EXPORT Shader : public Handler {
 public:
-    GLShader(const std::shared_ptr<GladGLContext> &ctx, GLenum type);
-    virtual ~GLShader();
+    Shader(const std::shared_ptr<GladGLContext> &ctx, GLenum type);
+    virtual ~Shader();
 
     void glShaderSource(GLsizei count, const GLchar *const *string, const GLint *length);
     void glCompileShader();

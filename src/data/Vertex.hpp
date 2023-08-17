@@ -1,6 +1,7 @@
 #pragma once
 
 #include "data/VertexInfo.hpp"
+#include "util/Util.hpp"
 
 namespace gnev {
     

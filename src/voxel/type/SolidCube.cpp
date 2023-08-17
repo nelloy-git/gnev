@@ -27,9 +27,9 @@ VoxelTypeSolidCube::IndexArray VoxelTypeSolidCube::get_indices(const VoxelRectIn
 
 VoxelTypeSolidCube::PosArray VoxelTypeSolidCube::get_position(const VoxelRectInfo& rect)
 {
-    std::cout << "get_position: {" << rect.x << ", " << rect.y << ", " << rect.z << "}, "
-              << "{" << rect.size_x << ", " << rect.size_y << ", " << rect.size_z << "}"
-              << std::endl;
+    // std::cout << "get_position: {" << rect.x << ", " << rect.y << ", " << rect.z << "}, "
+    //           << "{" << rect.size_x << ", " << rect.size_y << ", " << rect.size_z << "}"
+    //           << std::endl;
 
     switch (rect.side){
 

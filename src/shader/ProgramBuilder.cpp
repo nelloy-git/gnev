@@ -23,15 +23,15 @@ const std::string& ProgramBuilder::help() const
     return _help;
 }
 
-std::optional<GLProgram> ProgramBuilder::build(const std::unordered_map<GLenum, std::string>& sources)
+std::optional<gl::Program> ProgramBuilder::build(const std::unordered_map<GLenum, std::string>& sources)
 {
     _reason = "";
     _help = "";
 
-    GLProgram program(_ctx);
-    std::vector<GLShader> shaders;
+    gl::Program program(_ctx);
+    std::vector<gl::Shader> shaders;
     for (auto& shader_info : sources){
-        GLShader shader(_ctx, shader_info.first);
+        gl::Shader shader(_ctx, shader_info.first);
         auto shader_status = compile_shader(shader, shader_info.second);
         if (!shader_status){
             return std::nullopt;
@@ -52,7 +52,7 @@ std::optional<GLProgram> ProgramBuilder::build(const std::unordered_map<GLenum, 
     return program;
 }
 
-bool ProgramBuilder::compile_shader(GLShader& shader, const std::string& src)
+bool ProgramBuilder::compile_shader(gl::Shader& shader, const std::string& src)
 {
     auto c_str = src.c_str();
     auto str_len = static_cast<GLint>(src.size());
@@ -78,7 +78,7 @@ bool ProgramBuilder::compile_shader(GLShader& shader, const std::string& src)
     return status;
 }
 
-bool ProgramBuilder::link_program(GLProgram& program)
+bool ProgramBuilder::link_program(gl::Program& program)
 {
     program.glLinkProgram();
 
@@ -101,7 +101,7 @@ bool ProgramBuilder::link_program(GLProgram& program)
     return status;
 }
 
-bool ProgramBuilder::validate_program(GLProgram& program)
+bool ProgramBuilder::validate_program(gl::Program& program)
 {
     program.glValidateProgram();
 

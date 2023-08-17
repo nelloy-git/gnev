@@ -4,8 +4,8 @@
 #include <unordered_map>
 #include <string>
 
-#include "gl/GLShader.hpp"
-#include "gl/GLProgram.hpp"
+#include "gl/Shader.hpp"
+#include "gl/Program.hpp"
 
 namespace gnev {
 
@@ -16,16 +16,16 @@ public:
 
     const std::string& reason() const;
     const std::string& help() const;
-    std::optional<GLProgram> build(const std::unordered_map<GLenum, std::string>& sources);
+    std::optional<gl::Program> build(const std::unordered_map<GLenum, std::string>& sources);
 
 private:
     const std::shared_ptr<GladGLContext> _ctx;
     std::string _reason;
     std::string _help;
 
-    bool compile_shader(GLShader& shader, const std::string& src);
-    bool link_program(GLProgram& program);
-    bool validate_program(GLProgram& program);
+    bool compile_shader(gl::Shader& shader, const std::string& src);
+    bool link_program(gl::Program& program);
+    bool validate_program(gl::Program& program);
 };
 
 }

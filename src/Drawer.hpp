@@ -2,15 +2,10 @@
 
 #include "glad/gl.h"
 
-#include "view/Camera.hpp"
-// #include "texture/TextureChunk.hpp"
+#include "gl/Program.hpp"
+#include "gl/Sampler.hpp"
 
-#include "gl/GLBuffer.hpp"
-#include "gl/GLProgram.hpp"
-#include "gl/GLSampler.hpp"
-#include "gl/GLShader.hpp"
-#include "gl/GLTexture.hpp"
-#include "gl/GLVertexArray.hpp"
+#include "view/Camera.hpp"
 
 namespace gnev {
 
@@ -20,16 +15,16 @@ public:
     ~Drawer();
 
     const std::shared_ptr<GladGLContext> ctx;
-    GLProgram program;
+    gl::Program program;
     Camera camera;
-    GLSampler sampler;
+    gl::Sampler sampler;
 
     void draw() const;
 
 private:
 
     static std::shared_ptr<GladGLContext> create_glad_ctx(GLADloadfunc load_func);
-    static GLSampler create_texture_sampler(const std::shared_ptr<GladGLContext> &ctx);
+    static gl::Sampler create_texture_sampler(const std::shared_ptr<GladGLContext> &ctx);
 };
 
 }

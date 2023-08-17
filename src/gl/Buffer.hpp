@@ -1,13 +1,13 @@
 #pragma once
 
-#include "gl/GLHandler.hpp"
+#include "gl/Handler.hpp"
 
-namespace gnev {
+namespace gnev::gl {
 
-class EXPORT GLBuffer : public GLHandler {
+class EXPORT Buffer : public Handler {
 public:
-    GLBuffer(const std::shared_ptr<GladGLContext> &ctx);
-    virtual ~GLBuffer();
+    Buffer(const GladCtx& ctx);
+    virtual ~Buffer();
 
     void glBindBuffer(GLenum target) const;
     void glBindBufferBase(GLenum target, GLuint index) const;
@@ -24,7 +24,7 @@ public:
     void glUnmapBuffer();
 
 private:
-    static GLuint* create_handle(const std::shared_ptr<GladGLContext> &ctx);
+    static GLuint* create_handle(const GladCtx& ctx);
     static void handle_deleter(GLuint* handle, GladGLContext& ctx);
 
 };

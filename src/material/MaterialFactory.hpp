@@ -4,7 +4,7 @@
 #include <memory>
 #include <optional>
 
-#include "gl/GLBufferVectorT.hpp"
+#include "gl/BufferVector.hpp"
 
 #include "material/MaterialTextureLoader.hpp"
 
@@ -43,7 +43,7 @@ public:
                     GLsizei specular_mipmap_levels, GLsizei specular_width, GLsizei specular_height);
     virtual ~MaterialFactory();
 
-    const GLBufferVectorT<Material>& material_buffer() const;
+    const gl::BufferVector<Material>& material_buffer() const;
     const MaterialTextureLoader& diffuse_loader() const;
     const MaterialTextureLoader& normal_loader() const;
     const MaterialTextureLoader& specular_loader() const;
@@ -57,7 +57,7 @@ private:
     MaterialTextureLoader _specular_loader;
 
     std::unordered_map<std::wstring, GLint> _id_map;
-    GLBufferVectorT<Material> _buffer;
+    gl::BufferVector<Material> _buffer;
 
     void _load_diffuse_texture(Material& material, const MaterialInfo& info);
     void _load_normal_texture(Material& material, const MaterialInfo& info);

@@ -35,14 +35,13 @@ namespace {
 }
 
 CameraController::CameraController(const std::shared_ptr<GladGLContext> &ctx)
-    : _camera(ctx, &default_camera, GL_MAP_READ_BIT | GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT),
-      _map(_camera.glMapBufferRange(GL_MAP_READ_BIT | GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT))
+    : _camera(ctx, {default_camera})
 {
-    _map->position = glm::vec4{2, 2, 2, 0};
-    _map->direction = glm::normalize(glm::vec4{-1, -1, -1, 0});
-    _map->view_mat = glm::lookAt(glm::vec3{_map->position}, glm::vec3(_map->position + _map->direction), {0, 1, 0});
-    _map->projection_mat = glm::perspectiveFov(_map->fov, static_cast<float>(_map->width), static_cast<float>(_map->height), _map->near_z, _map->far_z);
-    _map->result_mat = _map->projection_mat * _map->view_mat;
+    _camera[0].position = glm::vec4{2, 2, 2, 0};
+    _camera[0].direction = glm::normalize(glm::vec4{-1, -1, -1, 0});
+    _camera[0].view_mat = glm::lookAt(glm::vec3{_camera[0].position}, glm::vec3(_camera[0].position + _camera[0].direction), {0, 1, 0});
+    _camera[0].projection_mat = glm::perspectiveFov(_camera[0].fov, static_cast<float>(_camera[0].width), static_cast<float>(_camera[0].height), _camera[0].near_z, _camera[0].far_z);
+    _camera[0].result_mat = _camera[0].projection_mat * _camera[0].view_mat;
     _camera.glFlushMappedBufferRange(0, sizeof(Camera));
 }
 
@@ -51,93 +50,93 @@ CameraController::~CameraController()
     _camera.glUnmapBuffer();
 }
 
-gnev::GLBuffer& CameraController::buffer()
+gnev::gl::BufferArrayCoherent<Camera>& CameraController::buffer()
 {
     return _camera;
 }
 
 GLfloat CameraController::get_fov()
 {
-    return _map->fov;
+    return _camera[0].fov;
 }
 
 void CameraController::set_fov(GLfloat fov)
 {
-    _map->fov = fov;
-    _map->projection_mat = glm::perspectiveFov(_map->fov, static_cast<float>(_map->width), static_cast<float>(_map->height), _map->near_z, _map->far_z);
-    _map->result_mat = _map->projection_mat * _map->view_mat;
+    _camera[0].fov = fov;
+    _camera[0].projection_mat = glm::perspectiveFov(_camera[0].fov, static_cast<float>(_camera[0].width), static_cast<float>(_camera[0].height), _camera[0].near_z, _camera[0].far_z);
+    _camera[0].result_mat = _camera[0].projection_mat * _camera[0].view_mat;
 }
 
 GLfloat CameraController::get_width()
 {
-    return _map->width;
+    return _camera[0].width;
 }
 
 void CameraController::set_width(GLfloat width)
 {
-    _map->width = width;
-    _map->projection_mat = glm::perspectiveFov(_map->fov, static_cast<float>(_map->width), static_cast<float>(_map->height), _map->near_z, _map->far_z);
-    _map->result_mat = _map->projection_mat * _map->view_mat;
+    _camera[0].width = width;
+    _camera[0].projection_mat = glm::perspectiveFov(_camera[0].fov, static_cast<float>(_camera[0].width), static_cast<float>(_camera[0].height), _camera[0].near_z, _camera[0].far_z);
+    _camera[0].result_mat = _camera[0].projection_mat * _camera[0].view_mat;
 }
 
 GLfloat CameraController::get_height()
 {
-    return _map->height;
+    return _camera[0].height;
 }
 
 void CameraController::set_height(GLfloat height)
 {
-    _map->height = height;
-    _map->projection_mat = glm::perspectiveFov(_map->fov, static_cast<float>(_map->width), static_cast<float>(_map->height), _map->near_z, _map->far_z);
-    _map->result_mat = _map->projection_mat * _map->view_mat;
+    _camera[0].height = height;
+    _camera[0].projection_mat = glm::perspectiveFov(_camera[0].fov, static_cast<float>(_camera[0].width), static_cast<float>(_camera[0].height), _camera[0].near_z, _camera[0].far_z);
+    _camera[0].result_mat = _camera[0].projection_mat * _camera[0].view_mat;
 }
 
 GLfloat CameraController::get_near_z()
 {
-    return _map->near_z;
+    return _camera[0].near_z;
 }
 
 void CameraController::set_near_z(GLfloat near_z)
 {
-    _map->near_z = near_z;
-    _map->projection_mat = glm::perspectiveFov(_map->fov, static_cast<float>(_map->width), static_cast<float>(_map->height), _map->near_z, _map->far_z);
-    _map->result_mat = _map->projection_mat * _map->view_mat;
+    _camera[0].near_z = near_z;
+    _camera[0].projection_mat = glm::perspectiveFov(_camera[0].fov, static_cast<float>(_camera[0].width), static_cast<float>(_camera[0].height), _camera[0].near_z, _camera[0].far_z);
+    _camera[0].result_mat = _camera[0].projection_mat * _camera[0].view_mat;
 }
 
 GLfloat CameraController::get_far_z()
 {
-    return _map->far_z;
+    return _camera[0].far_z;
 }
 
 void CameraController::set_far_z(GLfloat far_z)
 {
-    _map->far_z = far_z;
-    _map->projection_mat = glm::perspectiveFov(_map->fov, static_cast<float>(_map->width), static_cast<float>(_map->height), _map->near_z, _map->far_z);
-    _map->result_mat = _map->projection_mat * _map->view_mat;
+    _camera[0].far_z = far_z;
+    _camera[0].projection_mat = glm::perspectiveFov(_camera[0].fov, static_cast<float>(_camera[0].width), static_cast<float>(_camera[0].height), _camera[0].near_z, _camera[0].far_z);
+    _camera[0].result_mat = _camera[0].projection_mat * _camera[0].view_mat;
 }
 
 const glm::vec4 CameraController::get_position()
 {
-    return _map->position;
+    return _camera[0].position;
 }
 
 void CameraController::set_position(glm::vec4 position)
 {
-    _map->position = position;
-    _map->view_mat = glm::lookAt(glm::vec3(_map->position), glm::vec3(_map->position + _map->direction), glm::vec3(_map->top));
-    _map->result_mat = _map->projection_mat * _map->view_mat;
+    _camera[0].position = position;
+    _camera[0].view_mat = glm::lookAt(glm::vec3(_camera[0].position), glm::vec3(_camera[0].position + _camera[0].direction), glm::vec3(_camera[0].top));
+    _camera[0].result_mat = _camera[0].projection_mat * _camera[0].view_mat;
 }
 
 const glm::vec4 CameraController::get_direction()
 {
-    return _map->direction;
+    return _camera[0].direction;
 }
 
 void CameraController::set_direction(glm::vec4 direction)
 {
-    _map->direction = glm::normalize(direction);
-    _map->view_mat = glm::lookAt(glm::vec3(_map->position), glm::vec3(_map->position + _map->direction), glm::vec3(_map->top));
-    _map->result_mat = _map->projection_mat * _map->view_mat;
+    _camera[0].direction = glm::normalize(direction);
+    _camera[0].view_mat = glm::lookAt(glm::vec3(_camera[0].position), glm::vec3(_camera[0].position + _camera[0].direction), glm::vec3(_camera[0].top));
+    _camera[0].result_mat = _camera[0].projection_mat * _camera[0].view_mat;
 }
 
 double CameraController::get_sensivity() const
@@ -160,8 +159,8 @@ void CameraController::capture(GlfwConveyor& conveyor)
         prev_x = pos_x;
         prev_y = pos_y;
 
-        auto top = glm::vec3(_map->top);
-        auto dir = glm::vec3(_map->direction);
+        auto top = glm::vec3(_camera[0].top);
+        auto dir = glm::vec3(_camera[0].direction);
         auto right = glm::normalize(glm::cross(dir, top));
         dir = glm::rotate(dir, offset_yaw, -top);
         dir = glm::rotate(dir, offset_pitch, -right);
@@ -172,9 +171,9 @@ void CameraController::capture(GlfwConveyor& conveyor)
     float speed = 0.1;
     auto key_cb = [this, speed](GlfwConveyor* conveyor, int key, int scancode, int action, int mods){
         if (action == GLFW_PRESS || action == GLFW_REPEAT){
-            auto pos = glm::vec3(_map->position);
-            auto top = glm::vec3(_map->top);
-            auto dir = glm::vec3(_map->direction);
+            auto pos = glm::vec3(_camera[0].position);
+            auto top = glm::vec3(_camera[0].top);
+            auto dir = glm::vec3(_camera[0].direction);
             auto right = glm::normalize(glm::cross(dir, top));
 
             switch (key){

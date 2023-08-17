@@ -1,13 +1,13 @@
 #pragma once
 
-#include "gl/GLHandler.hpp"
+#include "gl/Handler.hpp"
 
-namespace gnev {
+namespace gnev::gl {
 
-class EXPORT GLVertexArray : public GLHandler {
+class EXPORT VertexArray : public Handler {
 public:
-    GLVertexArray(const std::shared_ptr<GladGLContext> &ctx);
-    virtual ~GLVertexArray();
+    VertexArray(const std::shared_ptr<GladGLContext> &ctx);
+    virtual ~VertexArray();
 
     void glBindVertexArray() const;
     void glVertexArrayElementBuffer(GLuint buffer);

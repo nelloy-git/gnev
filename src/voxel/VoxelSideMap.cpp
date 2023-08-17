@@ -1,19 +1,23 @@
-#include "voxel/VoxelSideMap.hpp"
+ #include "voxel/VoxelSideMap.hpp"
 
 #include <iostream>
 #include <stdexcept>
 
 using namespace gnev;
 
-VoxelSideMap::VoxelSideMap(VoxelChunk* owner, VoxelSide side, size_type size_x, size_type size_y, size_type size_z)
+VoxelSideMap::VoxelSideMap(VoxelSide side)
     : side(side),
-      _owner(owner),
-      _map(size_x, size_y, size_z)
+      _map(0, 0, 0)
 {
 }
 
 VoxelSideMap::~VoxelSideMap()
 {
+}
+
+void VoxelSideMap::init(size_type size_x, size_type size_y, size_type size_z, const std::shared_ptr<VoxelType>& initial_type)
+{
+    _map = {size_x, size_y, size_z, };
 }
 
 const Array3d<std::shared_ptr<VoxelType>>& VoxelSideMap::get_map() const
@@ -28,15 +32,15 @@ const std::vector<std::shared_ptr<VoxelRectInfo>>& VoxelSideMap::get_rectangle_i
 
 void VoxelSideMap::build_map(const Array3d<std::shared_ptr<VoxelType>>& voxels)
 {
-    if (voxels.size_x != _map.size_x
-        || voxels.size_y != _map.size_y
-        || voxels.size_z != _map.size_z){
+    if (voxels.size_x() != _map.size_x()
+        || voxels.size_y() != _map.size_y()
+        || voxels.size_z() != _map.size_z()){
         throw std::logic_error("");
     }
 
-    for (size_type x = 0; x < _map.size_x; ++x){
-        for (size_type y = 0; y < _map.size_y; ++y){
-            for (size_type z = 0; z < _map.size_z; ++z){
+    for (size_type x = 0; x < _map.size_x(); ++x){
+        for (size_type y = 0; y < _map.size_y(); ++y){
+            for (size_type z = 0; z < _map.size_z(); ++z){
                 auto p_voxel = voxels(x, y, z);
                 _map(x, y, z) = _is_visible(voxels, p_voxel, x, y, z) ? p_voxel : nullptr;
             }
@@ -47,11 +51,11 @@ void VoxelSideMap::build_map(const Array3d<std::shared_ptr<VoxelType>>& voxels)
 void VoxelSideMap::build_rectangles()
 {
     _rectangle_infos.clear();
-    Array3d<uint8_t> passed(_map.size_x, _map.size_y, _map.size_z, false);
+    Array3d<uint8_t> passed(_map.size_x(), _map.size_y(), _map.size_z(), false);
 
-    for (size_type x = 0; x < _map.size_x; ++x){
-        for (size_type y = 0; y < _map.size_y; ++y){
-            for (size_type z = 0; z < _map.size_z; ++z){
+    for (size_type x = 0; x < _map.size_x(); ++x){
+        for (size_type y = 0; y < _map.size_y(); ++y){
+            for (size_type z = 0; z < _map.size_z(); ++z){
                 auto& p_type = _map(x, y, z);
                 if (!p_type || passed(x, y, z)){
                     continue;
@@ -80,7 +84,7 @@ void VoxelSideMap::_search_rect_width(Array3d<uint8_t>& passed, VoxelRectInfo& r
     case VoxelSide::Top:
     case VoxelSide::Bottom:
         // z - width, x - height
-        while(rect.z + width < _map.size_z){
+        while(rect.z + width < _map.size_z()){
             if (rect.type != _map(rect.x, rect.y, rect.z + width) || passed(rect.x, rect.y, rect.z + width)){
                 break;
             }
@@ -93,7 +97,7 @@ void VoxelSideMap::_search_rect_width(Array3d<uint8_t>& passed, VoxelRectInfo& r
     case VoxelSide::Front:
     case VoxelSide::Back:
         // z - width, y - height
-        while(rect.z + width < _map.size_z){
+        while(rect.z + width < _map.size_z()){
             if (rect.type != _map(rect.x, rect.y, rect.z + width) || passed(rect.x, rect.y, rect.z + width)){
                 break;
             }
@@ -106,7 +110,7 @@ void VoxelSideMap::_search_rect_width(Array3d<uint8_t>& passed, VoxelRectInfo& r
     case VoxelSide::Left:
     case VoxelSide::Right:
         // x - width, y - height
-        while(rect.x + width < _map.size_x){
+        while(rect.x + width < _map.size_x()){
             if (rect.type != _map(rect.x + width, rect.y, rect.z) || passed(rect.x + width, rect.y, rect.z)){
                 break;
             }
@@ -130,15 +134,15 @@ void VoxelSideMap::_search_rect_height(Array3d<uint8_t>& passed, VoxelRectInfo& 
     case VoxelSide::Top:
     case VoxelSide::Bottom:
         // z - width, x - height
-        while(rect.x + height + 1 < _map.size_x){
+        while(rect.x + height + 1 < _map.size_x()){
             bool same_type = true;
             for (size_type width = 0; width < rect.size_z; ++width){
-                std::cout << "Checking height: " << height
-                          << std::endl
-                          << "\tx: " << rect.x + height << " y: " << rect.y << " z: " << rect.z + width
-                          << std::endl
-                          << "\tbase: " << rect.type.get() << " cmp: " << _map(rect.x + height, rect.y, rect.z + width).get()
-                          << std::endl;                
+                // std::cout << "Checking height: " << height
+                //           << std::endl
+                //           << "\tx: " << rect.x + height << " y: " << rect.y << " z: " << rect.z + width
+                //           << std::endl
+                //           << "\tbase: " << rect.type.get() << " cmp: " << _map(rect.x + height, rect.y, rect.z + width).get()
+                //           << std::endl;                
 
                 if (rect.type != _map(rect.x + height, rect.y, rect.z + width)
                     || passed(rect.x + height, rect.y, rect.z + width)){
@@ -164,7 +168,7 @@ void VoxelSideMap::_search_rect_height(Array3d<uint8_t>& passed, VoxelRectInfo& 
     case VoxelSide::Front:
     case VoxelSide::Back:
         // z - width, y - height
-        while(rect.y + height < _map.size_y){
+        while(rect.y + height < _map.size_y()){
             bool same_type = true;
             for (size_type width = 0; width < rect.size_z; ++width){
                 if (rect.type != _map(rect.x, rect.y + height, rect.z + width)
@@ -190,7 +194,7 @@ void VoxelSideMap::_search_rect_height(Array3d<uint8_t>& passed, VoxelRectInfo& 
     case VoxelSide::Left:
     case VoxelSide::Right:
         // x - width, y - height
-        while(rect.y + height < _map.size_y){
+        while(rect.y + height < _map.size_y()){
             bool same_type = true;
             for (size_type width = 0; width < rect.size_x; ++width){
                 if (rect.type != _map(rect.x + width, rect.y + height, rect.z)
@@ -245,7 +249,7 @@ bool VoxelSideMap::_is_visible(const Array3d<std::shared_ptr<VoxelType>>& voxels
     }
 
     // TODO check connected map
-    if (cx < 0 || cx >= _map.size_x || cy < 0 || cy >= _map.size_y || cz < 0 || cz >= _map.size_z){
+    if (cx < 0 || cx >= _map.size_x() || cy < 0 || cy >= _map.size_y() || cz < 0 || cz >= _map.size_z()){
         return true;
     }
 

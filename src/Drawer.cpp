@@ -7,7 +7,7 @@
 #include "glm/glm.hpp"
 #include "stb_image.h"
 
-#include "gl/GLDebug.hpp"
+#include "gl/Debug.hpp"
 
 
 using namespace gnev;
@@ -61,11 +61,11 @@ std::shared_ptr<GladGLContext> Drawer::create_glad_ctx(GLADloadfunc load_func)
     return ctx;
 }
 
-GLSampler Drawer::create_texture_sampler(const std::shared_ptr<GladGLContext> &ctx)
+gl::Sampler Drawer::create_texture_sampler(const std::shared_ptr<GladGLContext> &ctx)
 {
     static const float BORDER_COLOR[] = { 1.0f, 1.0f, 1.0f, 0.0f };
 
-    auto sampler = GLSampler(ctx);
+    auto sampler = gl::Sampler(ctx);
 
     sampler.glSamplerParameteri(GL_TEXTURE_WRAP_S, GL_REPEAT);
     sampler.glSamplerParameteri(GL_TEXTURE_WRAP_T, GL_REPEAT);

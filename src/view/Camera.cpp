@@ -5,9 +5,9 @@
 
 using namespace gnev;
 
+
 Camera::Camera(const std::shared_ptr<GladGLContext> &ctx) :
-    buffer(ctx){
-    buffer.glBufferStorage(sizeof(CameraBuffer), nullptr, GL_DYNAMIC_STORAGE_BIT);
+    buffer(ctx, {CameraBuffer{.mat = glm::mat4(1.0f), .viewPos = {0,0,0}, .viewDir = {1,0,0}}}){
 }
 
 Camera::~Camera(){
@@ -25,11 +25,11 @@ void Camera::apply(){
         auto proj_mat = glm::perspectiveFov(fov, static_cast<float>(width), static_cast<float>(height), near_z, far_z);
         data.mat = proj_mat * data.mat;
     }
-    buffer.glBufferSubData(0, sizeof(CameraBuffer), &data);
+    buffer[0] = data;
 }
 
 // TODO angles
-glm::mat4 Camera::applyLookAt(const glm::vec3& dst){
+void Camera::applyLookAt(const glm::vec3& dst){
     CameraBuffer data;
 
     _forward = glm::normalize(dst - pos);
@@ -41,6 +41,5 @@ glm::mat4 Camera::applyLookAt(const glm::vec3& dst){
         auto proj_mat = glm::perspectiveFov(fov, static_cast<float>(width), static_cast<float>(height), near_z, far_z);
         data.mat = proj_mat * data.mat;
     }
-    buffer.glBufferSubData(0, sizeof(CameraBuffer), &data);
-    return data.mat;
+    buffer[0] = data;
 }

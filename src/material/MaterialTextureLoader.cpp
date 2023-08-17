@@ -44,14 +44,13 @@ MaterialTextureLoader::TextureLocation MaterialTextureLoader::load(const std::fi
 
     stbi_set_flip_vertically_on_load(true);
     int width, height, comp;
-    auto img = stbi_load(path.string().c_str(), &width, &height, &comp, _comp);
+    std::shared_ptr<unsigned char[]> p_img(stbi_load(path.string().c_str(), &width, &height, &comp, _comp), &stbi_image_free);
     std::cout << "Width: " << width << " Height: " << height << " Comp: " << _comp << std::endl;
     if (width != _width || height != _height){
         std::cout << "Image resized" << std::endl;
-        unsigned char* resized_img = static_cast<unsigned char*>(malloc(_width * _height * _comp * sizeof(unsigned char)));
-        stbir_resize_uint8(img, width, height, 0, resized_img, _width, _height, 0, _comp);
-        stbi_image_free(img);
-        img = resized_img;
+        std::shared_ptr<unsigned char[]> resized(static_cast<unsigned char*>(malloc(_width * _height * _comp * sizeof(unsigned char))), &free);
+        stbir_resize_uint8(p_img.get(), width, height, 0, resized.get(), _width, _height, 0, _comp);
+        p_img = resized;
     }
 
     TextureLocation loc;
@@ -59,7 +58,12 @@ MaterialTextureLoader::TextureLocation MaterialTextureLoader::load(const std::fi
     if (_textures.back().size() == _textures.back().max_size()){
         _textures.emplace_back(ctx(), _mipmap_levels, _storage_format, _width, _height);
     }
-    _textures.back().push_back(0, _image_format, GL_UNSIGNED_BYTE, img);
+
+    gl::TextureVector::Image img {
+        .level = 0, .x = 0, .y = 0, .width = _width, .height = height, .format = _image_format, .type = GL_UNSIGNED_BYTE, .data = p_img
+    };
+
+    _textures.back().push_back(img);
     std::cout << "Done" << std::endl;
 
     loc.array_index = _textures.size() - 1;
@@ -69,7 +73,7 @@ MaterialTextureLoader::TextureLocation MaterialTextureLoader::load(const std::fi
     return loc;
 }
 
-const std::vector<GLTextureVector>& MaterialTextureLoader::textures() const
+const std::vector<gl::TextureVector>& MaterialTextureLoader::textures() const
 {
     return _textures;
 }

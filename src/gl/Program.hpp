@@ -1,13 +1,13 @@
 #pragma once
 
-#include "gl/GLHandler.hpp"
+#include "gl/Handler.hpp"
 
-namespace gnev {
+namespace gnev::gl {
 
-class EXPORT GLProgram : public GLHandler {
+class EXPORT Program : public Handler {
 public:
-    GLProgram(const std::shared_ptr<GladGLContext> &ctx);
-    virtual ~GLProgram();
+    Program(const GladCtx& ctx);
+    virtual ~Program();
 
     void glAttachShader(GLuint shader);
     void glValidateProgram();

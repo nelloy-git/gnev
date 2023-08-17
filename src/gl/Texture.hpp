@@ -1,13 +1,13 @@
 #pragma once
 
-#include "gl/GLHandler.hpp"
+#include "gl/Handler.hpp"
 
-namespace gnev {
+namespace gnev::gl {
 
-class EXPORT GLTexture : public GLHandler {
+class EXPORT Texture : public Handler {
 public:
-    GLTexture(const std::shared_ptr<GladGLContext> &ctx, GLenum target);
-    virtual ~GLTexture();
+    Texture(const std::shared_ptr<GladGLContext> &ctx, GLenum target);
+    virtual ~Texture();
 
     void glBindTexture(GLenum target) const;
     void glTextureParameteri(GLenum pname, GLint param);

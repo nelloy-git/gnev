@@ -2,7 +2,7 @@
 
 #include "glm/glm.hpp"
 
-#include "gl/GLBuffer.hpp"
+#include "gl/BufferArrayCoherent.hpp"
 
 namespace gnev {
 
@@ -17,10 +17,10 @@ public:
     Camera(const std::shared_ptr<GladGLContext> &ctx);
     virtual ~Camera();
 
-    GLBuffer buffer;
+    gl::BufferArrayCoherent<CameraBuffer> buffer;
 
     void apply();
-    glm::mat4 applyLookAt(const glm::vec3& dst);
+    void applyLookAt(const glm::vec3& dst);
 
     glm::vec3 pos = {0, 0, 0};
     float yaw = 0;
@@ -35,8 +35,6 @@ public:
     int height = 1080;
 
 private:
-    std::shared_ptr<GladGLContext> _ctx;
-
     glm::vec3 _forward = {1, 0, 0};
     glm::vec3 _up = {0, 1, 0};
 };

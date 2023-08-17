@@ -9,14 +9,14 @@
 
 namespace gnev {
 
-class VoxelChunk;
-
 class EXPORT VoxelSideMap {
 public:
     using size_type = unsigned int;
 
-    VoxelSideMap(VoxelChunk* owner, VoxelSide side, size_type size_x, size_type size_y, size_type size_z);
-    ~VoxelSideMap();
+    VoxelSideMap(VoxelSide side);
+    virtual ~VoxelSideMap();
+
+    void init(size_type size_x, size_type size_y, size_type size_z, const std::shared_ptr<VoxelType>& initial_type = nullptr);
 
     const VoxelSide side;
     const Array3d<std::shared_ptr<VoxelType>>& get_map() const;
@@ -26,7 +26,6 @@ public:
     void build_rectangles();
 
 private:
-    VoxelChunk* _owner;
     Array3d<std::shared_ptr<VoxelType>> _map;
     std::vector<std::shared_ptr<VoxelRectInfo>> _rectangle_infos;
 

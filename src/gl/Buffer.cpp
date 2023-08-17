@@ -1,29 +1,29 @@
-#include "gl/GLBuffer.hpp"
+#include "gl/Buffer.hpp"
 
 #include <iostream>
 
-using namespace gnev;
+using namespace gnev::gl;
 
-GLBuffer::GLBuffer(const std::shared_ptr<GladGLContext> &ctx) :
-    GLHandler(ctx, create_handle(ctx), &handle_deleter){
+Buffer::Buffer(const std::shared_ptr<GladGLContext> &ctx) :
+    Handler(ctx, create_handle(ctx), &handle_deleter){
 }
 
-GLBuffer::~GLBuffer(){
+Buffer::~Buffer(){
 }
 
-void GLBuffer::glBindBuffer(GLenum target) const {
+void Buffer::glBindBuffer(GLenum target) const {
     ctx()->BindBuffer(target, handle());
 }
 
-void GLBuffer::glBindBufferBase(GLenum target, GLuint index) const {
+void Buffer::glBindBufferBase(GLenum target, GLuint index) const {
     ctx()->BindBufferBase(target, index, handle());
 }
 
-void GLBuffer::glBindBufferRange(GLenum target, GLuint index, GLintptr offset, GLsizeiptr size) const {
+void Buffer::glBindBufferRange(GLenum target, GLuint index, GLintptr offset, GLsizeiptr size) const {
     ctx()->BindBufferRange(target, index, handle(), offset, size);
 }
 
-void GLBuffer::glBufferData(GLsizeiptr size, const void *data, GLenum usage){
+void Buffer::glBufferData(GLsizeiptr size, const void *data, GLenum usage){
     if (ctx()->VERSION_4_5){
         ctx()->NamedBufferData(handle(), size, data, usage);
     } else {
@@ -36,7 +36,7 @@ void GLBuffer::glBufferData(GLsizeiptr size, const void *data, GLenum usage){
     }
 }
 
-void GLBuffer::glBufferStorage(GLsizeiptr size, const void* data, GLbitfield flags){
+void Buffer::glBufferStorage(GLsizeiptr size, const void* data, GLbitfield flags){
     if (ctx()->VERSION_4_5){
         ctx()->NamedBufferStorage(handle(), size, data, flags);
     } else {
@@ -49,7 +49,7 @@ void GLBuffer::glBufferStorage(GLsizeiptr size, const void* data, GLbitfield fla
     }
 }
 
-void GLBuffer::glBufferSubData(GLintptr offset, GLsizeiptr size, const void *data){
+void Buffer::glBufferSubData(GLintptr offset, GLsizeiptr size, const void *data){
     if (ctx()->VERSION_4_5){
         ctx()->NamedBufferSubData(handle(), offset, size, data);
     } else {
@@ -62,7 +62,7 @@ void GLBuffer::glBufferSubData(GLintptr offset, GLsizeiptr size, const void *dat
     }
 }
 
-void GLBuffer::glGetBufferSubData(GLintptr offset, GLsizeiptr size, void *data) const {
+void Buffer::glGetBufferSubData(GLintptr offset, GLsizeiptr size, void *data) const {
     if (ctx()->VERSION_4_5){
         ctx()->GetNamedBufferSubData(handle(), offset, size, data);
     } else {
@@ -75,7 +75,7 @@ void GLBuffer::glGetBufferSubData(GLintptr offset, GLsizeiptr size, void *data) 
     }
 }
 
-void GLBuffer::glCopyBufferSubData(GLuint writeBuffer, GLintptr readOffset, GLintptr writeOffset, GLsizeiptr size) const {
+void Buffer::glCopyBufferSubData(GLuint writeBuffer, GLintptr readOffset, GLintptr writeOffset, GLsizeiptr size) const {
     if (ctx()->VERSION_4_5){
         ctx()->CopyNamedBufferSubData(handle(), writeBuffer, readOffset, writeOffset, size);
     } else {
@@ -91,11 +91,11 @@ void GLBuffer::glCopyBufferSubData(GLuint writeBuffer, GLintptr readOffset, GLin
     }
 }
 
-void GLBuffer::glGetBufferParameteriv(GLenum pname, GLint* params) const {
+void Buffer::glGetBufferParameteriv(GLenum pname, GLint* params) const {
     ctx()->GetNamedBufferParameteriv(handle(), pname, params);
 }
 
-void* GLBuffer::glMapBuffer(GLenum access){
+void* Buffer::glMapBuffer(GLenum access){
     void* ptr;
     if (ctx()->VERSION_4_5){
         ptr = ctx()->MapNamedBuffer(handle(), access);
@@ -110,7 +110,7 @@ void* GLBuffer::glMapBuffer(GLenum access){
     return ptr;
 }
 
-void* GLBuffer::glMapBufferRange(GLintptr offset, GLsizeiptr length, GLbitfield access){
+void* Buffer::glMapBufferRange(GLintptr offset, GLsizeiptr length, GLbitfield access){
     void* ptr;
     if (ctx()->VERSION_4_5){
         ptr = ctx()->MapNamedBufferRange(handle(), offset, length, access);
@@ -125,12 +125,12 @@ void* GLBuffer::glMapBufferRange(GLintptr offset, GLsizeiptr length, GLbitfield 
     return ptr;
 }
 
-void GLBuffer::glFlushMappedBufferRange(GLintptr offset, GLsizeiptr length)
+void Buffer::glFlushMappedBufferRange(GLintptr offset, GLsizeiptr length)
 {
     ctx()->FlushMappedNamedBufferRange(handle(), offset, length);
 }
 
-void GLBuffer::glUnmapBuffer(){
+void Buffer::glUnmapBuffer(){
     if (ctx()->VERSION_4_5){
         ctx()->UnmapNamedBuffer(handle());
     } else {
@@ -143,7 +143,7 @@ void GLBuffer::glUnmapBuffer(){
     }
 }
 
-GLuint* GLBuffer::create_handle(const std::shared_ptr<GladGLContext> &ctx){
+GLuint* Buffer::create_handle(const std::shared_ptr<GladGLContext> &ctx){
     GLuint* handle = new GLuint(0);
     if (ctx->VERSION_4_5){
         ctx->CreateBuffers(1, handle);
@@ -153,7 +153,7 @@ GLuint* GLBuffer::create_handle(const std::shared_ptr<GladGLContext> &ctx){
     return handle;
 }
 
-void GLBuffer::handle_deleter(GLuint* handle, GladGLContext& ctx){
+void Buffer::handle_deleter(GLuint* handle, GladGLContext& ctx){
     ctx.DeleteBuffers(1, handle);
     delete handle;
 }

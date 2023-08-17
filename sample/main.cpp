@@ -14,19 +14,13 @@
 #include "CameraController.hpp"
 #include "Vertex.hpp"
 
-#include "gl/GLBuffer.hpp"
-#include "gl/GLVertexArray.hpp"
-
 #include "Drawer.hpp"
 #include "shader/ProgramBuilder.hpp"
-
-#include "gl/GLBufferVectorT.hpp"
 
 #include "material/MaterialFactory.hpp"
 
 #include "voxel/VoxelChunk.hpp"
 #include "VoxelTypeTest.hpp"
-
 
 void read_text_file(std::string& dst, const std::filesystem::path& path)
 {
@@ -56,9 +50,9 @@ struct PointLight {
     GLfloat specular[4];
 };
 
-gnev::GLBufferVectorT<PointLight> create_lights(const std::shared_ptr<GladGLContext>& ctx)
+gnev::gl::BufferVector<PointLight> create_lights(const std::shared_ptr<GladGLContext>& ctx)
 {
-    gnev::GLBufferVectorT<PointLight> buffer(ctx, nullptr, 0, GL_DYNAMIC_DRAW);
+    gnev::gl::BufferVector<PointLight> buffer(ctx, 0, nullptr);
 
     PointLight light = {
         .pos = {0, 1, 0},
@@ -149,7 +143,7 @@ int main(int argc, const char** argv)
     auto gravel_id = material_factory.register_material(L"gravel", gravel_info);
 
     auto voxel_type = std::make_shared<VoxelTypeTest>(gravel_id);
-    gnev::VoxelChunk chunk(drawer.ctx, GL_UNSIGNED_INT, Vertex::info, 3, 3, 3);
+    gnev::VoxelChunk<unsigned int, Vertex> chunk(drawer.ctx, 3, 3, 3);
     chunk.mesh().bind_attribute(drawer.program.glGetAttribLocation("inPos"), 0);
     chunk.mesh().bind_attribute(drawer.program.glGetAttribLocation("inUV"), 1);
     chunk.mesh().bind_attribute(drawer.program.glGetAttribLocation("inMaterialId"), 2);
@@ -165,22 +159,22 @@ int main(int argc, const char** argv)
     chunk.set(nullptr, 0, 1, 1);
     chunk.apply_mesh();
 
-    gnev::GLBufferVectorT<GLuint> ind(chunk.mesh().indices());
-    std::cout << "Indices:" << std::endl;
-    for (int i = 0; i < ind.size(); ++i){
-        std::cout << "\t" << i << ": " << *ind.get(i) << std::endl;
-    }
+    // gnev::GLBufferVectorT<GLuint> ind(chunk.mesh().indices());
+    // std::cout << "Indices:" << std::endl;
+    // for (int i = 0; i < ind.size(); ++i){
+    //     std::cout << "\t" << i << ": " << *ind.get(i) << std::endl;
+    // }
 
-    gnev::GLBufferVectorT<Vertex> vert(chunk.mesh().vertices());
-    std::cout << "Vertices bytes: " << chunk.mesh().vertices().size() << " count:" << vert.size() << std::endl;
-    for (int i = 0; i < vert.size(); ++i){
-        auto cur = vert.get(i);
-        std::cout << "\t" << i << ": "
-            << "{" << cur->get<0>().data[0] << ", " << cur->get<0>().data[1] << ", " << cur->get<0>().data[2] << "}"
-            << "{" << cur->get<1>().data[0] << ", " << cur->get<1>().data[1] << "}"
-            << "{" << cur->get<2>().data[0] << "}"
-            << std::endl;
-    }
+    // gnev::GLBufferVectorT<Vertex> vert(chunk.mesh().vertices());
+    // std::cout << "Vertices bytes: " << chunk.mesh().vertices().size() << " count:" << vert.size() << std::endl;
+    // for (int i = 0; i < vert.size(); ++i){
+    //     auto cur = vert.get(i);
+    //     std::cout << "\t" << i << ": "
+    //         << "{" << cur->get<0>().data[0] << ", " << cur->get<0>().data[1] << ", " << cur->get<0>().data[2] << "}"
+    //         << "{" << cur->get<1>().data[0] << ", " << cur->get<1>().data[1] << "}"
+    //         << "{" << cur->get<2>().data[0] << "}"
+    //         << std::endl;
+    // }
 
 
     auto lights_buffer = create_lights(drawer.ctx);
