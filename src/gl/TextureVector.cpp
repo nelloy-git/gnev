@@ -123,11 +123,12 @@ void TextureVector::insert_range(GLsizeiptr pos, const Image* value, GLuint coun
         reserve(_cap * _cap_mult + _cap_add);
     }
 
-    // push_back
+    auto old_size = _size;
     _size += count;
-    if (pos == _size){
+    // push_back
+    if (pos == old_size){
         for (GLsizei i = 0; i < count; ++i){
-            set(_size + i, value[i]);
+            set(old_size + i, value[i]);
         }
     }
 
@@ -137,12 +138,12 @@ void TextureVector::insert_range(GLsizeiptr pos, const Image* value, GLuint coun
                            0, 0, pos,
                            handle(), GL_TEXTURE_2D_ARRAY, level,
                            0, 0, pos + count,
-                           _get_width(level), _get_height(level), _size - count - pos);
+                           _get_width(level), _get_height(level), old_size - pos);
     }
 
     // Apply insertion
     for (GLsizei i = 0; i < count; ++i){
-        set(_size + i, value[i]);
+        set(pos + i, value[i]);
     }
 }
 

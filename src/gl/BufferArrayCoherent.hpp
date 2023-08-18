@@ -9,8 +9,6 @@ namespace gnev::gl {
 template<typename T>
 class EXPORT BufferArrayCoherent : public BufferArray<T> {
 public:
-    using type = T;
-
     BufferArrayCoherent(const GladCtx& ctx, GLsizeiptr size, const T* data);
     BufferArrayCoherent(const GladCtx& ctx, const std::initializer_list<T>& data);
     virtual ~BufferArrayCoherent();
@@ -39,12 +37,13 @@ BufferArrayCoherent<T>::BufferArrayCoherent(const GladCtx& ctx, GLsizeiptr size,
     : BufferArray<T>(ctx, size, data, _storage_flags),
       _map(glMapBufferRange(0, size * sizeof(T), _storage_flags))
 {
+
 }
 
 template<typename T>
 BufferArrayCoherent<T>::BufferArrayCoherent(const GladCtx& ctx, const std::initializer_list<T>& data)
-    : BufferArray<T>(ctx, data.size(), data.begin(), _storage_flags)
-    //   _map(Buffer::glMapBufferRange(0, data.size() * sizeof(T), _storage_flags))
+    : BufferArray<T>(ctx, data.size(), data.begin(), _storage_flags),
+      _map(static_cast<T*>(BufferArray<T>::glMapBufferRange(0, data.size() * sizeof(T), _storage_flags)))
 {
 }
 

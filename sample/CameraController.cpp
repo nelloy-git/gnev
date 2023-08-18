@@ -42,7 +42,6 @@ CameraController::CameraController(const std::shared_ptr<GladGLContext> &ctx)
     _camera[0].view_mat = glm::lookAt(glm::vec3{_camera[0].position}, glm::vec3(_camera[0].position + _camera[0].direction), {0, 1, 0});
     _camera[0].projection_mat = glm::perspectiveFov(_camera[0].fov, static_cast<float>(_camera[0].width), static_cast<float>(_camera[0].height), _camera[0].near_z, _camera[0].far_z);
     _camera[0].result_mat = _camera[0].projection_mat * _camera[0].view_mat;
-    _camera.glFlushMappedBufferRange(0, sizeof(Camera));
 }
 
 CameraController::~CameraController()

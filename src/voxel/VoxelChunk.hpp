@@ -27,7 +27,12 @@ private:
     Mesh<I,V> _mesh;
 
     Array3d<std::shared_ptr<VoxelType>> _voxels;
-    CubeContainer<VoxelSideMap> _side_map;
+    VoxelSideMap _top;
+    VoxelSideMap _bottom;
+    VoxelSideMap _front;
+    VoxelSideMap _back;
+    VoxelSideMap _right;
+    VoxelSideMap _left;
 
     void _insert_side_map(size_type& base_index, VoxelSideMap& side_map);
 };
@@ -39,19 +44,19 @@ VoxelChunk<I, V>::VoxelChunk(const std::shared_ptr<GladGLContext> &ctx,
                              size_type size_x, size_type size_y, size_type size_z)
     : _mesh(ctx),
       _voxels(size_x, size_y, size_z, nullptr),
-      _side_map(std::make_tuple(this, VoxelSide::Top),
-                std::make_tuple(this, VoxelSide::Bottom),
-                std::make_tuple(this, VoxelSide::Front),
-                std::make_tuple(this, VoxelSide::Back),
-                std::make_tuple(this, VoxelSide::Left),
-                std::make_tuple(this, VoxelSide::Right))
+      _top(VoxelSide::Top),
+      _bottom(VoxelSide::Bottom),
+      _front(VoxelSide::Front),
+      _back(VoxelSide::Back),
+      _right(VoxelSide::Left),
+      _left(VoxelSide::Right)
 {
-    _side_map[CubeSide::Top].init(size_x, size_y, size_z);
-    _side_map[CubeSide::Bottom].init(size_x, size_y, size_z);
-    _side_map[CubeSide::Front].init(size_x, size_y, size_z);
-    _side_map[CubeSide::Back].init(size_x, size_y, size_z);
-    _side_map[CubeSide::Left].init(size_x, size_y, size_z);
-    _side_map[CubeSide::Right].init(size_x, size_y, size_z);
+    _top.init(size_x, size_y, size_z);
+    _bottom.init(size_x, size_y, size_z);
+    _front.init(size_x, size_y, size_z);
+    _back.init(size_x, size_y, size_z);
+    _right.init(size_x, size_y, size_z);
+    _left.init(size_x, size_y, size_z);
 }
 
 template<typename I, IsVertex V>
@@ -84,12 +89,12 @@ void VoxelChunk<I,V>::apply_mesh()
     _mesh.vertices().clear();
 
     size_type base_index = 0;
-    _insert_side_map(base_index, _side_map[CubeSide::Top]);
-    _insert_side_map(base_index, _side_map[CubeSide::Bottom]);
-    _insert_side_map(base_index, _side_map[CubeSide::Front]);
-    _insert_side_map(base_index, _side_map[CubeSide::Back]);
-    _insert_side_map(base_index, _side_map[CubeSide::Left]);
-    _insert_side_map(base_index, _side_map[CubeSide::Right]);
+    _insert_side_map(base_index, _top);
+    _insert_side_map(base_index, _bottom);
+    _insert_side_map(base_index, _front);
+    _insert_side_map(base_index, _back);
+    _insert_side_map(base_index, _right);
+    _insert_side_map(base_index, _left);
 }
 
 template<typename I, IsVertex V>
@@ -100,14 +105,14 @@ void VoxelChunk<I,V>::_insert_side_map(size_type& base_index, VoxelSideMap& side
 
     auto& rectangles = side_map.get_rectangle_infos();
     for (auto& rect : rectangles){
-        auto voxel_mesh = rect->type->get_rect_mesh(*rect, base_index, _mesh.index_type, _mesh.vertex_info);
+        auto voxel_mesh = rect->type->get_rect_mesh(*rect, base_index, _mesh.IndexEnum, decltype(_mesh)::vertex_type::info);
 
         if (voxel_mesh.indices_count == 0){
             continue;
         }
 
-        _mesh.indices().push_back(voxel_mesh.indices_count * _mesh.index_size, voxel_mesh.indices_data.get());
-        _mesh.vertices().push_back(voxel_mesh.vertices_count * _mesh.vertex_info.size, voxel_mesh.vertices_data.get());
+        _mesh.indices().push_back_range(static_cast<const I*>(voxel_mesh.indices_data.get()), voxel_mesh.indices_count);
+        _mesh.vertices().push_back_range(static_cast<const V*>(voxel_mesh.vertices_data.get()), voxel_mesh.vertices_count);
         base_index += voxel_mesh.vertices_count;
     }
 }

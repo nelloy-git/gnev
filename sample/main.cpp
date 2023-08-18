@@ -95,7 +95,7 @@ int main(int argc, const char** argv)
     };
     conveyor.key_callbacks.emplace_back(exit_cb);
 
-    auto current_dir = std::filesystem::current_path();
+    auto current_dir = std::filesystem::current_path() / ".." / "..";
     std::string vertex_shader_src;
     read_text_file(vertex_shader_src, current_dir / "sample" / "shader" / "vertex.vs");
     std::string fragment_shader_src;

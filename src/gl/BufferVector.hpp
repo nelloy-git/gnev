@@ -56,7 +56,7 @@ BufferVector<T>::BufferVector(const GladCtx& ctx, GLsizeiptr initial_size, const
       _size(initial_size),
       _cap(std::max(initial_size, base_cap))
 {
-    glBufferData(_cap, initial_data, initial_size);
+    glBufferData(_cap, initial_data, _usage);
 }
 
 template<typename T>
