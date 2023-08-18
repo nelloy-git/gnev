@@ -95,6 +95,8 @@ void VoxelChunk<I,V>::apply_mesh()
     _insert_side_map(base_index, _back);
     _insert_side_map(base_index, _right);
     _insert_side_map(base_index, _left);
+
+    std::cout << "Total indices: " << _mesh.indices().size() << " vertices: " << _mesh.vertices().size() << std::endl;
 }
 
 template<typename I, IsVertex V>
@@ -104,8 +106,12 @@ void VoxelChunk<I,V>::_insert_side_map(size_type& base_index, VoxelSideMap& side
     side_map.build_rectangles();
 
     auto& rectangles = side_map.get_rectangle_infos();
+    std::cout << "Side: " << static_cast<int>(side_map.side) << " fount rectangles: " << rectangles.size() << std::endl;
+
+    size_t n = 0;
     for (auto& rect : rectangles){
         auto voxel_mesh = rect->type->get_rect_mesh(*rect, base_index, _mesh.IndexEnum, decltype(_mesh)::vertex_type::info);
+        std::cout << "N: " << ++n << " indices: " << voxel_mesh.indices_count << " vertices: " << voxel_mesh.vertices_count << std::endl;
 
         if (voxel_mesh.indices_count == 0){
             continue;
@@ -115,6 +121,7 @@ void VoxelChunk<I,V>::_insert_side_map(size_type& base_index, VoxelSideMap& side
         _mesh.vertices().push_back_range(static_cast<const V*>(voxel_mesh.vertices_data.get()), voxel_mesh.vertices_count);
         base_index += voxel_mesh.vertices_count;
     }
+
 }
 
 }

@@ -1,5 +1,7 @@
 #pragma once
 
+#include <iostream>
+
 #include "gl/Buffer.hpp"
 
 namespace gnev::gl {
@@ -37,11 +39,13 @@ public:
     void set_resize_params(float mult, float add);
 
 private:
-    GLsizeiptr _size;
-    GLsizeiptr _cap;
-
-    double _cap_mult = 2;
-    double _cap_add = 0;
+    struct SharedPrivate {
+        GLsizeiptr buffer_size = 0;
+        GLsizeiptr buffer_cap = 0;
+        double cap_mult = 2;
+        double cap_add = 0;
+    };
+    std::shared_ptr<SharedPrivate> _priv;
 
     static constexpr GLenum _usage = GL_DYNAMIC_COPY;
     static T* _alloc(GLsizeiptr n);
@@ -53,10 +57,11 @@ private:
 template<typename T>
 BufferVector<T>::BufferVector(const GladCtx& ctx, GLsizeiptr initial_size, const T* initial_data)
     : Buffer(ctx),
-      _size(initial_size),
-      _cap(std::max(initial_size, base_cap))
+      _priv(std::make_shared<SharedPrivate>())
 {
-    glBufferData(_cap, initial_data, _usage);
+    _priv->buffer_size = initial_size * sizeof(T);
+    _priv->buffer_cap = std::max(initial_size * sizeof(T), base_cap * sizeof(T));
+    glBufferData(_priv->buffer_cap, initial_data, _usage);
 }
 
 template<typename T>
@@ -67,92 +72,92 @@ BufferVector<T>::~BufferVector()
 template<typename T>
 std::unique_ptr<T, void(*)(T*)> BufferVector<T>::get(GLsizeiptr i) const
 {
-    if (i < 0 || i >= _size){throw std::out_of_range("");}
+    if (i < 0 || i >= size()){throw std::out_of_range("");}
 
     std::unique_ptr<T, void(*)(T*)> data(_alloc(1), &_free);
-    glGetBufferSubData(i, sizeof(T), data.get());
+    glGetBufferSubData(i * sizeof(T), sizeof(T), data.get());
     return data;
 }
 
 template<typename T>
 void BufferVector<T>::set(GLsizeiptr i, const T& value)
 {
-    if (i < 0 || i >= _size){throw std::out_of_range("");}
-    glBufferSubData(i, sizeof(T), &value);
+    if (i < 0 || i >= size()){throw std::out_of_range("");}
+    glBufferSubData(i * sizeof(T), sizeof(T), &value);
 }
 
 template<typename T>
 std::unique_ptr<T[], void(*)(T*)> BufferVector<T>::get_range(GLsizeiptr i, GLsizeiptr count) const
 {
-    if (i < 0 || i + count >= _size){throw std::out_of_range("");}
+    if (i < 0 || i + count >= size()){throw std::out_of_range("");}
     std::unique_ptr<T[], void(*)(T*)> data(_alloc(count), &_free);
-    glGetBufferSubData(i, count, data.get());
+    glGetBufferSubData(i * sizeof(T), count * sizeof(T), data.get());
     return data;
 }
 
 template<typename T>
 void BufferVector<T>::set_range(GLsizeiptr i, GLsizeiptr count, const T* data)
 {
-    if (i < 0 || i + count >= _size){throw std::out_of_range("");}
-    glBufferSubData(i, count, data);
+    if (i < 0 || i + count >= size()){throw std::out_of_range("");}
+    glBufferSubData(i * sizeof(T), count * sizeof(T), data);
 }
 
 template<typename T>
 GLsizeiptr BufferVector<T>::size() const
 {
-    return _size;
+    return _priv->buffer_size / sizeof(T);
 }
 
 template<typename T>
-void BufferVector<T>::reserve(GLsizeiptr capacity)
+void BufferVector<T>::reserve(GLsizeiptr cap)
 {
-    if (capacity < 0){throw std::out_of_range("");}
+    if (cap < 0){throw std::out_of_range("");}
 
-    if (_cap >= capacity){
+    if (capacity() >= cap){
         return;
     }
 
-    _cap = capacity;
-    if (_size == 0){
-        glBufferData(capacity * sizeof(T), nullptr, _usage);
+    _priv->buffer_cap = cap * sizeof(T);
+    if (_priv->buffer_size == 0){
+        glBufferData(cap * sizeof(T), nullptr, _usage);
         return;
     }
 
     Buffer tmp_buffer(ctx());
-    tmp_buffer.glBufferStorage(_size * sizeof(T), nullptr, 0);
-    glCopyBufferSubData(tmp_buffer.handle(), 0, 0, _size * sizeof(T));
+    tmp_buffer.glBufferStorage(_priv->buffer_size, nullptr, 0);
+    glCopyBufferSubData(tmp_buffer.handle(), 0, 0, _priv->buffer_size);
 
-    glBufferData(_cap * sizeof(T), nullptr, _usage);
-    tmp_buffer.glCopyBufferSubData(handle(), 0, 0, _size * sizeof(T));
+    glBufferData(_priv->buffer_cap, nullptr, _usage);
+    tmp_buffer.glCopyBufferSubData(handle(), 0, 0, _priv->buffer_size);
 }
 
 template<typename T>
 GLsizeiptr BufferVector<T>::capacity() const
 {
-    return _cap;
+    return _priv->buffer_cap / sizeof(T);
 }
 
 template<typename T>
 void BufferVector<T>::shrink_to_fit()
 {
-    _cap = _size;
-    if (_size == 0){
+    _priv->buffer_cap = _priv->buffer_size;
+    if (_priv->buffer_size == 0){
         glBufferData(sizeof(T), nullptr, _usage);
         return;
     }
 
     Buffer tmp_buffer(ctx());
-    tmp_buffer.glBufferStorage(_size * sizeof(T), nullptr, 0);
-    glCopyBufferSubData(tmp_buffer.handle(), 0, 0, _size * sizeof(T));
+    tmp_buffer.glBufferStorage(_priv->buffer_size, nullptr, 0);
+    glCopyBufferSubData(tmp_buffer.handle(), 0, 0, _priv->buffer_size);
     
-    glBufferData(_cap * sizeof(T), nullptr, _usage);
-    tmp_buffer.glCopyBufferSubData(handle(), 0, 0, _size * sizeof(T));
+    glBufferData(_priv->buffer_size, nullptr, _usage);
+    tmp_buffer.glCopyBufferSubData(handle(), 0, 0, _priv->buffer_size);
 }
 
 template<typename T>
 void BufferVector<T>::clear()
 {
-    _size = 0;
+    _priv->buffer_size = 0;
 }
 
 template<typename T>
@@ -164,17 +169,17 @@ void BufferVector<T>::insert(GLsizeiptr i, const T& value)
 template<typename T>
 void BufferVector<T>::insert_range(GLsizeiptr i, const T* value, GLuint count) 
 {
-    if (i < 0 || i > _size){throw std::out_of_range("");}
+    if (i < 0 || i > size()){throw std::out_of_range("");}
 
-    while (_size + count > _cap){
-        reserve(_cap * _cap_mult + _cap_add);
+    while (size() + count > capacity()){
+        reserve(capacity() * _priv->cap_mult + _priv->cap_add);
     }
 
-    if (i < _size){
-        glCopyBufferSubData(handle(), i * sizeof(T), (i+count) * sizeof(T), (_size - i) * sizeof(T));
+    if (i < size() && size() != 0){
+        glCopyBufferSubData(handle(), i * sizeof(T), (i+count) * sizeof(T), (size() - i) * sizeof(T));
     }
     glBufferSubData(i * sizeof(T), count * sizeof(T), value);
-    _size += count;
+    _priv->buffer_size += count * sizeof(T);
 }
 
 template<typename T>
@@ -186,42 +191,42 @@ void BufferVector<T>::erase(GLsizeiptr i)
 template<typename T>
 void BufferVector<T>::erase_range(GLsizeiptr i, GLuint count)
 {
-    if (i < 0 || i + count > _size){throw std::out_of_range("");}
+    if (i < 0 || i + count > size()){throw std::out_of_range("");}
 
-    if (i + count < _size){
-        glCopyBufferSubData(handle(), (i+count) * sizeof(T), (i) * sizeof(T), (_size - i - count) * sizeof(T));
+    if (i + count < size()){
+        glCopyBufferSubData(handle(), (i+count) * sizeof(T), (i) * sizeof(T), (size() - i - count) * sizeof(T));
     }
-    _size -= count;
+    _priv->buffer_size -= count * sizeof(T);
 }
 
 template<typename T>
 void BufferVector<T>::push_back(const T& value)
 {
-    insert(_size, value);
+    insert(size(), value);
 }
 
 template<typename T>
 void BufferVector<T>::push_back_range(const T* values, GLuint count)
 {
-    insert_range(_size, values, count);
+    insert_range(size(), values, count);
 }
 
 template<typename T>
 void BufferVector<T>::pop_back()
 {
-    erase(_size - 1);
+    erase(size() - 1);
 }
 
 template<typename T>
 void BufferVector<T>::pop_back_range(GLuint count)
 {
-    erase_range(_size - count, count);
+    erase_range(size() - count, count);
 }
 
 template<typename T>
 T* BufferVector<T>::_alloc(GLsizeiptr n)
 {
-    return malloc(n * sizeof(T));
+    return static_cast<T*>(malloc(n * sizeof(T)));
 }
 
 template<typename T>

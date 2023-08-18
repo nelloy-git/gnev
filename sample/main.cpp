@@ -95,7 +95,7 @@ int main(int argc, const char** argv)
     };
     conveyor.key_callbacks.emplace_back(exit_cb);
 
-    auto current_dir = std::filesystem::current_path() / ".." / "..";
+    auto current_dir = std::filesystem::current_path();
     std::string vertex_shader_src;
     read_text_file(vertex_shader_src, current_dir / "sample" / "shader" / "vertex.vs");
     std::string fragment_shader_src;
@@ -149,32 +149,30 @@ int main(int argc, const char** argv)
     chunk.mesh().bind_attribute(drawer.program.glGetAttribLocation("inMaterialId"), 2);
     
     chunk.set(voxel_type, 0, 0, 0);
-    chunk.set(voxel_type, 1, 0, 0);
+    // chunk.set(voxel_type, 1, 0, 0);
     // chunk.set(voxel_type, 1, 0, 1);
-    chunk.set(voxel_type, 0, 0, 1);
-    chunk.set(voxel_type, 0, 1, 0);
-    chunk.set(voxel_type, 1, 1, 0);
+    // chunk.set(voxel_type, 0, 0, 1);
+    // chunk.set(voxel_type, 0, 1, 0);
+    // chunk.set(voxel_type, 1, 1, 0);
     // chunk.set(voxel_type, 1, 1, 1);
-    chunk.set(voxel_type, 0, 1, 1);
-    chunk.set(nullptr, 0, 1, 1);
+    // chunk.set(voxel_type, 0, 1, 1);
+    // chunk.set(nullptr, 0, 1, 1);
     chunk.apply_mesh();
+    
+    std::cout << "Indices:" << std::endl;
+    for (int i = 0; i < chunk.mesh().indices().size(); ++i){
+        std::cout << "\t" << i << ": " << *chunk.mesh().indices().get(i) << std::endl;
+    }
 
-    // gnev::GLBufferVectorT<GLuint> ind(chunk.mesh().indices());
-    // std::cout << "Indices:" << std::endl;
-    // for (int i = 0; i < ind.size(); ++i){
-    //     std::cout << "\t" << i << ": " << *ind.get(i) << std::endl;
-    // }
-
-    // gnev::GLBufferVectorT<Vertex> vert(chunk.mesh().vertices());
-    // std::cout << "Vertices bytes: " << chunk.mesh().vertices().size() << " count:" << vert.size() << std::endl;
-    // for (int i = 0; i < vert.size(); ++i){
-    //     auto cur = vert.get(i);
-    //     std::cout << "\t" << i << ": "
-    //         << "{" << cur->get<0>().data[0] << ", " << cur->get<0>().data[1] << ", " << cur->get<0>().data[2] << "}"
-    //         << "{" << cur->get<1>().data[0] << ", " << cur->get<1>().data[1] << "}"
-    //         << "{" << cur->get<2>().data[0] << "}"
-    //         << std::endl;
-    // }
+    std::cout << "Vertices: " << chunk.mesh().vertices().size() << std::endl;
+    for (int i = 0; i < chunk.mesh().vertices().size(); ++i){
+        auto cur = chunk.mesh().vertices().get(i);
+        std::cout << "\t" << i << ": "
+            << "{" << cur->get<0>().data[0] << ", " << cur->get<0>().data[1] << ", " << cur->get<0>().data[2] << "}"
+            << "{" << cur->get<1>().data[0] << ", " << cur->get<1>().data[1] << "}"
+            << "{" << cur->get<2>().data[0] << "}"
+            << std::endl;
+    }
 
 
     auto lights_buffer = create_lights(drawer.ctx);
@@ -213,7 +211,7 @@ int main(int argc, const char** argv)
         material_factory.specular_loader().textures()[0].glBindTexture(GL_TEXTURE_2D_ARRAY);
 
         chunk.mesh().vao().glBindVertexArray();
-        drawer.ctx->DrawElements(GL_TRIANGLES, chunk.mesh().indices().size() / sizeof(GLuint), GL_UNSIGNED_INT, 0);
+        drawer.ctx->DrawElements(GL_TRIANGLES, chunk.mesh().indices().size(), chunk.mesh().IndexEnum, 0);
 
         auto end = std::chrono::steady_clock::now();
         auto dt = std::chrono::duration_cast<std::chrono::microseconds>(end - start);

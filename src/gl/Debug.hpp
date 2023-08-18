@@ -47,7 +47,10 @@ static void glDebugOutput(GLenum source,
     } std::cout << std::endl;
 
     switch (type){
-        case GL_DEBUG_TYPE_ERROR:               std::cout << "Type: Error"; break;
+        case GL_DEBUG_TYPE_ERROR:               
+            std::cout << "Type: Error";
+            throw std::runtime_error("OpenGL");
+            break;
         case GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR: std::cout << "Type: Deprecated Behaviour"; break;
         case GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR:  std::cout << "Type: Undefined Behaviour"; break; 
         case GL_DEBUG_TYPE_PORTABILITY:         std::cout << "Type: Portability"; break;
@@ -64,6 +67,7 @@ static void glDebugOutput(GLenum source,
         case GL_DEBUG_SEVERITY_LOW:          std::cout << "Severity: low"; break;
         case GL_DEBUG_SEVERITY_NOTIFICATION: std::cout << "Severity: notification"; break;
     } std::cout << std::endl;
+
 };
 
 }
