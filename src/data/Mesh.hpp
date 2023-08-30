@@ -7,11 +7,8 @@
 namespace gnev
 {
 
-template<typename I, IsVertex V>
-class Mesh
-{
-    static_assert(std::is_same_v<I, GLubyte> || std::is_same_v<I, GLushort> || std::is_same_v<I, GLuint>, "Index type is not valid");
-
+template<IsIndex I, IsVertex V>
+class Mesh {
 public:
     static constexpr GLenum IndexEnum = std::is_same_v<I, GLubyte> ? GL_UNSIGNED_BYTE
                                        : std::is_same_v<I, GLushort> ? GL_UNSIGNED_SHORT
@@ -20,7 +17,7 @@ public:
     using index_type = I;
     using vertex_type = V;
 
-    Mesh(const std::shared_ptr<GladGLContext> &ctx);
+    Mesh(const gl::GladCtx& ctx);
     virtual ~Mesh();
 
     void bind_attribute(GLint shader_loc, GLint attribute_loc);
@@ -35,8 +32,8 @@ private:
     gl::BufferVector<V> _vertices;
 };
 
-template<typename I, IsVertex V>
-Mesh<I, V>::Mesh(const std::shared_ptr<GladGLContext> &ctx)
+template<IsIndex I, IsVertex V>
+Mesh<I, V>::Mesh(const gl::GladCtx& ctx)
     : _vao(ctx),
       _indices(ctx, 0, nullptr),
       _vertices(ctx, 0, nullptr)
@@ -45,12 +42,12 @@ Mesh<I, V>::Mesh(const std::shared_ptr<GladGLContext> &ctx)
     _vao.glVertexArrayVertexBuffer(0, _vertices.handle(), 0, sizeof(vertex_type));
 }
 
-template<typename I, IsVertex V>
+template<IsIndex I, IsVertex V>
 Mesh<I, V>::~Mesh()
 {
 }
 
-template<typename I, IsVertex V>
+template<IsIndex I, IsVertex V>
 void Mesh<I, V>::bind_attribute(GLint shader_loc, GLint attribute_loc)
 {
     static constexpr VertexInfo vertex_info = vertex_type::info;

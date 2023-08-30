@@ -1,24 +1,29 @@
 #pragma once
 
-#include "util/Util.hpp"
+#include <future>
 
-namespace gnev {
+#include "voxel/Chunk.hpp"
 
+namespace gnev::voxel {
+
+template<IsIndex I, IsVertex V>
 class EXPORT MeshBuilder {
 public:
     MeshBuilder();
     virtual ~MeshBuilder();
 
-    virtual void build_mesh(void* dst_indices, void* dst_vertices) = 0;
+    virtual std::pair<std::promise<void>, Mesh<I,V>> build(const std::shared_ptr<Chunk>& chunk) const = 0;
 
 
 };
 
-MeshBuilder::MeshBuilder()
+template<IsIndex I, IsVertex V>
+MeshBuilder<I,V>::MeshBuilder()
 {
 }
 
-inline MeshBuilder::~MeshBuilder()
+template<IsIndex I, IsVertex V>
+inline MeshBuilder<I,V>::~MeshBuilder()
 {
 }
 

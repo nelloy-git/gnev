@@ -54,6 +54,14 @@ static constexpr bool is_Vertex_v = is_Vertex<derived>::value;
 template <typename derived>
 concept IsVertex = is_Vertex_v<derived>;
 
+template <typename T>
+concept IsIndex = std::is_same_v<T, GLubyte> || std::is_same_v<T, GLushort> || std::is_same_v<T, GLuint>;
+
+template <IsIndex T>
+constexpr GLenum IndexEnum = std::is_same_v<T, GLubyte> ? GL_UNSIGNED_BYTE
+                             : std::is_same_v<T, GLushort> ? GL_UNSIGNED_SHORT
+                             : std::is_same_v<T, GLuint> ? GL_UNSIGNED_INT : 0;;
+
 template<VertexAttributeInfo ... A>
 Vertex<A...>::Vertex(const VertexAttribute<A>&... input)
 {

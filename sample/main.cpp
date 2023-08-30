@@ -149,30 +149,30 @@ int main(int argc, const char** argv)
     chunk.mesh().bind_attribute(drawer.program.glGetAttribLocation("inMaterialId"), 2);
     
     chunk.set(voxel_type, 0, 0, 0);
-    // chunk.set(voxel_type, 1, 0, 0);
-    // chunk.set(voxel_type, 1, 0, 1);
-    // chunk.set(voxel_type, 0, 0, 1);
-    // chunk.set(voxel_type, 0, 1, 0);
+    chunk.set(voxel_type, 1, 0, 0);
+    chunk.set(voxel_type, 1, 0, 1);
+    chunk.set(voxel_type, 0, 0, 1);
+    chunk.set(voxel_type, 0, 1, 0);
     // chunk.set(voxel_type, 1, 1, 0);
     // chunk.set(voxel_type, 1, 1, 1);
     // chunk.set(voxel_type, 0, 1, 1);
     // chunk.set(nullptr, 0, 1, 1);
     chunk.apply_mesh();
     
-    std::cout << "Indices:" << std::endl;
-    for (int i = 0; i < chunk.mesh().indices().size(); ++i){
-        std::cout << "\t" << i << ": " << *chunk.mesh().indices().get(i) << std::endl;
-    }
+    // std::cout << "Indices:" << std::endl;
+    // for (int i = 0; i < chunk.mesh().indices().size(); ++i){
+    //     std::cout << "\t" << i << ": " << *chunk.mesh().indices().get(i) << std::endl;
+    // }
 
-    std::cout << "Vertices: " << chunk.mesh().vertices().size() << std::endl;
-    for (int i = 0; i < chunk.mesh().vertices().size(); ++i){
-        auto cur = chunk.mesh().vertices().get(i);
-        std::cout << "\t" << i << ": "
-            << "{" << cur->get<0>().data[0] << ", " << cur->get<0>().data[1] << ", " << cur->get<0>().data[2] << "}"
-            << "{" << cur->get<1>().data[0] << ", " << cur->get<1>().data[1] << "}"
-            << "{" << cur->get<2>().data[0] << "}"
-            << std::endl;
-    }
+    // std::cout << "Vertices: " << chunk.mesh().vertices().size() << std::endl;
+    // for (int i = 0; i < chunk.mesh().vertices().size(); ++i){
+    //     auto cur = chunk.mesh().vertices().get(i);
+    //     std::cout << "\t" << i << ": "
+    //         << "{" << cur->get<0>().data[0] << ", " << cur->get<0>().data[1] << ", " << cur->get<0>().data[2] << "}"
+    //         << "{" << cur->get<1>().data[0] << ", " << cur->get<1>().data[1] << "}"
+    //         << "{" << cur->get<2>().data[0] << "}"
+    //         << std::endl;
+    // }
 
 
     auto lights_buffer = create_lights(drawer.ctx);
