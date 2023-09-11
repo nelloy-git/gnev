@@ -29,7 +29,7 @@ void read_text_file(std::string& dst, const std::filesystem::path& path)
         throw std::runtime_error("File not found");
     }
 
-    std::ifstream t(path.wstring());
+    std::ifstream t(path);
     t.seekg(0, std::ios::end);
     size_t size = t.tellg();
     dst.resize(size, ' ');
@@ -76,7 +76,7 @@ GLint shader_storage_block_index()
 
 int main(int argc, const char** argv)
 {
-    GlfwConveyor conveyor;
+    GlfwConveyor conveyor(640, 480);
     gnev::Drawer drawer(conveyor.get_proc_address());
     gnev::ProgramBuilder program_builder(drawer.ctx);
    
@@ -122,7 +122,8 @@ int main(int argc, const char** argv)
     drawer.program.glShaderStorageBlockBinding(camera_buffer_index, camera_buffer_binding);
     camera.buffer().glBindBufferBase(GL_SHADER_STORAGE_BUFFER, camera_buffer_binding);
 
-    glfwSetInputMode(conveyor.window.get(), GLFW_CURSOR, GLFW_CURSOR_DISABLED); 
+    // glfwSetInputMode(conveyor.window.get(), GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    // glfwSetInputMode(conveyor.window.get(), GLFW_RAW_MOUSE_MOTION, GLFW_TRUE);
 
     // Material
 

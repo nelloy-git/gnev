@@ -3,7 +3,11 @@
 #include <unordered_set>
 #include <variant>
 
+#ifdef WIN32
 #define EXPORT __declspec(dllexport)
+#else
+#define EXPORT
+#endif
 
 namespace gnev {
 

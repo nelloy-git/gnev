@@ -1,6 +1,10 @@
 cmake_minimum_required(VERSION 3.1...3.17 FATAL_ERROR)
 
 project(gnev VERSION 0.01 LANGUAGES C CXX)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
+#set(GLFW_BUILD_X11 OFF)
+#set(GLFW_USE_WAYLAND ON)
 
 add_subdirectory(./3rdparty/glfw)
 add_subdirectory(./3rdparty/json)
@@ -10,9 +14,9 @@ add_compile_definitions(GLWPP_DEBUG)
 if (WIN32)
     add_compile_definitions("IMGUI_API=__declspec(dllexport)")
 
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Zi /WX /D_DEBUG /DEBUG:FULL /std:c++latest")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Zi /WX /D_DEBUG /DEBUG:FULL /std:c++20")
 else ()
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++23 -fconcepts -pthread -fmax-errors=1 -ggdb")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++23 -g")
 endif (WIN32)
 
 include_directories(./src)

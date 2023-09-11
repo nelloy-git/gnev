@@ -34,15 +34,15 @@ constexpr VertexAttributeInfo::VertexAttributeInfo(GLuint elements, GLenum type,
       size(get_type_size(elements, type))
 {
     if (elements > 4){
-        throw std::exception("Vertex attribute can have maximum 4 components");
+        throw std::logic_error("Vertex attribute can have maximum 4 components");
     }
 
     if (elements == 0){
-        throw std::exception("Vertex attribute must have at least 1 component");
+        throw std::logic_error("Vertex attribute must have at least 1 component");
     }
 
     if (type == GL_UNSIGNED_INT_10_10_10_2 && elements != 4){
-        throw std::exception("UInt_10_10_10_2 can be 4 components only");
+        throw std::logic_error("UInt_10_10_10_2 can be 4 components only");
     }
 }
 
@@ -63,7 +63,7 @@ constexpr bool VertexAttributeInfo::is_packed_type(GLenum type)
         return true;
     
     default:
-        throw std::exception("Unknown attribute type");
+        throw std::logic_error("Unknown attribute type");
     }
 }
 
@@ -84,7 +84,7 @@ constexpr bool VertexAttributeInfo::is_signed_type(GLenum type)
         return false;
     
     default:
-        throw std::exception("Unknown attribute type");
+        throw std::logic_error("Unknown attribute type");
     }
 }
 
@@ -103,7 +103,7 @@ constexpr size_t VertexAttributeInfo::get_type_size(GLuint elements, GLenum type
     case GL_UNSIGNED_INT_10_10_10_2: return sizeof(GLuint);
     
     default:
-        throw std::exception("Unknown attribute type");
+        throw std::logic_error("Unknown attribute type");
     }
 }
 

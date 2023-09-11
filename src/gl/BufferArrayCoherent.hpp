@@ -35,7 +35,7 @@ private:
 template<typename T>
 BufferArrayCoherent<T>::BufferArrayCoherent(const GladCtx& ctx, GLsizeiptr size, const T* data)
     : BufferArray<T>(ctx, size, data, _storage_flags),
-      _map(glMapBufferRange(0, size * sizeof(T), _storage_flags))
+      _map(BufferArray<T>::glMapBufferRange(0, size * sizeof(T), _storage_flags))
 {
 
 }

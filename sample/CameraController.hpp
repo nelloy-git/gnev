@@ -19,7 +19,7 @@ struct Camera {
     GLfloat height;
     GLfloat near_z;
     GLfloat far_z;
-    GLfloat reserved_alighment[3];
+    GLfloat reserved_alignment[3];
 };
 
 class GlfwConveyor;
@@ -53,8 +53,8 @@ public:
     const glm::vec4 get_direction();
     void set_direction(glm::vec4 direction);
 
-    double get_sensivity() const;
-    void set_sensivity(double sensivity);
+    double get_sensitivity() const;
+    void set_sensitivity(double sensitivity);
 
     void capture(GlfwConveyor& conveyor);
 
@@ -62,5 +62,5 @@ public:
 private:
     gnev::gl::BufferArrayCoherent<Camera> _camera;
 
-    double _cursor_sensivity = 0.0015;
+    double _cursor_sensitivity = 0.015;
 };

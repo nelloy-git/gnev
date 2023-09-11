@@ -3,6 +3,7 @@
 #include <filesystem>
 #include <list>
 #include <unordered_map>
+#include <vector>
 
 #include "gl/TextureVector.hpp"
 #include "util/Util.hpp"

@@ -5,7 +5,7 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "(Windows) Launch",
+            "name": "MSVC",
             "type": "cppvsdbg",
             "request": "launch",
             "program": "${workspaceFolder}/build/Debug/gnev_sample.exe",
@@ -15,5 +15,12 @@
             "environment": [],
             "console": "externalTerminal"
         },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "LLDB",
+            "program": "${workspaceFolder}/build/gnev_sample",
+            "cwd": "${workspaceFolder}",
+        }
     ]
 }

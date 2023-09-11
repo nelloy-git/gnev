@@ -1,5 +1,7 @@
 #pragma once
 
+#include <vector>
+
 #include "glm/glm.hpp"
 
 #include "data/Mesh.hpp"
@@ -15,7 +17,7 @@ public:
     glm::vec3 pos;
     glm::vec3 size;
 
-    virtual Mesh<I,V>& mesh() = 0;
+    virtual std::vector<Mesh<I,V>>& mesh() = 0;
 
 };
 

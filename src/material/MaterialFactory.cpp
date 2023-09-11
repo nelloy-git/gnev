@@ -49,7 +49,7 @@ GLint MaterialFactory::register_material(const std::wstring& name, const Materia
         std::string str;
         size_t size;
         str.resize(name.length());
-        wcstombs_s(&size, &str[0], str.size() + 1, name.c_str(), name.size());
+        // wcstombs_s(&size, &str[0], str.size() + 1, name.c_str(), name.size());
         throw std::runtime_error("Material " + str + " already exists");
     }
 

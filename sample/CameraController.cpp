@@ -30,7 +30,7 @@ namespace {
         .height = 1080,
         .near_z = 0.01,
         .far_z = 1000,
-        .reserved_alighment = {0, 0, 0},
+        .reserved_alignment = {0, 0, 0},
     };
 }
 
@@ -132,20 +132,20 @@ const glm::vec4 CameraController::get_direction()
 }
 
 void CameraController::set_direction(glm::vec4 direction)
-{
+{   
     _camera[0].direction = glm::normalize(direction);
     _camera[0].view_mat = glm::lookAt(glm::vec3(_camera[0].position), glm::vec3(_camera[0].position + _camera[0].direction), glm::vec3(_camera[0].top));
     _camera[0].result_mat = _camera[0].projection_mat * _camera[0].view_mat;
 }
 
-double CameraController::get_sensivity() const
+double CameraController::get_sensitivity() const
 {
-    return _cursor_sensivity;
+    return _cursor_sensitivity;
 }
 
-void CameraController::set_sensivity(double sensivity)
+void CameraController::set_sensitivity(double sensitivity)
 {
-    _cursor_sensivity = sensivity;
+    _cursor_sensitivity = sensitivity;
 }
 
 void CameraController::capture(GlfwConveyor& conveyor)
@@ -153,8 +153,9 @@ void CameraController::capture(GlfwConveyor& conveyor)
     double prev_x = get_width() / 2;
     double prev_y = get_height() / 2;
     auto cursor_pos_cb = [this, prev_x, prev_y](GlfwConveyor* conveyor, double pos_x, double pos_y) mutable {
-        float offset_yaw = _cursor_sensivity * (pos_x - prev_x);
-        float offset_pitch = _cursor_sensivity * (pos_y - prev_y);
+        std::cout << "x: " << int(pos_x) << "; y: " << int(pos_y) << std::endl;
+        float offset_yaw = _cursor_sensitivity * (pos_x - prev_x);
+        float offset_pitch = _cursor_sensitivity * (pos_y - prev_y);
         prev_x = pos_x;
         prev_y = pos_y;
 

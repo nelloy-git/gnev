@@ -2,13 +2,14 @@
 
 #include <memory>
 
+#include "util/Util.hpp"
 #include "utils/Worker.hpp"
 
 struct GLFWwindow;
 
-class __declspec(dllexport) GlfwConveyor {
+class EXPORT GlfwConveyor {
 public:
-    GlfwConveyor();
+    GlfwConveyor(int width, int height);
     virtual ~GlfwConveyor();
 
     typedef void (*GLFWglproc)(void);
@@ -30,7 +31,7 @@ private:
     typedef void (*GlfwCursorPosCallback)(GLFWwindow* window, double pos_x, double pos_y);
     GlfwCursorPosCallback _previous_cursor_pos_callback;
 
-    static std::unique_ptr<GLFWwindow, void(*)(GLFWwindow*)> create_glfw_window();
+    static std::unique_ptr<GLFWwindow, void(*)(GLFWwindow*)> create_glfw_window(int width, int height);
     static void destroy_glfw_window(GLFWwindow* window);
 
     static void glfw_key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);

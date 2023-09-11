@@ -1,6 +1,7 @@
 #include "ProgramBuilder.hpp"
 
 #include <iostream>
+#include <vector>
 
 using namespace gnev;
 

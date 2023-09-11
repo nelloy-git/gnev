@@ -7,7 +7,7 @@ namespace gnev {
 template<typename T>
 class Array3d {
 public:
-    using size_type = unsigned int;
+    using size_type = std::size_t;
 
     Array3d(size_type size_x, size_type size_y, size_type size_z, const T& initial_value = T{});
     virtual ~Array3d();
@@ -42,19 +42,19 @@ Array3d<T>::~Array3d()
 }
 
 template<typename T>
-inline Array3d<T>::size_type Array3d<T>::size_x() const
+inline typename Array3d<T>::size_type Array3d<T>::size_x() const
 {
     return _size_x;
 }
 
 template<typename T>
-inline Array3d<T>::size_type Array3d<T>::size_y() const
+inline typename Array3d<T>::size_type Array3d<T>::size_y() const
 {
     return _size_y;
 }
 
 template<typename T>
-inline Array3d<T>::size_type Array3d<T>::size_z() const
+inline typename Array3d<T>::size_type Array3d<T>::size_z() const
 {
     return _size_z;
 }

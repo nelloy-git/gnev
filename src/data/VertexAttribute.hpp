@@ -8,8 +8,8 @@ template<VertexAttributeInfo T>
 struct VertexAttribute final
 {
     static constexpr VertexAttributeInfo info = T;
-    using type = VertexAttributeType<T.type, info.elements>::type;
-    using element_type = VertexAttributeType<T.type, info.elements>::element_type;
+    using type = typename VertexAttributeType<T.type, info.elements>::type;
+    using element_type = typename VertexAttributeType<T.type, info.elements>::element_type;
 
     VertexAttribute(const type& src);
 
