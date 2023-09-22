@@ -8,4 +8,4 @@ public:
     virtual ~Type();
 };
 
-}
+} // namespace gnev::voxel

@@ -2,10 +2,9 @@
 
 #include <functional>
 
-#include "glm/glm.hpp"
-
 #include "GlfwConveyor.hpp"
 #include "gl/BufferArrayCoherent.hpp"
+#include "glm/glm.hpp"
 
 struct Camera {
     glm::mat4 view_mat;
@@ -26,11 +25,12 @@ class GlfwConveyor;
 
 class CameraController {
 public:
-    CameraController(const std::shared_ptr<GladGLContext> &ctx);
+    CameraController(const std::shared_ptr<GladGLContext>& ctx);
     virtual ~CameraController();
 
     gnev::gl::BufferArrayCoherent<Camera>& buffer();
-    const std::function<void(GlfwConveyor* conveyor, int key, int scancode, int action, int mods)> key_callback;
+    const std::function<void(GlfwConveyor* conveyor, int key, int scancode, int action, int mods)>
+        key_callback;
 
     GLfloat get_fov();
     void set_fov(GLfloat fov);
@@ -57,7 +57,6 @@ public:
     void set_sensitivity(double sensitivity);
 
     void capture(GlfwConveyor& conveyor);
-
 
 private:
     gnev::gl::BufferArrayCoherent<Camera> _camera;

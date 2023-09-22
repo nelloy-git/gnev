@@ -2,9 +2,8 @@
 
 #include <vector>
 
-#include "voxel/Voxel.hpp"
-
 #include "Vertex.hpp"
+#include "voxel/Voxel.hpp"
 
 using Voxel = gnev::voxel::Voxel<unsigned int, Vertex>;
 
@@ -17,5 +16,4 @@ public:
     void draw_test_1();
 
     std::vector<std::shared_ptr<Voxel>> list;
-
 };

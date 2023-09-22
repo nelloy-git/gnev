@@ -1,11 +1,11 @@
 #pragma once
 
 #include <optional>
-#include <unordered_map>
 #include <string>
+#include <unordered_map>
 
-#include "gl/Shader.hpp"
 #include "gl/Program.hpp"
+#include "gl/Shader.hpp"
 
 namespace gnev {
 
@@ -28,4 +28,4 @@ private:
     bool validate_program(gl::Program& program);
 };
 
-}
+} // namespace gnev

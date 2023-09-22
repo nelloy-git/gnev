@@ -3,9 +3,9 @@
 #include <memory>
 #include <optional>
 
-#include "voxel/VoxelType.hpp"
 #include "util/Array3d.hpp"
 #include "util/Util.hpp"
+#include "voxel/VoxelType.hpp"
 
 namespace gnev {
 
@@ -16,7 +16,10 @@ public:
     VoxelSideMap(VoxelSide side);
     virtual ~VoxelSideMap();
 
-    void init(size_type size_x, size_type size_y, size_type size_z, const std::shared_ptr<VoxelType>& initial_type = nullptr);
+    void init(size_type size_x,
+              size_type size_y,
+              size_type size_z,
+              const std::shared_ptr<VoxelType>& initial_type = nullptr);
 
     const VoxelSide side;
     const Array3d<std::shared_ptr<VoxelType>>& get_map() const;
@@ -31,10 +34,11 @@ private:
 
     bool _is_visible(const Array3d<std::shared_ptr<VoxelType>>& voxels,
                      const std::shared_ptr<const VoxelType>& type,
-                     size_type x, size_type y, size_type z) const;
+                     size_type x,
+                     size_type y,
+                     size_type z) const;
     void _search_rect_width(Array3d<uint8_t>& passed, VoxelRectInfo& rect) const;
     void _search_rect_height(Array3d<uint8_t>& passed, VoxelRectInfo& rect) const;
-
 };
 
-}
+} // namespace gnev

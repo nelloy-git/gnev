@@ -1,7 +1,7 @@
 #pragma once
 
 namespace gnev {
-  
+
 enum class VoxelSide {
     Top,
     Bottom,
@@ -10,5 +10,5 @@ enum class VoxelSide {
     Right,
     Left
 };
-    
+
 } // namespace gnev

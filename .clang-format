@@ -1,0 +1,33 @@
+BasedOnStyle: LLVM
+
+AccessModifierOffset: -4
+AlignAfterOpenBracket: Align
+AllowAllArgumentsOnNextLine: false
+AllowAllParametersOfDeclarationOnNextLine: true
+AllowShortEnumsOnASingleLine: false
+AlwaysBreakAfterReturnType: None
+AlwaysBreakTemplateDeclarations: Yes
+BinPackArguments: false
+BinPackParameters: false
+BreakBeforeBraces: Attach
+BreakBeforeConceptDeclarations: Always
+BreakConstructorInitializers: BeforeComma
+BreakInheritanceList: BeforeComma
+ColumnLimit: 100
+Cpp11BracedListStyle: true
+EmptyLineBeforeAccessModifier: Always
+IncludeBlocks: Regroup
+IncludeCategories:
+  - Regex:           '^<.*'
+    Priority:        1
+    SortPriority:    1
+    CaseSensitive:   true
+  - Regex:           '.*'
+    Priority:        2
+    SortPriority:    2
+IndentWidth: 4
+MaxEmptyLinesToKeep: 1
+PenaltyReturnTypeOnItsOwnLine: 4
+PointerAlignment: Left
+SeparateDefinitionBlocks: Always
+UseTab: Never

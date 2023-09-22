@@ -1,11 +1,7 @@
 #pragma once
 
-namespace gnev
-{
+namespace gnev {
 
-class Material
-{
+class Material {};
 
-};
-
-}
+} // namespace gnev

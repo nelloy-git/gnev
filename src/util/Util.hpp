@@ -11,31 +11,25 @@
 
 namespace gnev {
 
-template<std::integral T = size_t>
+template <std::integral T = std::size_t>
 class IdGen {
 public:
     IdGen(T start = 0)
-        : current(0)
-    {
-    }
+        : current(0) {}
 
-    T gen()
-    {
-        if (unused.size() > 0){
+    T gen() {
+        if (unused.size() > 0) {
             return unused.extract(unused.begin());
         } else {
             return current++;
         }
     }
 
-    void free(T id)
-    {
-        unused.insert(id);
-    }
+    void free(T id) { unused.insert(id); }
 
 private:
     T current;
     std::unordered_set<T> unused;
 };
 
-}
+} // namespace gnev

@@ -19,7 +19,11 @@ public:
         std::shared_ptr<void> data;
     };
 
-    TextureVector(const std::shared_ptr<GladGLContext>& ctx, GLsizei levels, GLenum internalformat, GLsizei width, GLsizei height);
+    TextureVector(const std::shared_ptr<GladGLContext>& ctx,
+                  GLsizei levels,
+                  GLenum internalformat,
+                  GLsizei width,
+                  GLsizei height);
     virtual ~TextureVector();
 
     // std::unique_ptr<Image, void(*)(Image*)> get(GLsizeiptr i, GLint level) const; TODO
@@ -45,7 +49,7 @@ public:
 
 private:
     GLsizei _img_levels;
-    GLenum  _img_internalformat;
+    GLenum _img_internalformat;
 
     GLsizeiptr _size;
     GLsizeiptr _cap;
@@ -56,10 +60,9 @@ private:
 
     GLint _get_width(GLint level) const;
     GLint _get_height(GLint level) const;
-    
+
     static void* _alloc(size_t size);
     static void _free(void* ptr);
-
 };
 
-}
+} // namespace gnev::gl

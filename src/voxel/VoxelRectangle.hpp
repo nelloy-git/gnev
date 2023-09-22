@@ -2,8 +2,8 @@
 
 #include <memory>
 
-#include "voxel/VoxelSide.hpp"
 #include "util/Util.hpp"
+#include "voxel/VoxelSide.hpp"
 
 namespace gnev {
 
@@ -25,11 +25,11 @@ struct EXPORT VoxelRectInfo {
 
 struct VoxelRectMesh {
     using size_type = unsigned int;
-    
+
     size_type indices_count;
     std::shared_ptr<const void> indices_data;
     size_type vertices_count;
     std::shared_ptr<const void> vertices_data;
 };
-    
+
 } // namespace gnev

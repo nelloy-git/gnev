@@ -1,8 +1,7 @@
 #pragma once
 
-#include "glm/glm.hpp"
-
 #include "gl/BufferArrayCoherent.hpp"
+#include "glm/glm.hpp"
 
 namespace gnev {
 
@@ -14,7 +13,7 @@ struct CameraBuffer {
 
 class EXPORT Camera {
 public:
-    Camera(const std::shared_ptr<GladGLContext> &ctx);
+    Camera(const std::shared_ptr<GladGLContext>& ctx);
     virtual ~Camera();
 
     gl::BufferArrayCoherent<CameraBuffer> buffer;
@@ -39,4 +38,4 @@ private:
     glm::vec3 _up = {0, 1, 0};
 };
 
-}
+} // namespace gnev

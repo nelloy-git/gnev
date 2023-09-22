@@ -17,8 +17,11 @@ public:
         GLuint pos_index;
     };
 
-    MaterialTextureLoader(const std::shared_ptr<GladGLContext>& ctx, GLsizei mipmap_levels,
-                          GLsizei img_width, GLsizei img_height, GLsizei img_components);
+    MaterialTextureLoader(const std::shared_ptr<GladGLContext>& ctx,
+                          GLsizei mipmap_levels,
+                          GLsizei img_width,
+                          GLsizei img_height,
+                          GLsizei img_components);
     virtual ~MaterialTextureLoader();
 
     const std::shared_ptr<GladGLContext>& ctx() const;
@@ -39,7 +42,6 @@ private:
 
     static GLenum get_storage_format(GLsizei img_components);
     static GLenum get_image_format(GLsizei img_components);
-
 };
 
-}
+} // namespace gnev

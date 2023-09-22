@@ -2,11 +2,9 @@
 
 #include <memory>
 
-namespace gnev::voxel
-{
+namespace gnev::voxel {
 
-struct Region
-{
+struct Region {
     using pos_type = float;
 
     pos_type x = 0;
@@ -17,12 +15,11 @@ struct Region
     pos_type size_z = 0;
 };
 
-struct MeshData
-{    
+struct MeshData {
     unsigned int indices_count;
     std::shared_ptr<void> indices_data;
     unsigned int vertices_count;
     std::shared_ptr<void> vertices_data;
 };
-    
-} // namespace gnev
+
+} // namespace gnev::voxel

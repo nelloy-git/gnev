@@ -3,7 +3,6 @@
 #include <memory>
 
 #include "glad/gl.h"
-
 #include "util/Util.hpp"
 
 namespace gnev::gl {
@@ -12,7 +11,7 @@ using GladCtx = std::shared_ptr<GladGLContext>;
 
 class EXPORT Handler {
 public:
-    using Deleter = void(*)(GLuint* handle, GladGLContext& ctx);
+    using Deleter = void (*)(GLuint* handle, GladGLContext& ctx);
 
     Handler(const GladCtx& ctx, GLuint* handle, const Deleter& deleter);
     virtual ~Handler();
@@ -23,7 +22,6 @@ public:
 private:
     GladCtx _ctx;
     std::shared_ptr<const GLuint> _handle;
-
 };
 
-}
+} // namespace gnev::gl

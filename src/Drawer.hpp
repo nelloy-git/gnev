@@ -1,10 +1,8 @@
 #pragma once
 
-#include "glad/gl.h"
-
 #include "gl/Program.hpp"
 #include "gl/Sampler.hpp"
-
+#include "glad/gl.h"
 #include "view/Camera.hpp"
 
 namespace gnev {
@@ -22,9 +20,8 @@ public:
     void draw() const;
 
 private:
-
     static std::shared_ptr<GladGLContext> create_glad_ctx(GLADloadfunc load_func);
-    static gl::Sampler create_texture_sampler(const std::shared_ptr<GladGLContext> &ctx);
+    static gl::Sampler create_texture_sampler(const std::shared_ptr<GladGLContext>& ctx);
 };
 
-}
+} // namespace gnev

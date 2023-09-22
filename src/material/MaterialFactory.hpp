@@ -5,7 +5,6 @@
 #include <optional>
 
 #include "gl/BufferVector.hpp"
-
 #include "material/MaterialTextureLoader.hpp"
 
 namespace gnev {
@@ -14,6 +13,7 @@ struct MaterialInfo {
     GLfloat color[4] = {1, 1, 1, 1};
     GLfloat normal[4] = {0, 0, 1, 0};
     GLfloat specular[4] = {0, 0, 0, 0};
+
     struct {
         std::optional<std::filesystem::path> diffuse_path = std::nullopt;
         std::optional<std::filesystem::path> normal_path = std::nullopt;
@@ -25,6 +25,7 @@ struct Material {
     GLfloat color[4];
     GLfloat normal[4];
     GLfloat specular[4];
+
     struct {
         GLint diffuse_array_index;
         GLint diffuse_element_index;
@@ -38,9 +39,15 @@ struct Material {
 class EXPORT MaterialFactory {
 public:
     MaterialFactory(const std::shared_ptr<GladGLContext>& ctx,
-                    GLsizei diffuse_mipmap_levels, GLsizei diffuse_width, GLsizei diffuse_height,
-                    GLsizei normal_mipmap_levels, GLsizei normal_width, GLsizei normal_height,
-                    GLsizei specular_mipmap_levels, GLsizei specular_width, GLsizei specular_height);
+                    GLsizei diffuse_mipmap_levels,
+                    GLsizei diffuse_width,
+                    GLsizei diffuse_height,
+                    GLsizei normal_mipmap_levels,
+                    GLsizei normal_width,
+                    GLsizei normal_height,
+                    GLsizei specular_mipmap_levels,
+                    GLsizei specular_width,
+                    GLsizei specular_height);
     virtual ~MaterialFactory();
 
     const gl::BufferVector<Material>& material_buffer() const;
@@ -49,7 +56,6 @@ public:
     const MaterialTextureLoader& specular_loader() const;
 
     GLint register_material(const std::wstring& name, const MaterialInfo& info);
-
 
 private:
     MaterialTextureLoader _diffuse_loader;
@@ -64,4 +70,4 @@ private:
     void _load_specular_texture(Material& material, const MaterialInfo& info);
 };
 
-}
+} // namespace gnev

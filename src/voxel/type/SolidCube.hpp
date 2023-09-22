@@ -28,7 +28,6 @@ public:
     virtual PosArray get_position(const VoxelRectInfo& rect);
     virtual UVArray get_uv(const VoxelRectInfo& rect);
     virtual int get_material_id(const VoxelRectInfo& rect);
-
 };
 
-}
+} // namespace gnev

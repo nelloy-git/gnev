@@ -4,20 +4,17 @@
 #include <iostream>
 #include <stdexcept>
 
+#include "gl/Debug.hpp"
 #include "glm/glm.hpp"
 #include "stb_image.h"
 
-#include "gl/Debug.hpp"
-
-
 using namespace gnev;
 
-Drawer::Drawer(GLADloadfunc load_func) :
-    ctx(create_glad_ctx(load_func)),
-    camera(ctx),
-    program(ctx),
-    sampler(create_texture_sampler(ctx))
-{
+Drawer::Drawer(GLADloadfunc load_func)
+    : ctx(create_glad_ctx(load_func)),
+      camera(ctx),
+      program(ctx),
+      sampler(create_texture_sampler(ctx)) {
     gladLoadGLContext(ctx.get(), load_func);
 
     // camera.pos = {1.5, 1.5, 1.5};
@@ -26,10 +23,10 @@ Drawer::Drawer(GLADloadfunc load_func) :
     // Enable debug
     GLint context_flags;
     ctx->GetIntegerv(GL_CONTEXT_FLAGS, &context_flags);
-    if (context_flags & GL_CONTEXT_FLAG_DEBUG_BIT){
+    if (context_flags & GL_CONTEXT_FLAG_DEBUG_BIT) {
         std::cout << "glDebugOutput enabled" << std::endl;
         ctx->Enable(GL_DEBUG_OUTPUT);
-        ctx->Enable(GL_DEBUG_OUTPUT_SYNCHRONOUS); 
+        ctx->Enable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
         ctx->DebugMessageCallback(glDebugOutput, nullptr);
         ctx->DebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, GL_TRUE);
     }
@@ -40,30 +37,24 @@ Drawer::Drawer(GLADloadfunc load_func) :
     ctx->Enable(GL_DEPTH_TEST);
 }
 
-Drawer::~Drawer()
-{
-}
+Drawer::~Drawer() {}
 
-void Drawer::draw() const
-{
+void Drawer::draw() const {
     ctx->Clear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     program.glUseProgram();
     // auto camera_index = program.glGetUniformBlockIndex("Camera");
     // program.glUniformBlockBinding(camera_index, 0);
     // camera.buffer.glBindBufferBase(GL_UNIFORM_BUFFER, 0);
-
 }
 
-std::shared_ptr<GladGLContext> Drawer::create_glad_ctx(GLADloadfunc load_func)
-{
+std::shared_ptr<GladGLContext> Drawer::create_glad_ctx(GLADloadfunc load_func) {
     auto ctx = std::make_shared<GladGLContext>();
     gladLoadGLContext(ctx.get(), load_func);
     return ctx;
 }
 
-gl::Sampler Drawer::create_texture_sampler(const std::shared_ptr<GladGLContext> &ctx)
-{
-    static const float BORDER_COLOR[] = { 1.0f, 1.0f, 1.0f, 0.0f };
+gl::Sampler Drawer::create_texture_sampler(const std::shared_ptr<GladGLContext>& ctx) {
+    static const float BORDER_COLOR[] = {1.0f, 1.0f, 1.0f, 0.0f};
 
     auto sampler = gl::Sampler(ctx);
 

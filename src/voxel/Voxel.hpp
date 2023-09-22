@@ -2,13 +2,12 @@
 
 #include <vector>
 
-#include "glm/glm.hpp"
-
 #include "data/Mesh.hpp"
+#include "glm/glm.hpp"
 
 namespace gnev::voxel {
 
-template<IsIndex I, IsVertex V>
+template <data::IsIndex I, data::IsVertex V>
 class Voxel {
 public:
     Voxel(const glm::vec3& pos = {0, 0, 0}, const glm::vec3& size = {1, 1, 1});
@@ -17,20 +16,15 @@ public:
     glm::vec3 pos;
     glm::vec3 size;
 
-    virtual std::vector<Mesh<I,V>>& mesh() = 0;
-
+    virtual std::vector<data::Mesh<I, V>> mesh() = 0;
 };
 
-template<IsIndex I, IsVertex V>
-Voxel<I,V>::Voxel(const glm::vec3& pos, const glm::vec3& size)
+template <data::IsIndex I, data::IsVertex V>
+Voxel<I, V>::Voxel(const glm::vec3& pos, const glm::vec3& size)
     : pos(pos),
-      size(size)
-{
-}
+      size(size) {}
 
-template<IsIndex I, IsVertex V>
-Voxel<I,V>::~Voxel()
-{
-}
+template <data::IsIndex I, data::IsVertex V>
+Voxel<I, V>::~Voxel() {}
 
-}
+} // namespace gnev::voxel

@@ -1,12 +1,11 @@
 #pragma once
 
-#include "voxel/Region.hpp"
 #include "voxel/MeshBuilder.hpp"
+#include "voxel/Region.hpp"
 
 namespace gnev::voxel::mesh_builder {
 
-class EXPORT SolidCube : public MeshBuilder
-{
+class EXPORT SolidCube : public MeshBuilder {
 public:
     using size_type = unsigned int;
 
@@ -17,10 +16,7 @@ public:
 
     virtual MeshData build_mesh(const Region& region) const;
 
-
-
 private:
-
 };
 
-}
+} // namespace gnev::voxel::mesh_builder
