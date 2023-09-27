@@ -24,6 +24,8 @@ public:
         requires(I >= 0 && I < count)
     static constexpr auto attribute_offset = info.offsets[I];
 
+    Vertex() { std::fill_n(data, size, 0); }
+
     Vertex(const VertexAttribute<A>&... input) {
         static_assert(sizeof(Vertex<A...>) == info.size);
         _init_data(std::forward_as_tuple(input...), std::make_index_sequence<sizeof...(A)>{});

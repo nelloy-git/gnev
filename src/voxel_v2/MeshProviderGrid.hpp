@@ -7,7 +7,7 @@
 
 namespace gnev::voxel_v2 {
 
-template <data::IsMesh M>
+template <data::IsMesh M, std::size_t SizeX, std::size_t SizeY, std::size_t SizeZ>
 class MeshProviderGrid : public MeshProvider<M> {
 public:
     using element = std::shared_ptr<MeshProvider<M>>;

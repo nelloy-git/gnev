@@ -6,7 +6,7 @@
 
 namespace gnev::voxel {
 
-template <IsIndex I, IsVertex V>
+template <data::IsIndex I, data::IsVertex V>
 class EXPORT MeshBuilder {
 public:
     MeshBuilder();
@@ -16,10 +16,10 @@ public:
     build(const std::shared_ptr<Chunk>& chunk) const = 0;
 };
 
-template <IsIndex I, IsVertex V>
+template <data::IsIndex I, data::IsVertex V>
 MeshBuilder<I, V>::MeshBuilder() {}
 
-template <IsIndex I, IsVertex V>
+template <data::IsIndex I, data::IsVertex V>
 inline MeshBuilder<I, V>::~MeshBuilder() {}
 
 } // namespace gnev::voxel

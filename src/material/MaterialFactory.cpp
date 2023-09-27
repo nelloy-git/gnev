@@ -21,7 +21,7 @@ MaterialFactory::MaterialFactory(const std::shared_ptr<GladGLContext>& ctx,
     : _diffuse_loader(ctx, diffuse_mipmap_levels, diffuse_width, diffuse_height, 4)
     , _normal_loader(ctx, normal_mipmap_levels, normal_width, normal_height, 4)
     , _specular_loader(ctx, normal_mipmap_levels, normal_width, normal_height, 4)
-    , _buffer(ctx, 0, nullptr) {}
+    , _buffer(ctx, GL_DYNAMIC_COPY, 4, Material{}) {}
 
 MaterialFactory::~MaterialFactory() {}
 
@@ -52,8 +52,8 @@ GLint MaterialFactory::register_material(const std::wstring& name, const Materia
     _load_normal_texture(material, info);
     _load_specular_texture(material, info);
 
-    _buffer.push_back(material);
-    return _buffer.size() - 1;
+    _buffer.pushElementBack(material);
+    return _buffer.getSize() - 1;
 }
 
 void MaterialFactory::_load_diffuse_texture(Material& material, const MaterialInfo& info) {

@@ -17,8 +17,8 @@ public:
 
     Mesh(const gl::GladCtx& ctx)
         : _vao(ctx)
-        , _indices(ctx, 0, nullptr)
-        , _vertices(ctx, 0, nullptr) {
+        , _indices(ctx)
+        , _vertices(ctx) {
         _vao.glVertexArrayElementBuffer(_indices.handle());
         _vao.glVertexArrayVertexBuffer(0, _vertices.handle(), 0, sizeof(vertex_type));
     };

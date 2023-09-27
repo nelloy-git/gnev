@@ -21,8 +21,8 @@ public:
 
 template <data::IsIndex I, data::IsVertex V>
 Voxel<I, V>::Voxel(const glm::vec3& pos, const glm::vec3& size)
-    : pos(pos),
-      size(size) {}
+    : pos(pos)
+    , size(size) {}
 
 template <data::IsIndex I, data::IsVertex V>
 Voxel<I, V>::~Voxel() {}

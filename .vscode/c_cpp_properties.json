@@ -5,12 +5,13 @@
             "includePath": [
                 "${default}",
                 "src",
+                "test",
                 "sample",
-                "3rdparty/bimap",
                 "3rdparty/glfw/include",
                 "3rdparty/json/include",
                 "3rdparty/glad/include",
                 "3rdparty/glm",
+                "3rdparty/gtest/googletest/include",
                 "3rdparty/stb"
             ],
             "defines": [
@@ -18,27 +19,6 @@
                 "GLAD_GL_IMPLEMENTATION"
             ],
             "compilerPath": "D:\\VisualStudio\\VC\\Tools\\MSVC\\14.29.30037\\bin\\Hostx64\\x64\\cl.exe",
-            "cppStandard": "c++20"
-        },
-        {
-            "name": "Linux",
-            "includePath": [
-                "${default}",
-                "src",
-                "sample",
-                "3rdparty/bimap",
-                "3rdparty/glfw/include",
-                "3rdparty/json/include",
-                "3rdparty/glad/include",
-                "3rdparty/glm",
-                "3rdparty/stb"
-            ],
-            "defines": [
-                "GLWPP_DEBUG",
-                "GLAD_GL_IMPLEMENTATION",
-                "__STDC_HOSTED__"
-            ],
-            "compilerPath": "/usr/bin/g++",
             "cppStandard": "c++20"
         }
     ],

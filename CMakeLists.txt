@@ -3,11 +3,14 @@ cmake_minimum_required(VERSION 3.1...3.17 FATAL_ERROR)
 project(gnev VERSION 0.01 LANGUAGES C CXX)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
+enable_testing()
+
 #set(GLFW_BUILD_X11 OFF)
 #set(GLFW_USE_WAYLAND ON)
 
 add_subdirectory(./3rdparty/glfw)
 add_subdirectory(./3rdparty/json)
+add_subdirectory(./3rdparty/gtest)
 
 add_compile_definitions(GLWPP_DEBUG)
 
@@ -20,6 +23,7 @@ else ()
 endif (WIN32)
 
 include_directories(./src)
+include_directories(./test)
 include_directories(./sample)
 include_directories(./3rdparty/bimap)
 include_directories(./3rdparty/glad/include)
@@ -30,37 +34,11 @@ include_directories(./3rdparty/stb)
 include_directories(./3rdparty/VLD/include)
 link_directories(./3rdparty/VLD/lib/Win64)
 
-# Options
-set(GNEV_GL_VERTEX_INFO_MAX_ATTRIBUTES 16 CACHE STRING "VertexInfo: maximum number of attributes for vertex")
-
-set(GNEV_GL_BUFFER_VECTOR_CAP_BASE 8 CACHE STRING "GLBufferVector: number of reserved elements at creation")
-set(GNEV_GL_BUFFER_VECTOR_CAP_MULT 2 CACHE STRING "GLBufferVector: capacity multiplier if not enought memory available")
-set(GNEV_GL_BUFFER_VECTOR_CAP_ADD  0 CACHE STRING "GLBufferVector: capacity addition if not enought memory available")
-
-set(GNEV_GL_TEXTURE_VECTOR_CAP_BASE 1 CACHE STRING "GLTextureVector: number of reserved elements at creation")
-set(GNEV_GL_TEXTURE_VECTOR_CAP_MULT 2 CACHE STRING "GLTextureVector: capacity multiplier if not enought memory available")
-set(GNEV_GL_TEXTURE_VECTOR_CAP_ADD  0 CACHE STRING "GLTextureVector: capacity addition if not enought memory available")
-
-set(GNEV_VERTEX_INFO_MAX_ATTRIBUTES  16 CACHE STRING "VertexInfo: maximum number of attribute for vertex")
-
 
 file(GLOB_RECURSE SRC_FILES "src/**.cpp")
 add_library (${PROJECT_NAME} SHARED
     3rdparty/glad/src/gl.c
     ${SRC_FILES}
-)
-target_compile_definitions(${PROJECT_NAME} PUBLIC
-    GNEV_GL_VERTEX_INFO_MAX_ATTRIBUTES=${GNEV_GL_VERTEX_INFO_MAX_ATTRIBUTES}
-
-    GNEV_GL_BUFFER_VECTOR_CAP_BASE=${GNEV_GL_BUFFER_VECTOR_CAP_BASE}
-    GNEV_GL_BUFFER_VECTOR_CAP_MULT=${GNEV_GL_BUFFER_VECTOR_CAP_MULT}
-    GNEV_GL_BUFFER_VECTOR_CAP_ADD=${GNEV_GL_BUFFER_VECTOR_CAP_ADD}
-
-    GNEV_GL_TEXTURE_VECTOR_CAP_BASE=${GNEV_GL_TEXTURE_VECTOR_CAP_BASE}
-    GNEV_GL_TEXTURE_VECTOR_CAP_MULT=${GNEV_GL_TEXTURE_VECTOR_CAP_MULT}
-    GNEV_GL_TEXTURE_VECTOR_CAP_ADD=${GNEV_GL_TEXTURE_VECTOR_CAP_ADD}
-    
-    GNEV_VERTEX_INFO_MAX_ATTRIBUTES=${GNEV_VERTEX_INFO_MAX_ATTRIBUTES}
 )
 target_link_libraries(${PROJECT_NAME}
     nlohmann_json
@@ -73,6 +51,32 @@ set_property (TARGET ${PROJECT_NAME}
     CXX_STANDARD 20
 )
 
+# Unit tests
+
+file(GLOB_RECURSE TEST_FILES "test/**.cpp")
+
+add_executable(tests
+    3rdparty/glad/src/gl.c
+    ${TEST_FILES}
+)
+if (WIN32)
+    target_link_libraries(tests
+        ${PROJECT_NAME}
+        glfw
+        GTest::gtest_main
+    )
+else()
+    target_link_libraries(tests
+        ${PROJECT_NAME}
+        glfw
+        dl
+        GTest::gtest_main
+    )
+endif (WIN32)
+target_compile_features(tests PUBLIC cxx_std_20)
+
+include(GoogleTest)
+gtest_discover_tests(tests)
 
 # Main test
 

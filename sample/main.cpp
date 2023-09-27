@@ -7,6 +7,8 @@
 #include <iostream>
 #include <queue>
 
+#include "voxel_v2/Voxel.hpp"
+
 #define GLFW_INCLUDE_NONE
 #include "CameraController.hpp"
 #include "Drawer.hpp"
@@ -46,7 +48,7 @@ struct PointLight {
 };
 
 gnev::gl::BufferVector<PointLight> create_lights(const std::shared_ptr<GladGLContext>& ctx) {
-    gnev::gl::BufferVector<PointLight> buffer(ctx, 0, nullptr);
+    gnev::gl::BufferVector<PointLight> buffer(ctx);
 
     PointLight light = {.pos = {0, 1, 0},
                         .constant = 1.0f,
@@ -55,7 +57,7 @@ gnev::gl::BufferVector<PointLight> create_lights(const std::shared_ptr<GladGLCon
                         .ambient = {1.0f, 1.0f, 1.0f},
                         .diffuse = {1.0f, 1.0f, 1.0f},
                         .specular = {1.0f, 1.0f, 1.0f}};
-    buffer.push_back(light);
+    buffer.pushElementBack(light);
 
     return buffer;
 }
@@ -203,7 +205,7 @@ int main(int argc, const char** argv) {
 
         chunk.mesh().vao().glBindVertexArray();
         drawer.ctx->DrawElements(GL_TRIANGLES,
-                                 chunk.mesh().indices().size(),
+                                 chunk.mesh().indices().getSize(),
                                  chunk.mesh().Index,
                                  0);
 

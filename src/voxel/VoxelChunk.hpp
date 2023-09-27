@@ -44,14 +44,14 @@ VoxelChunk<I, V>::VoxelChunk(const std::shared_ptr<GladGLContext>& ctx,
                              size_type size_x,
                              size_type size_y,
                              size_type size_z)
-    : _mesh(ctx),
-      _voxels(size_x, size_y, size_z, nullptr),
-      _top(VoxelSide::Top),
-      _bottom(VoxelSide::Bottom),
-      _front(VoxelSide::Front),
-      _back(VoxelSide::Back),
-      _right(VoxelSide::Left),
-      _left(VoxelSide::Right) {
+    : _mesh(ctx)
+    , _voxels(size_x, size_y, size_z, nullptr)
+    , _top(VoxelSide::Top)
+    , _bottom(VoxelSide::Bottom)
+    , _front(VoxelSide::Front)
+    , _back(VoxelSide::Back)
+    , _right(VoxelSide::Left)
+    , _left(VoxelSide::Right) {
     _top.init(size_x, size_y, size_z);
     _bottom.init(size_x, size_y, size_z);
     _front.init(size_x, size_y, size_z);
@@ -94,8 +94,8 @@ void VoxelChunk<I, V>::apply_mesh() {
     _insert_side_map(base_index, _right);
     _insert_side_map(base_index, _left);
 
-    std::cout << "Total indices: " << _mesh.indices().size()
-              << " vertices: " << _mesh.vertices().size() << std::endl;
+    std::cout << "Total indices: " << _mesh.indices().getSize()
+              << " vertices: " << _mesh.vertices().getSize() << std::endl;
 }
 
 template <typename I, data::IsVertex V>
@@ -120,10 +120,10 @@ void VoxelChunk<I, V>::_insert_side_map(size_type& base_index, VoxelSideMap& sid
             continue;
         }
 
-        _mesh.indices().push_back_range(static_cast<const I*>(voxel_mesh.indices_data.get()),
-                                        voxel_mesh.indices_count);
-        _mesh.vertices().push_back_range(static_cast<const V*>(voxel_mesh.vertices_data.get()),
-                                         voxel_mesh.vertices_count);
+        _mesh.indices().pushRangeBack(voxel_mesh.indices_count,
+                                      static_cast<const I*>(voxel_mesh.indices_data.get()));
+        _mesh.vertices().pushRangeBack(voxel_mesh.vertices_count,
+                                       static_cast<const V*>(voxel_mesh.vertices_data.get()));
         base_index += voxel_mesh.vertices_count;
     }
 }
