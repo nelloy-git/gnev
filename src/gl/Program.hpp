@@ -1,6 +1,7 @@
 #pragma once
 
 #include "gl/Handler.hpp"
+#include "gl/Shader.hpp"
 
 namespace gnev::gl {
 
@@ -11,7 +12,7 @@ public:
     Program(Program&& other) = default;
     virtual ~Program();
 
-    void glAttachShader(GLuint shader);
+    void glAttachShader(const Shader& shader);
     void glValidateProgram();
     void glLinkProgram();
     void glUseProgram() const;

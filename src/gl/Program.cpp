@@ -7,7 +7,9 @@ Program::Program(const Ctx& ctx)
 
 Program::~Program() {}
 
-void Program::glAttachShader(GLuint shader) { ctx().glAttachShader(handle(), shader); }
+void Program::glAttachShader(const Shader& shader) {
+    ctx().glAttachShader(handle(), shader.handle());
+}
 
 void Program::glValidateProgram() { ctx().glValidateProgram(handle()); }
 

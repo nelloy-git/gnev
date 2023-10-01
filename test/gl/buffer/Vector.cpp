@@ -29,7 +29,7 @@ public:
 
     void expectValue(const buffer::Vector<int>& buffer, std::size_t pos, int value) {
         int dst = -1199448855;
-        buffer.glGetBufferSubData(pos * sizeof(int), sizeof(int), &dst);
+        buffer.getSubData(pos * sizeof(int), sizeof(int), &dst);
         EXPECT_EQ(dst, value);
     }
 };

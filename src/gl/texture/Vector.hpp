@@ -1,68 +1,40 @@
 #pragma once
 
-#include "gl/Texture.hpp"
+#include "gl/texture/ResizableStorage.hpp"
 
 namespace gnev::gl::texture {
 
-class EXPORT Vector : public Texture {
+class EXPORT Vector : public ResizableStorage {
 public:
-    static constexpr GLsizeiptr base_cap = 4;
+    static constexpr float CAP_MULT = 2;
 
-    struct Image {
-        GLint level;
-        GLsizei x;
-        GLsizei y;
-        GLsizei width;
-        GLsizei height;
-        GLenum format;
-        GLenum type;
-        std::shared_ptr<void> data;
-    };
-
-    Vector(const std::shared_ptr<GladGLContext>& ctx,
-                  GLsizei levels,
-                  GLenum internalformat,
-                  GLsizei width,
-                  GLsizei height);
+    Vector(const Ctx& ctx,
+           std::size_t levels,
+           GLenum internalformat,
+           std::size_t width,
+           std::size_t height,
+           std::size_t initial_capacity);
+    Vector(const Vector& other) = delete;
+    Vector(Vector&& other) = default;
     virtual ~Vector();
 
-    // std::unique_ptr<Image, void(*)(Image*)> get(GLsizeiptr i, GLint level) const; TODO
-    void set(GLsizeiptr i, const Image& value);
+    void setElement(std::size_t pos, const Image& img);
+    void copyElement(std::size_t src, std::size_t dst, std::size_t level);
+    Image getElement(std::size_t pos,
+                     std::size_t level,
+                     GLenum format,
+                     GLenum type) const;
+    void insertElement(std::size_t pos, const Image& img);
+    void pushElementBack(const Image& img);
+    void eraseElement(std::size_t pos);
 
-    GLsizeiptr size() const;
-    void reserve(GLsizeiptr capacity);
-    GLsizeiptr capacity() const;
-    void shrink_to_fit();
-    GLsizeiptr max_size() const;
-
-    // void clear();
-    void insert(GLsizeiptr i, const Image& value);
-    void insert_range(GLsizeiptr i, const Image* value, GLuint count);
-    // void erase(GLsizeiptr i);
-    // void erase_range(GLsizeiptr i, GLuint count);
-    void push_back(const Image& value);
-    void push_back_range(const Image* values, GLuint count);
-    // void pop_back();
-    // void pop_back_range(GLuint count);
-
-    void set_resize_params(float mult, float add);
+    std::size_t getSize() const;
+    void reserve(std::size_t capacity);
+    void shrinkToFit();
+    void clear();
 
 private:
-    GLsizei _img_levels;
-    GLenum _img_internalformat;
-
-    GLsizeiptr _size;
-    GLsizeiptr _cap;
-    GLsizeiptr _max_size;
-
-    double _cap_mult = 2;
-    double _cap_add = 0;
-
-    GLint _get_width(GLint level) const;
-    GLint _get_height(GLint level) const;
-
-    static void* _alloc(size_t size);
-    static void _free(void* ptr);
+    std::size_t size;
 };
 
-} // namespace gnev::gl
+} // namespace gnev::gl::texture

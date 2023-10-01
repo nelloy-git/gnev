@@ -1,11 +1,11 @@
-#include "gl/buffer/Resizable.hpp"
+#include "gl/buffer/ResizableStorage.hpp"
 
 #include "OpenGLContext.hpp"
 #include "gtest/gtest.h"
 
 using namespace gnev::gl;
 
-class EXPORT TestBufferResizable
+class EXPORT TestBufferResizableStorage
     : public testing::Test
     , public OpenGLContext {
 public:
@@ -13,8 +13,8 @@ public:
     std::size_t init_capacity = 10;
     int init = 0;
 
-    buffer::Resizable<int> initBuffer() {
-        buffer::Resizable<int> buffer(getCtx(), usage, init_capacity, init);
+    buffer::ResizableStorage<int> initBuffer() {
+        buffer::ResizableStorage<int> buffer(getCtx(), usage, init_capacity, init);
 
         EXPECT_EQ(usage, buffer.getUsage());
         EXPECT_EQ(init_capacity, buffer.getCapacity());
@@ -25,19 +25,19 @@ public:
         return buffer;
     };
 
-    void expectValue(const buffer::Resizable<int>& buffer, std::size_t pos, int value) {
+    void expectValue(const buffer::ResizableStorage<int>& buffer, std::size_t pos, int value) {
         int dst = -1199448855;
-        buffer.glGetBufferSubData(pos * sizeof(int), sizeof(int), &dst);
+        buffer.getSubData(pos * sizeof(int), sizeof(int), &dst);
         EXPECT_EQ(dst, value);
     }
 };
 
-TEST_F(TestBufferResizable, ctor) {
+TEST_F(TestBufferResizableStorage, ctor) {
     auto usage = GL_DYNAMIC_COPY;
     auto capacity = 50;
     auto init = 101010;
 
-    buffer::Resizable<int> buffer(getCtx(), usage, capacity, init);
+    buffer::ResizableStorage<int> buffer(getCtx(), usage, capacity, init);
 
     EXPECT_EQ(usage, buffer.getUsage());
     EXPECT_EQ(capacity, buffer.getCapacity());
@@ -46,7 +46,7 @@ TEST_F(TestBufferResizable, ctor) {
     }
 }
 
-TEST_F(TestBufferResizable, setElement) {
+TEST_F(TestBufferResizableStorage, setElement) {
     auto buffer = initBuffer();
     for (int i = 0; i < init_capacity; ++i) {
         buffer.setElement(i, init_capacity - i);
@@ -56,7 +56,7 @@ TEST_F(TestBufferResizable, setElement) {
     }
 }
 
-TEST_F(TestBufferResizable, getElement) {
+TEST_F(TestBufferResizableStorage, getElement) {
     auto buffer = initBuffer();
     for (int i = 0; i < init_capacity; ++i) {
         buffer.setElement(i, init_capacity - i);
@@ -66,7 +66,7 @@ TEST_F(TestBufferResizable, getElement) {
     }
 }
 
-TEST_F(TestBufferResizable, copyElement) {
+TEST_F(TestBufferResizableStorage, copyElement) {
     int value = 15;
 
     auto buffer = initBuffer();
@@ -80,7 +80,7 @@ TEST_F(TestBufferResizable, copyElement) {
     }
 }
 
-TEST_F(TestBufferResizable, setRange) {
+TEST_F(TestBufferResizableStorage, setRange) {
     auto buffer = initBuffer();
 
     int first = 3;
@@ -100,7 +100,7 @@ TEST_F(TestBufferResizable, setRange) {
     }
 }
 
-TEST_F(TestBufferResizable, copyRange) {
+TEST_F(TestBufferResizableStorage, copyRange) {
     auto buffer = initBuffer();
     std::vector<int> data{10, 20, 30};
 
@@ -116,7 +116,7 @@ TEST_F(TestBufferResizable, copyRange) {
     }
 }
 
-TEST_F(TestBufferResizable, copyRangeOverlap) {
+TEST_F(TestBufferResizableStorage, copyRangeOverlap) {
     auto buffer = initBuffer();
     std::vector<int> data{10, 20, 30};
 
@@ -128,7 +128,7 @@ TEST_F(TestBufferResizable, copyRangeOverlap) {
     expectValue(buffer, 3, data[2]);
 }
 
-TEST_F(TestBufferResizable, getRange) {
+TEST_F(TestBufferResizableStorage, getRange) {
     auto buffer = initBuffer();
 
     std::vector<int> data{10, 20, 30, 40, 50, 60, 70, 80, 90, 100};
@@ -136,7 +136,7 @@ TEST_F(TestBufferResizable, getRange) {
     EXPECT_EQ(data, buffer.getRange(0, data.size()));
 }
 
-TEST_F(TestBufferResizable, setCapacity) {
+TEST_F(TestBufferResizableStorage, setCapacity) {
     auto buffer = initBuffer();
 
     std::vector<int> data{10, 20, 30, 40, 50, 60, 70, 80, 90, 100};
@@ -151,17 +151,17 @@ TEST_F(TestBufferResizable, setCapacity) {
     EXPECT_EQ(data, buffer.getRange(0, init_capacity));
 }
 
-TEST_F(TestBufferResizable, getCapacity) {
+TEST_F(TestBufferResizableStorage, getCapacity) {
     auto buffer = initBuffer();
 
     buffer.setCapacity(2 * init_capacity);
 
     GLint buffer_size = 0;
-    buffer.glGetBufferParameteriv(GL_BUFFER_SIZE, &buffer_size);
+    buffer.getParameteriv(GL_BUFFER_SIZE, &buffer_size);
     EXPECT_EQ(2 * init_capacity, buffer_size / sizeof(int));
 }
 
-TEST_F(TestBufferResizable, setUsage) {
+TEST_F(TestBufferResizableStorage, setUsage) {
     auto buffer = initBuffer();
 
     std::vector<int> data{10, 20, 30, 40, 50, 60, 70, 80, 90, 100};
@@ -170,12 +170,12 @@ TEST_F(TestBufferResizable, setUsage) {
     buffer.setUsage(GL_DYNAMIC_DRAW);
 
     GLenum usage;
-    buffer.glGetBufferParameteriv(GL_BUFFER_USAGE, reinterpret_cast<GLint*>(&usage));
+    buffer.getParameteriv(GL_BUFFER_USAGE, reinterpret_cast<GLint*>(&usage));
     EXPECT_EQ(GL_DYNAMIC_DRAW, usage);
     EXPECT_EQ(data, buffer.getRange(0, init_capacity));
 }
 
-TEST_F(TestBufferResizable, getUsage) {
+TEST_F(TestBufferResizableStorage, getUsage) {
     auto buffer = initBuffer();
 
     buffer.setUsage(GL_DYNAMIC_DRAW);

@@ -27,7 +27,7 @@ ProgramBuilder::build(const std::unordered_map<GLenum, std::string>& sources) {
         if (!shader_status) {
             return std::nullopt;
         }
-        program.glAttachShader(shader.handle());
+        program.glAttachShader(shader);
     }
 
     auto link_status = link_program(program);

@@ -30,7 +30,7 @@ MaxEmptyLinesToKeep: 1
 PenaltyBreakBeforeFirstCallParameter: 10
 PenaltyBreakOpenParenthesis: 10000
 PenaltyExcessCharacter: 1000
-PenaltyReturnTypeOnItsOwnLine: 99
+PenaltyReturnTypeOnItsOwnLine: 9999999
 PointerAlignment: Left
 SeparateDefinitionBlocks: Always
 UseTab: Never

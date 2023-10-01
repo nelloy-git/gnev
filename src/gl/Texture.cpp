@@ -7,51 +7,46 @@ Texture::Texture(const Ctx& ctx, GLenum target)
 
 Texture::~Texture() {}
 
-void Texture::glBindTexture(GLenum target) const {
-    ctx().glBindTexture(target, handle());
-}
+void Texture::bind(GLenum target) const { ctx().glBindTexture(target, handle()); }
 
-void Texture::glTextureParameteri(GLenum pname, GLint param) {
+void Texture::setParameteri(GLenum pname, GLint param) {
     ctx().glTextureParameteri(handle(), pname, param);
 }
 
-void Texture::glGetTextureParameteriv(GLenum pname, GLint* params) const {
+void Texture::getParameteriv(GLenum pname, GLint* params) const {
     ctx().glGetTextureParameteriv(handle(), pname, params);
 }
 
-void Texture::glGetTextureLevelParameteriv(GLint level,
-                                           GLenum pname,
-                                           GLint* params) const {
+void Texture::getLevelParameteriv(GLint level, GLenum pname, GLint* params) const {
     ctx().glGetTextureLevelParameteriv(handle(), level, pname, params);
 }
 
-void Texture::glTextureParameterfv(GLenum pname, const GLfloat* param) {
+void Texture::setParameterfv(GLenum pname, const GLfloat* param) {
     ctx().glTextureParameterfv(handle(), pname, param);
 }
 
-void Texture::glTextureStorage3D(GLsizei levels,
-                                 GLenum internalformat,
-                                 GLsizei width,
-                                 GLsizei height,
-                                 GLsizei depth) {
+void Texture::generateMipmap() { ctx().glGenerateTextureMipmap(handle()); }
+
+void Texture::initStorage3D(GLsizei levels,
+                            GLenum internalformat,
+                            GLsizei width,
+                            GLsizei height,
+                            GLsizei depth) {
     ctx().glTextureStorage3D(handle(), levels, internalformat, width, height, depth);
 }
 
-void Texture::glTextureSubImage3D(GLint level,
-                                  GLint xoffset,
-                                  GLint yoffset,
-                                  GLint zoffset,
-                                  GLsizei width,
-                                  GLsizei height,
-                                  GLsizei depth,
-                                  GLenum format,
-                                  GLenum type,
-                                  const void* pixels) {
+void Texture::setSubImage3D(Pos pos,
+                            GLsizei width,
+                            GLsizei height,
+                            GLsizei depth,
+                            GLenum format,
+                            GLenum type,
+                            const void* pixels) {
     ctx().glTextureSubImage3D(handle(),
-                              level,
-                              xoffset,
-                              yoffset,
-                              zoffset,
+                              pos.level,
+                              pos.x,
+                              pos.y,
+                              pos.z,
                               width,
                               height,
                               depth,
@@ -60,55 +55,19 @@ void Texture::glTextureSubImage3D(GLint level,
                               pixels);
 }
 
-void Texture::glGenerateTextureMipmap() { ctx().glGenerateTextureMipmap(handle()); }
-
-void Texture::glCopyImageSubData(GLenum srcTarget,
-                                 GLint srcLevel,
-                                 GLint srcX,
-                                 GLint srcY,
-                                 GLint srcZ,
-                                 GLuint dstName,
-                                 GLenum dstTarget,
-                                 GLint dstLevel,
-                                 GLint dstX,
-                                 GLint dstY,
-                                 GLint dstZ,
-                                 GLsizei srcWidth,
-                                 GLsizei srcHeight,
-                                 GLsizei srcDepth) const {
-    ctx().glCopyImageSubData(handle(),
-                             srcTarget,
-                             srcLevel,
-                             srcX,
-                             srcY,
-                             srcZ,
-                             dstName,
-                             dstTarget,
-                             dstLevel,
-                             dstX,
-                             dstY,
-                             dstZ,
-                             srcWidth,
-                             srcHeight,
-                             srcDepth);
-}
-
-void Texture::glGetTextureSubImage(GLint level,
-                                   GLint xoffset,
-                                   GLint yoffset,
-                                   GLint zoffset,
-                                   GLsizei width,
-                                   GLsizei height,
-                                   GLsizei depth,
-                                   GLenum format,
-                                   GLenum type,
-                                   GLsizei bufSize,
-                                   void* pixels) const {
+void Texture::getSubImage(const Pos& pos,
+                          GLsizei width,
+                          GLsizei height,
+                          GLsizei depth,
+                          GLenum format,
+                          GLenum type,
+                          GLsizei bufSize,
+                          void* pixels) const {
     ctx().glGetTextureSubImage(handle(),
-                               level,
-                               xoffset,
-                               yoffset,
-                               zoffset,
+                               pos.level,
+                               pos.x,
+                               pos.y,
+                               pos.z,
                                width,
                                height,
                                depth,
@@ -116,6 +75,37 @@ void Texture::glGetTextureSubImage(GLint level,
                                type,
                                bufSize,
                                pixels);
+}
+
+void Texture::copyTo(Texture& dst,
+                     const Pos& src_pos,
+                     const Pos& dst_pos,
+                     GLsizei srcWidth,
+                     GLsizei srcHeight,
+                     GLsizei srcDepth) const {
+    ctx().glCopyImageSubData(handle(),
+                             getTarget(),
+                             src_pos.level,
+                             src_pos.x,
+                             src_pos.y,
+                             src_pos.z,
+                             dst.handle(),
+                             dst.getTarget(),
+                             dst_pos.level,
+                             dst_pos.x,
+                             dst_pos.y,
+                             dst_pos.z,
+                             srcWidth,
+                             srcHeight,
+                             srcDepth);
+}
+
+GLenum Texture::getTarget() const {
+    GLenum target;
+    ctx().glGetTextureParameteriv(handle(),
+                                  GL_TEXTURE_TARGET,
+                                  reinterpret_cast<GLint*>(&target));
+    return target;
 }
 
 GLuint Texture::createHandle(const Ctx& ctx, GLenum target) {

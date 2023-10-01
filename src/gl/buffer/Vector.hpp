@@ -1,14 +1,13 @@
 #pragma once
 
-#include "gl/buffer/Resizable.hpp"
+#include "gl/buffer/ResizableStorage.hpp"
 
 namespace gnev::gl::buffer {
 
 template <IsTriviallyCopyable T>
-class EXPORT Vector : public Resizable<T> {
+class EXPORT Vector : public ResizableStorage<T> {
 public:
-    using type = T;
-    static constexpr GLsizeiptr base_cap = 4;
+    static constexpr float CAP_MULT = 2;
 
     Vector(const Ctx& ctx,
            GLenum usage = GL_DYNAMIC_COPY,
@@ -48,7 +47,7 @@ Vector<T>::Vector(const Ctx& ctx,
                   GLenum usage,
                   std::size_t initial_size,
                   const T& initial_data)
-    : Resizable<T>(ctx, usage, initial_size, initial_data)
+    : ResizableStorage<T>(ctx, usage, initial_size, initial_data)
     , size(initial_size) {}
 
 template <IsTriviallyCopyable T>
@@ -56,7 +55,7 @@ Vector<T>::Vector(const Ctx& ctx,
                   GLenum usage,
                   std::size_t initial_size,
                   const T* initial_data)
-    : Resizable<T>(ctx, usage, initial_size, initial_data)
+    : ResizableStorage<T>(ctx, usage, initial_size, initial_data)
     , size(initial_size) {}
 
 template <IsTriviallyCopyable T>
@@ -92,7 +91,7 @@ T Vector<T>::getElement(std::size_t pos) const {
     if (pos >= size) {
         throw std::out_of_range("");
     }
-    return Resizable<T>::getElement(pos);
+    return ResizableStorage<T>::getElement(pos);
 }
 
 template <IsTriviallyCopyable T>
@@ -100,7 +99,7 @@ void Vector<T>::setRange(std::size_t first, std::size_t count, const T* src) {
     if (first + count > size) {
         throw std::out_of_range("");
     }
-    Resizable<T>::setRange(first, count, src);
+    ResizableStorage<T>::setRange(first, count, src);
 }
 
 template <IsTriviallyCopyable T>
@@ -108,7 +107,7 @@ void Vector<T>::copyRange(std::size_t src, std::size_t dst, std::size_t count) {
     if (src + count > size || dst + count > size) {
         throw std::out_of_range("");
     }
-    Resizable<T>::copyRange(src, dst, count);
+    ResizableStorage<T>::copyRange(src, dst, count);
 }
 
 template <IsTriviallyCopyable T>
@@ -117,14 +116,14 @@ void Vector<T>::insertRange(std::size_t first, std::size_t count, const T* src) 
         throw std::out_of_range("");
     }
 
-    while (size + count > Resizable<T>::getCapacity()) {
-        Resizable<T>::setCapacity(2 * Resizable<T>::getCapacity());
+    while (size + count > ResizableStorage<T>::getCapacity()) {
+        ResizableStorage<T>::setCapacity(CAP_MULT * ResizableStorage<T>::getCapacity());
     }
 
     if (first != size) {
-        Resizable<T>::copyRange(first, first + count, size - first);
+        ResizableStorage<T>::copyRange(first, first + count, size - first);
     }
-    Resizable<T>::setRange(first, count, src);
+    ResizableStorage<T>::setRange(first, count, src);
     size += count;
 }
 
@@ -140,7 +139,7 @@ void Vector<T>::eraseRange(std::size_t first, std::size_t count) {
     }
 
     if (first + count != size) {
-        Resizable<T>::copyRange(first + count, first, size - (first + count));
+        ResizableStorage<T>::copyRange(first + count, first, size - (first + count));
     }
     size -= count;
 }
@@ -150,7 +149,7 @@ std::vector<T> Vector<T>::getRange(std::size_t first, std::size_t count) const {
     if (first + count > size) {
         throw std::out_of_range("");
     }
-    return Resizable<T>::getRange(first, count);
+    return ResizableStorage<T>::getRange(first, count);
 }
 
 template <IsTriviallyCopyable T>
@@ -160,15 +159,15 @@ std::size_t Vector<T>::getSize() const {
 
 template <IsTriviallyCopyable T>
 void Vector<T>::reserve(std::size_t cap) {
-    if (cap <= Resizable<T>::getCapacity()) {
+    if (cap <= ResizableStorage<T>::getCapacity()) {
         return;
     }
-    Resizable<T>::setCapacity(cap);
+    ResizableStorage<T>::setCapacity(cap);
 }
 
 template <IsTriviallyCopyable T>
 void Vector<T>::shrinkToFit() {
-    Resizable<T>::setCapacity(size);
+    ResizableStorage<T>::setCapacity(size);
 }
 
 template <IsTriviallyCopyable T>

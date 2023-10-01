@@ -4,13 +4,15 @@
 #include <unordered_map>
 #include <unordered_set>
 
-#include "gl/buffer/Resizable.hpp"
+#include "gl/buffer/ResizableStorage.hpp"
 
 namespace gnev::gl::buffer {
 
 template <typename K, IsTriviallyCopyable V>
-class EXPORT Map : public Resizable<V> {
+class EXPORT Map : public ResizableStorage<V> {
 public:
+    static constexpr GLsizeiptr CAP_MULT = 2;
+
     Map(const Ctx& ctx,
         GLenum usage,
         std::size_t initial_capacity,
@@ -24,13 +26,13 @@ public:
     void removeElement(const K& key);
 
 private:
-    using Resizable<V>::setElement;
-    using Resizable<V>::copyElement;
-    using Resizable<V>::getElement;
+    using ResizableStorage<V>::setElement;
+    using ResizableStorage<V>::copyElement;
+    using ResizableStorage<V>::getElement;
 
-    using Resizable<V>::setRange;
-    using Resizable<V>::copyRange;
-    using Resizable<V>::getRange;
+    using ResizableStorage<V>::setRange;
+    using ResizableStorage<V>::copyRange;
+    using ResizableStorage<V>::getRange;
 
     std::unordered_map<K, std::size_t> key_map;
     std::unordered_set<std::size_t> unused_poses;
@@ -41,7 +43,7 @@ Map<K, V>::Map(const Ctx& ctx,
                GLenum usage,
                std::size_t initial_capacity,
                std::initializer_list<std::pair<K, V>> initial_data)
-    : Resizable<V>(ctx, usage, initial_capacity, {}) {
+    : ResizableStorage<V>(ctx, usage, initial_capacity, {}) {
     for (std::size_t i = 0; i < initial_capacity; ++i) {
         unused_poses.insert(i);
     }
@@ -57,24 +59,25 @@ template <typename K, IsTriviallyCopyable V>
 void Map<K, V>::setElement(const K& key, const V& value) {
     auto found = key_map.find(key);
     if (found != key_map.end()) {
-        Resizable<V>::setElement(found->second, value);
+        ResizableStorage<V>::setElement(found->second, value);
         return;
     }
 
     if (!unused_poses.empty()) {
         std::size_t pos = *unused_poses.begin();
         unused_poses.erase(unused_poses.begin());
-        Resizable<V>::setElement(pos, value);
+        ResizableStorage<V>::setElement(pos, value);
         key_map[key] = pos;
         return;
     }
 
-    std::size_t previous_capacity = Resizable<V>::getCapacity();
-    Resizable<V>::setCapacity(2 * previous_capacity);
-    for (std::size_t i = previous_capacity + 1; i < Resizable<V>::getCapacity(); ++i) {
+    std::size_t previous_capacity = ResizableStorage<V>::getCapacity();
+    ResizableStorage<V>::setCapacity(CAP_MULT * previous_capacity);
+    for (std::size_t i = previous_capacity + 1; i < ResizableStorage<V>::getCapacity();
+         ++i) {
         unused_poses.insert(i);
     }
-    Resizable<V>::setElement(previous_capacity, value);
+    ResizableStorage<V>::setElement(previous_capacity, value);
     key_map[key] = previous_capacity;
 }
 
@@ -84,7 +87,7 @@ std::optional<V> Map<K, V>::getElement(const K& key) const {
     if (found == key_map.end()) {
         return std::nullopt;
     }
-    return Resizable<V>::getElement(found->second);
+    return ResizableStorage<V>::getElement(found->second);
 }
 
 template <typename K, IsTriviallyCopyable V>
