@@ -2,59 +2,56 @@
 
 using namespace gnev::gl;
 
-Program::Program(const GladCtx& ctx)
-    : Handler(ctx, create_handle(ctx), &handle_deleter) {}
+Program::Program(const Ctx& ctx)
+    : Handler(ctx, createHandle(ctx), &freeHandle) {}
 
 Program::~Program() {}
 
-void Program::glAttachShader(GLuint shader) { ctx()->AttachShader(handle(), shader); }
+void Program::glAttachShader(GLuint shader) { ctx().glAttachShader(handle(), shader); }
 
-void Program::glValidateProgram() { ctx()->ValidateProgram(handle()); }
+void Program::glValidateProgram() { ctx().glValidateProgram(handle()); }
 
-void Program::glLinkProgram() { ctx()->LinkProgram(handle()); }
+void Program::glLinkProgram() { ctx().glLinkProgram(handle()); }
 
-void Program::glUseProgram() const { ctx()->UseProgram(handle()); }
+void Program::glUseProgram() const { ctx().glUseProgram(handle()); }
 
 void Program::glGetProgramiv(GLenum pname, GLint* params) const {
-    ctx()->GetProgramiv(handle(), pname, params);
+    ctx().glGetProgramiv(handle(), pname, params);
 }
 
-void Program::glGetProgramInfoLog(GLsizei bufSize, GLsizei* length, GLchar* infoLog) const {
-    ctx()->GetProgramInfoLog(handle(), bufSize, length, infoLog);
+void Program::glGetProgramInfoLog(GLsizei bufSize,
+                                  GLsizei* length,
+                                  GLchar* infoLog) const {
+    ctx().glGetProgramInfoLog(handle(), bufSize, length, infoLog);
 }
 
 GLint Program::glGetUniformBlockIndex(const GLchar* uniformBlockName) const {
-    return ctx()->GetUniformBlockIndex(handle(), uniformBlockName);
+    return ctx().glGetUniformBlockIndex(handle(), uniformBlockName);
 }
 
-void Program::glUniformBlockBinding(GLuint uniformBlockIndex, GLuint uniformBlockBinding) const {
-    ctx()->UniformBlockBinding(handle(), uniformBlockIndex, uniformBlockBinding);
+void Program::glUniformBlockBinding(GLuint uniformBlockIndex,
+                                    GLuint uniformBlockBinding) const {
+    ctx().glUniformBlockBinding(handle(), uniformBlockIndex, uniformBlockBinding);
 }
 
-GLint Program::glGetProgramResourceIndex(GLenum programInterface, const GLchar* name) const {
-    return ctx()->GetProgramResourceIndex(handle(), programInterface, name);
+GLint Program::glGetProgramResourceIndex(GLenum programInterface,
+                                         const GLchar* name) const {
+    return ctx().glGetProgramResourceIndex(handle(), programInterface, name);
 }
 
 void Program::glShaderStorageBlockBinding(GLuint storageBlockIndex,
                                           GLuint storageBlockBinding) const {
-    ctx()->ShaderStorageBlockBinding(handle(), storageBlockIndex, storageBlockBinding);
+    ctx().glShaderStorageBlockBinding(handle(), storageBlockIndex, storageBlockBinding);
 }
 
 GLint Program::glGetAttribLocation(const GLchar* name) const {
-    return ctx()->GetAttribLocation(handle(), name);
+    return ctx().glGetAttribLocation(handle(), name);
 }
 
 GLint Program::glGetUniformLocation(const GLchar* name) const {
-    return ctx()->GetUniformLocation(handle(), name);
+    return ctx().glGetUniformLocation(handle(), name);
 }
 
-GLuint* Program::create_handle(const std::shared_ptr<GladGLContext>& ctx) {
-    GLuint* handle = new GLuint(0);
-    *handle = ctx->CreateProgram();
-    return handle;
-}
+GLuint Program::createHandle(const Ctx& ctx) { return ctx.glCreateProgram(); }
 
-void Program::handle_deleter(GLuint* handle, GladGLContext& ctx) {
-    ctx.DeleteProgram(*handle);
-    delete handle;
-}
+void Program::freeHandle(const Ctx& ctx, GLuint handle) { ctx.glDeleteProgram(handle); }

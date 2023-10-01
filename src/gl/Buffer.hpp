@@ -6,7 +6,9 @@ namespace gnev::gl {
 
 class EXPORT Buffer : public Handler {
 public:
-    Buffer(const GladCtx& ctx);
+    Buffer(const Ctx& ctx);
+    Buffer(const Buffer& other) = delete;
+    Buffer(Buffer&& other) = default;
     virtual ~Buffer();
 
     void glBindBuffer(GLenum target) const;
@@ -27,8 +29,8 @@ public:
     void glUnmapBuffer();
 
 private:
-    static GLuint* create_handle(const GladCtx& ctx);
-    static void handle_deleter(GLuint* handle, GladGLContext& ctx);
+    static GLuint createHandle(const Ctx& ctx);
+    static void freeHandle(const Ctx& ctx, GLuint handle);
 };
 
 } // namespace gnev::gl

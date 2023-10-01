@@ -6,14 +6,36 @@
 #define GLFW_INCLUDE_NONE
 #include "GLFW/glfw3.h"
 #include "GLFW/glfw3native.h"
+#include "gl/Debug.hpp"
 
 OpenGLContext::OpenGLContext()
     : window(createWindow())
-    , ctx(createCtx()) {}
+    , ctx(glfwGetProcAddress) {
+
+    GLint context_flags;
+    ctx.glGetIntegerv(GL_CONTEXT_FLAGS, &context_flags);
+    if (context_flags & GL_CONTEXT_FLAG_DEBUG_BIT) {
+        ctx.glEnable(GL_DEBUG_OUTPUT);
+        ctx.glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
+        ctx.glDebugMessageCallback(&gnev::glDebugOutput, nullptr);
+        ctx.glDebugMessageControl(GL_DONT_CARE,
+                                  GL_DEBUG_TYPE_ERROR,
+                                  GL_DONT_CARE,
+                                  0,
+                                  nullptr,
+                                  GL_TRUE);
+        ctx.glDebugMessageControl(GL_DONT_CARE,
+                                  GL_DEBUG_TYPE_PERFORMANCE,
+                                  GL_DONT_CARE,
+                                  0,
+                                  nullptr,
+                                  GL_FALSE);
+    }
+}
 
 OpenGLContext::~OpenGLContext() {}
 
-OpenGLContext::Ctx OpenGLContext::getCtx() const { return ctx; }
+const gnev::gl::Ctx& OpenGLContext::getCtx() const { return ctx; }
 
 OpenGLContext::Window OpenGLContext::createWindow() {
     if (!glfwInit()) {
@@ -48,10 +70,4 @@ OpenGLContext::Window OpenGLContext::createWindow() {
 void OpenGLContext::destroyWindow(GLFWwindow* window) {
     glfwDestroyWindow(window);
     glfwTerminate();
-}
-
-OpenGLContext::Ctx OpenGLContext::createCtx() {
-    auto ctx = std::make_shared<GladGLContext>();
-    gladLoadGLContext(ctx.get(), glfwGetProcAddress);
-    return ctx;
 }

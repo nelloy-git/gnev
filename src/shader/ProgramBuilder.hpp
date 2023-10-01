@@ -11,7 +11,7 @@ namespace gnev {
 
 class EXPORT ProgramBuilder {
 public:
-    ProgramBuilder(const std::shared_ptr<GladGLContext>& ctx);
+    ProgramBuilder(const gl::Ctx& ctx);
     ~ProgramBuilder();
 
     const std::string& reason() const;
@@ -19,7 +19,7 @@ public:
     std::optional<gl::Program> build(const std::unordered_map<GLenum, std::string>& sources);
 
 private:
-    const std::shared_ptr<GladGLContext> _ctx;
+    const gl::Ctx _ctx;
     std::string _reason;
     std::string _help;
 

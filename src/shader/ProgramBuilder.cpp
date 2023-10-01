@@ -5,7 +5,7 @@
 
 using namespace gnev;
 
-ProgramBuilder::ProgramBuilder(const std::shared_ptr<GladGLContext>& ctx)
+ProgramBuilder::ProgramBuilder(const gl::Ctx& ctx)
     : _ctx(ctx) {}
 
 ProgramBuilder::~ProgramBuilder() {}

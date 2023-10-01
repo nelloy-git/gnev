@@ -7,18 +7,24 @@
 
 #include "gl/Buffer.hpp"
 
-namespace gnev::gl {
+namespace gnev::gl::buffer {
 
 template <IsTriviallyCopyable T>
-class EXPORT BufferResizable : public Buffer {
+class EXPORT Resizable : public Buffer {
 public:
     using Element = T;
 
-    BufferResizable(const GladCtx& ctx,
-                    GLenum usage = GL_DYNAMIC_COPY,
-                    std::size_t initial_capacity = 4,
-                    const T& initial_data = T{});
-    virtual ~BufferResizable();
+    Resizable(const Ctx& ctx,
+              GLenum usage,
+              std::size_t initial_capacity,
+              const T& initial_data = T{});
+    Resizable(const Ctx& ctx,
+              GLenum usage,
+              std::size_t initial_capacity,
+              std::initializer_list<T> initial_data);
+    Resizable(const Resizable& other) = delete;
+    Resizable(Resizable&& other) = default;
+    virtual ~Resizable();
 
     void setElement(std::size_t pos, const T& value);
     void copyElement(std::size_t src, std::size_t dst);
@@ -40,10 +46,10 @@ private:
 };
 
 template <IsTriviallyCopyable T>
-BufferResizable<T>::BufferResizable(const GladCtx& ctx,
-                                    GLenum usage,
-                                    std::size_t initial_capacity,
-                                    const T& initial_data)
+Resizable<T>::Resizable(const Ctx& ctx,
+                        GLenum usage,
+                        std::size_t initial_capacity,
+                        const T& initial_data)
     : Buffer(ctx)
     , usage(usage)
     , buffer_size(std::max(initial_capacity * sizeof(T), sizeof(T))) {
@@ -52,10 +58,23 @@ BufferResizable<T>::BufferResizable(const GladCtx& ctx,
 }
 
 template <IsTriviallyCopyable T>
-BufferResizable<T>::~BufferResizable() {}
+Resizable<T>::Resizable(const Ctx& ctx,
+                        GLenum usage,
+                        std::size_t initial_capacity,
+                        std::initializer_list<T> initial_data)
+    : Buffer(ctx)
+    , usage(usage)
+    , buffer_size(std::max(initial_capacity * sizeof(T), sizeof(T))) {
+    std::size_t initializer_size = initial_data.size() * sizeof(T);
+    glBufferData(buffer_size, nullptr, usage);
+    glBufferSubData(0, initializer_size, initial_data.begin());
+}
 
 template <IsTriviallyCopyable T>
-void BufferResizable<T>::setElement(std::size_t pos, const T& value) {
+Resizable<T>::~Resizable() {}
+
+template <IsTriviallyCopyable T>
+void Resizable<T>::setElement(std::size_t pos, const T& value) {
     if (pos >= getCapacity()) {
         throw std::out_of_range("");
     }
@@ -63,15 +82,17 @@ void BufferResizable<T>::setElement(std::size_t pos, const T& value) {
 }
 
 template <IsTriviallyCopyable T>
-void BufferResizable<T>::copyElement(std::size_t src, std::size_t dst) {
+void Resizable<T>::copyElement(std::size_t src, std::size_t dst) {
     if (src >= getCapacity() || dst >= getCapacity()) {
         throw std::out_of_range("");
     }
-    glCopyBufferSubData(handle(), src * sizeof(T), dst * sizeof(T), 1);
+    if (src != dst) {
+        glCopyBufferSubData(handle(), src * sizeof(T), dst * sizeof(T), 1);
+    }
 }
 
 template <IsTriviallyCopyable T>
-T BufferResizable<T>::getElement(std::size_t pos) const {
+T Resizable<T>::getElement(std::size_t pos) const {
     if (pos >= getCapacity()) {
         throw std::out_of_range("");
     }
@@ -81,7 +102,7 @@ T BufferResizable<T>::getElement(std::size_t pos) const {
 }
 
 template <IsTriviallyCopyable T>
-void BufferResizable<T>::setRange(std::size_t first, std::size_t count, const T* src) {
+void Resizable<T>::setRange(std::size_t first, std::size_t count, const T* src) {
     if (first + count > getCapacity()) {
         throw std::out_of_range("");
     }
@@ -89,15 +110,26 @@ void BufferResizable<T>::setRange(std::size_t first, std::size_t count, const T*
 }
 
 template <IsTriviallyCopyable T>
-void BufferResizable<T>::copyRange(std::size_t src, std::size_t dst, std::size_t count) {
+void Resizable<T>::copyRange(std::size_t src, std::size_t dst, std::size_t count) {
     if (src + count > getCapacity() || dst + count > getCapacity()) {
         throw std::out_of_range("");
     }
-    glCopyBufferSubData(handle(), src * sizeof(T), dst * sizeof(T), count);
+
+    if (src >= dst + count || src + count <= dst) {
+        glCopyBufferSubData(handle(),
+                            src * sizeof(T),
+                            dst * sizeof(T),
+                            count * sizeof(T));
+    } else {
+        Buffer tmp_buffer(ctx());
+        tmp_buffer.glBufferStorage(count * sizeof(T), nullptr, 0);
+        glCopyBufferSubData(tmp_buffer.handle(), src * sizeof(T), 0, count * sizeof(T));
+        tmp_buffer.glCopyBufferSubData(handle(), 0, dst * sizeof(T), count * sizeof(T));
+    }
 }
 
 template <IsTriviallyCopyable T>
-std::vector<T> BufferResizable<T>::getRange(std::size_t first, std::size_t count) const {
+std::vector<T> Resizable<T>::getRange(std::size_t first, std::size_t count) const {
     if (first + count > getCapacity()) {
         throw std::out_of_range("");
     }
@@ -107,7 +139,7 @@ std::vector<T> BufferResizable<T>::getRange(std::size_t first, std::size_t count
 }
 
 template <IsTriviallyCopyable T>
-void BufferResizable<T>::setCapacity(std::size_t cap) {
+void Resizable<T>::setCapacity(std::size_t cap) {
     std::size_t tmp_buffer_size = std::min<GLsizeiptr>(buffer_size, cap * sizeof(T));
 
     Buffer tmp_buffer(ctx());
@@ -116,23 +148,30 @@ void BufferResizable<T>::setCapacity(std::size_t cap) {
 
     glBufferData(cap * sizeof(T), nullptr, usage);
     tmp_buffer.glCopyBufferSubData(handle(), 0, 0, tmp_buffer_size);
+
+    if (getCapacity() < cap) {
+        std::size_t elements_to_fill = cap - getCapacity();
+        std::vector<T> tmp(elements_to_fill, T{});
+        glBufferSubData(buffer_size, elements_to_fill * sizeof(T), tmp.data());
+    }
+
     buffer_size = cap * sizeof(T);
 }
 
 template <IsTriviallyCopyable T>
-std::size_t BufferResizable<T>::getCapacity() const {
+std::size_t Resizable<T>::getCapacity() const {
     return buffer_size / sizeof(T);
 }
 
 template <IsTriviallyCopyable T>
-void BufferResizable<T>::setUsage(GLenum new_usage) {
+void Resizable<T>::setUsage(GLenum new_usage) {
     usage = new_usage;
     setCapacity(getCapacity());
 }
 
 template <IsTriviallyCopyable T>
-GLenum BufferResizable<T>::getUsage() const {
+GLenum Resizable<T>::getUsage() const {
     return usage;
 }
 
-} // namespace gnev::gl
+} // namespace gnev::gl::buffer

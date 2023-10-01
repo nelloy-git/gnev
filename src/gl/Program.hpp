@@ -6,7 +6,9 @@ namespace gnev::gl {
 
 class EXPORT Program : public Handler {
 public:
-    Program(const GladCtx& ctx);
+    Program(const Ctx& ctx);
+    Program(const Program& other) = delete;
+    Program(Program&& other) = default;
     virtual ~Program();
 
     void glAttachShader(GLuint shader);
@@ -16,16 +18,18 @@ public:
     void glGetProgramiv(GLenum pname, GLint* params) const;
     void glGetProgramInfoLog(GLsizei bufSize, GLsizei* length, GLchar* infoLog) const;
     GLint glGetUniformBlockIndex(const GLchar* uniformBlockName) const;
-    void glUniformBlockBinding(GLuint uniformBlockIndex, GLuint uniformBlockBinding) const;
+    void glUniformBlockBinding(GLuint uniformBlockIndex,
+                               GLuint uniformBlockBinding) const;
     GLint glGetAttribLocation(const GLchar* name) const;
     GLint glGetUniformLocation(const GLchar* name) const;
 
     GLint glGetProgramResourceIndex(GLenum programInterface, const GLchar* name) const;
-    void glShaderStorageBlockBinding(GLuint storageBlockIndex, GLuint storageBlockBinding) const;
+    void glShaderStorageBlockBinding(GLuint storageBlockIndex,
+                                     GLuint storageBlockBinding) const;
 
 private:
-    static GLuint* create_handle(const std::shared_ptr<GladGLContext>& ctx);
-    static void handle_deleter(GLuint* handle, GladGLContext& ctx);
+    static GLuint createHandle(const Ctx& ctx);
+    static void freeHandle(const Ctx& ctx, GLuint handle);
 };
 
 } // namespace gnev::gl

@@ -1,27 +1,27 @@
-#pragma once
+// #pragma once
 
-#include "gl/Program.hpp"
-#include "gl/Sampler.hpp"
-#include "glad/gl.h"
-#include "view/Camera.hpp"
+// #include "gl/Program.hpp"
+// #include "gl/Sampler.hpp"
+// #include "glad/gl.h"
+// #include "view/Camera.hpp"
 
-namespace gnev {
+// namespace gnev {
 
-class EXPORT Drawer final {
-public:
-    Drawer(GLADloadfunc load_func);
-    ~Drawer();
+// class EXPORT Drawer final {
+// public:
+//     Drawer(GLADloadfunc load_func);
+//     ~Drawer();
 
-    const std::shared_ptr<GladGLContext> ctx;
-    gl::Program program;
-    Camera camera;
-    gl::Sampler sampler;
+//     const std::shared_ptr<GladGLContext> ctx;
+//     gl::Program program;
+//     Camera camera;
+//     gl::Sampler sampler;
 
-    void draw() const;
+//     void draw() const;
 
-private:
-    static std::shared_ptr<GladGLContext> create_glad_ctx(GLADloadfunc load_func);
-    static gl::Sampler create_texture_sampler(const std::shared_ptr<GladGLContext>& ctx);
-};
+// private:
+//     static std::shared_ptr<GladGLContext> create_glad_ctx(GLADloadfunc load_func);
+//     static gl::Sampler create_texture_sampler(const std::shared_ptr<GladGLContext>& ctx);
+// };
 
-} // namespace gnev
+// } // namespace gnev

@@ -2,32 +2,39 @@
 
 using namespace gnev::gl;
 
-Texture::Texture(const std::shared_ptr<GladGLContext>& ctx, GLenum target)
-    : Handler(ctx, create_handle(ctx, target), &handle_deleter) {}
+Texture::Texture(const Ctx& ctx, GLenum target)
+    : Handler(ctx, createHandle(ctx, target), &freeHandle) {}
 
 Texture::~Texture() {}
 
-void Texture::glBindTexture(GLenum target) const { ctx()->BindTexture(target, handle()); }
+void Texture::glBindTexture(GLenum target) const {
+    ctx().glBindTexture(target, handle());
+}
 
 void Texture::glTextureParameteri(GLenum pname, GLint param) {
-    ctx()->TextureParameteri(handle(), pname, param);
+    ctx().glTextureParameteri(handle(), pname, param);
 }
 
 void Texture::glGetTextureParameteriv(GLenum pname, GLint* params) const {
-    ctx()->GetTextureParameteriv(handle(), pname, params);
+    ctx().glGetTextureParameteriv(handle(), pname, params);
 }
 
-void Texture::glGetTextureLevelParameteriv(GLint level, GLenum pname, GLint* params) const {
-    ctx()->GetTextureLevelParameteriv(handle(), level, pname, params);
+void Texture::glGetTextureLevelParameteriv(GLint level,
+                                           GLenum pname,
+                                           GLint* params) const {
+    ctx().glGetTextureLevelParameteriv(handle(), level, pname, params);
 }
 
 void Texture::glTextureParameterfv(GLenum pname, const GLfloat* param) {
-    ctx()->TextureParameterfv(handle(), pname, param);
+    ctx().glTextureParameterfv(handle(), pname, param);
 }
 
-void Texture::glTextureStorage3D(
-    GLsizei levels, GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth) {
-    ctx()->TextureStorage3D(handle(), levels, internalformat, width, height, depth);
+void Texture::glTextureStorage3D(GLsizei levels,
+                                 GLenum internalformat,
+                                 GLsizei width,
+                                 GLsizei height,
+                                 GLsizei depth) {
+    ctx().glTextureStorage3D(handle(), levels, internalformat, width, height, depth);
 }
 
 void Texture::glTextureSubImage3D(GLint level,
@@ -40,20 +47,20 @@ void Texture::glTextureSubImage3D(GLint level,
                                   GLenum format,
                                   GLenum type,
                                   const void* pixels) {
-    ctx()->TextureSubImage3D(handle(),
-                             level,
-                             xoffset,
-                             yoffset,
-                             zoffset,
-                             width,
-                             height,
-                             depth,
-                             format,
-                             type,
-                             pixels);
+    ctx().glTextureSubImage3D(handle(),
+                              level,
+                              xoffset,
+                              yoffset,
+                              zoffset,
+                              width,
+                              height,
+                              depth,
+                              format,
+                              type,
+                              pixels);
 }
 
-void Texture::glGenerateTextureMipmap() { ctx()->GenerateTextureMipmap(handle()); }
+void Texture::glGenerateTextureMipmap() { ctx().glGenerateTextureMipmap(handle()); }
 
 void Texture::glCopyImageSubData(GLenum srcTarget,
                                  GLint srcLevel,
@@ -69,21 +76,21 @@ void Texture::glCopyImageSubData(GLenum srcTarget,
                                  GLsizei srcWidth,
                                  GLsizei srcHeight,
                                  GLsizei srcDepth) const {
-    ctx()->CopyImageSubData(handle(),
-                            srcTarget,
-                            srcLevel,
-                            srcX,
-                            srcY,
-                            srcZ,
-                            dstName,
-                            dstTarget,
-                            dstLevel,
-                            dstX,
-                            dstY,
-                            dstZ,
-                            srcWidth,
-                            srcHeight,
-                            srcDepth);
+    ctx().glCopyImageSubData(handle(),
+                             srcTarget,
+                             srcLevel,
+                             srcX,
+                             srcY,
+                             srcZ,
+                             dstName,
+                             dstTarget,
+                             dstLevel,
+                             dstX,
+                             dstY,
+                             dstZ,
+                             srcWidth,
+                             srcHeight,
+                             srcDepth);
 }
 
 void Texture::glGetTextureSubImage(GLint level,
@@ -97,32 +104,26 @@ void Texture::glGetTextureSubImage(GLint level,
                                    GLenum type,
                                    GLsizei bufSize,
                                    void* pixels) const {
-    ctx()->GetTextureSubImage(handle(),
-                              level,
-                              xoffset,
-                              yoffset,
-                              zoffset,
-                              width,
-                              height,
-                              depth,
-                              format,
-                              type,
-                              bufSize,
-                              pixels);
+    ctx().glGetTextureSubImage(handle(),
+                               level,
+                               xoffset,
+                               yoffset,
+                               zoffset,
+                               width,
+                               height,
+                               depth,
+                               format,
+                               type,
+                               bufSize,
+                               pixels);
 }
 
-GLuint* Texture::create_handle(const std::shared_ptr<GladGLContext>& ctx, GLenum target) {
-    auto handle = new GLuint(0);
-    if (ctx->VERSION_4_5) {
-        ctx->CreateTextures(target, 1, handle);
-    } else {
-        ctx->GenTextures(1, handle);
-        ctx->BindTexture(target, *handle);
-    }
+GLuint Texture::createHandle(const Ctx& ctx, GLenum target) {
+    GLuint handle;
+    ctx.glCreateTextures(target, 1, &handle);
     return handle;
 }
 
-void Texture::handle_deleter(GLuint* handle, GladGLContext& ctx) {
-    ctx.DeleteTextures(1, handle);
-    delete handle;
+void Texture::freeHandle(const Ctx& ctx, GLuint handle) {
+    ctx.glDeleteTextures(1, &handle);
 }

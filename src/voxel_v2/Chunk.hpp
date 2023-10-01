@@ -15,9 +15,8 @@ public:
     std::vector<M>& getMeshes() const;
 
 private:
-    std::vector<Voxel>
-
-
+    std::vector<Voxel> voxels;
+    std::vector<Triangle> triangles;
 };
 
 }

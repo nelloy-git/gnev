@@ -33,10 +33,10 @@ const char* glGetErrorString(GLenum error) {
 
 static void glDebugOutput(GLenum source,
                           GLenum type,
-                          unsigned int id,
+                          GLuint id,
                           GLenum severity,
                           GLsizei length,
-                          const char* message,
+                          const GLchar* message,
                           const void* userParam) {
     // auto& gl = *static_cast<const GLapi*>(userParam);
 

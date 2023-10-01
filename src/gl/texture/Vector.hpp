@@ -2,9 +2,9 @@
 
 #include "gl/Texture.hpp"
 
-namespace gnev::gl {
+namespace gnev::gl::texture {
 
-class EXPORT TextureVector : public Texture {
+class EXPORT Vector : public Texture {
 public:
     static constexpr GLsizeiptr base_cap = 4;
 
@@ -19,12 +19,12 @@ public:
         std::shared_ptr<void> data;
     };
 
-    TextureVector(const std::shared_ptr<GladGLContext>& ctx,
+    Vector(const std::shared_ptr<GladGLContext>& ctx,
                   GLsizei levels,
                   GLenum internalformat,
                   GLsizei width,
                   GLsizei height);
-    virtual ~TextureVector();
+    virtual ~Vector();
 
     // std::unique_ptr<Image, void(*)(Image*)> get(GLsizeiptr i, GLint level) const; TODO
     void set(GLsizeiptr i, const Image& value);

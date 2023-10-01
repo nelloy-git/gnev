@@ -2,12 +2,13 @@
 
 using namespace gnev::gl;
 
-Handler::Handler(const std::shared_ptr<GladGLContext>& ctx, GLuint* handle, const Deleter& deleter)
+Handler::Handler(const Ctx& ctx, GLuint handle, const FreeHandle& deleter)
     : _ctx(ctx)
-    , _handle(handle, [ctx, deleter](GLuint* handle) { deleter(handle, *ctx); }) {}
+    , _handle(std::make_unique<GLuint>(handle))
+    , _deleter(deleter) {}
 
-Handler::~Handler() {}
-
-const std::shared_ptr<GladGLContext>& Handler::ctx() const { return _ctx; }
-
-GLuint Handler::handle() const { return *_handle; }
+Handler::~Handler() {
+    if (_handle) {
+        _deleter(_ctx, *_handle);
+    }
+}

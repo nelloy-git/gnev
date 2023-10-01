@@ -44,6 +44,7 @@ target_link_libraries(${PROJECT_NAME}
     nlohmann_json
 )
 target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_20)
+target_compile_definitions(${PROJECT_NAME} PUBLIC GNEV_GL_MAJOR=4 GNEV_GL_MINOR=6)
 
 set_property (TARGET ${PROJECT_NAME}
   PROPERTY
@@ -80,24 +81,24 @@ gtest_discover_tests(tests)
 
 # Main test
 
-file(GLOB_RECURSE SAMPLE_SRC_FILES "sample/**.cpp")
-add_executable(${PROJECT_NAME}_sample
-    ${SAMPLE_SRC_FILES}
-)
-target_compile_features(${PROJECT_NAME}_sample PUBLIC cxx_std_20)
+# file(GLOB_RECURSE SAMPLE_SRC_FILES "sample/**.cpp")
+# add_executable(${PROJECT_NAME}_sample
+#     ${SAMPLE_SRC_FILES}
+# )
+# target_compile_features(${PROJECT_NAME}_sample PUBLIC cxx_std_20)
 
-if (WIN32)
-    target_link_libraries(${PROJECT_NAME}_sample
-        ${PROJECT_NAME}
-        glfw
-    )
-else()
-    target_link_libraries(${PROJECT_NAME}_sample
-        ${PROJECT_NAME}
-        glfw
-        dl
-    )
-endif (WIN32)
+# if (WIN32)
+#     target_link_libraries(${PROJECT_NAME}_sample
+#         ${PROJECT_NAME}
+#         glfw
+#     )
+# else()
+#     target_link_libraries(${PROJECT_NAME}_sample
+#         ${PROJECT_NAME}
+#         glfw
+#         dl
+#     )
+# endif (WIN32)
 
 # configure_file(shaders/vertex_2d.vs vertex_2d.vs)
 # configure_file(shaders/vertex_2d.fs vertex_2d.fs)

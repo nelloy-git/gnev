@@ -6,7 +6,7 @@ namespace gnev::gl {
 
 class EXPORT Shader : public Handler {
 public:
-    Shader(const std::shared_ptr<GladGLContext>& ctx, GLenum type);
+    Shader(const Ctx& ctx, GLenum type);
     virtual ~Shader();
 
     void glShaderSource(GLsizei count, const GLchar* const* string, const GLint* length);
@@ -15,8 +15,8 @@ public:
     void glGetShaderInfoLog(GLsizei bufSize, GLsizei* length, GLchar* infoLog) const;
 
 private:
-    static GLuint* create_handle(const std::shared_ptr<GladGLContext>& ctx, GLenum type);
-    static void handle_deleter(GLuint* handle, GladGLContext& ctx);
+    static GLuint createHandle(const Ctx& ctx, GLenum type);
+    static void freeHandle(const Ctx& ctx, GLuint handle);
 };
 
 } // namespace gnev::gl

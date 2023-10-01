@@ -1,27 +1,28 @@
 #pragma once
 
-#include <memory>
-
-#include "glad/gl.h"
-#include "util/Util.hpp"
+#include "functional"
+#include "gl/Ctx.hpp"
 
 namespace gnev::gl {
 
-using GladCtx = std::shared_ptr<GladGLContext>;
-
 class EXPORT Handler {
 public:
-    using Deleter = void (*)(GLuint* handle, GladGLContext& ctx);
+    using FreeHandle = std::function<void(const Ctx&, GLuint)>;
 
-    Handler(const GladCtx& ctx, GLuint* handle, const Deleter& deleter);
+    Handler(const Ctx& ctx, GLuint handle, const FreeHandle& deleter);
+    Handler(const Handler&) = delete;
+    Handler(Handler&&) = default;
+
     virtual ~Handler();
 
-    virtual const GladCtx& ctx() const;
-    virtual GLuint handle() const;
+    inline const Ctx& ctx() const { return _ctx; };
+
+    inline GLuint handle() const { return *_handle; };
 
 private:
-    GladCtx _ctx;
-    std::shared_ptr<const GLuint> _handle;
+    Ctx _ctx;
+    std::unique_ptr<GLuint> _handle;
+    std::function<void(const Ctx&, GLuint)> _deleter;
 };
 
 } // namespace gnev::gl

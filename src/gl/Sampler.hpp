@@ -6,7 +6,7 @@ namespace gnev::gl {
 
 class EXPORT Sampler : public Handler {
 public:
-    Sampler(const std::shared_ptr<GladGLContext>& ctx);
+    Sampler(const Ctx& ctx);
     virtual ~Sampler();
 
     void glBindSampler(GLuint unit);
@@ -15,8 +15,8 @@ public:
     void glSamplerParameterfv(GLuint pname, const GLfloat* param);
 
 private:
-    static GLuint* create_handle(const std::shared_ptr<GladGLContext>& ctx);
-    static void handle_deleter(GLuint* handle, GladGLContext& ctx);
+    static GLuint createHandle(const Ctx& ctx);
+    static void freeHandle(const Ctx& ctx, GLuint handle);
 };
 
 } // namespace gnev::gl

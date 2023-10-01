@@ -2,67 +2,59 @@
 
 using namespace gnev::gl;
 
-VertexArray::VertexArray(const std::shared_ptr<GladGLContext>& ctx)
-    : Handler(ctx, create_handle(ctx), &handle_deleter) {}
+VertexArray::VertexArray(const Ctx& ctx)
+    : Handler(ctx, createHandle(ctx), &freeHandle) {}
 
 VertexArray::~VertexArray() {}
 
-void VertexArray::glBindVertexArray() const { ctx()->BindVertexArray(handle()); }
+void VertexArray::glBindVertexArray() const { ctx().glBindVertexArray(handle()); }
 
 void VertexArray::glVertexArrayElementBuffer(GLuint buffer) {
-    ctx()->VertexArrayElementBuffer(handle(), buffer);
+    ctx().glVertexArrayElementBuffer(handle(), buffer);
 }
 
 void VertexArray::glVertexArrayVertexBuffer(GLuint bindingindex,
                                             GLuint buffer,
                                             GLintptr offset,
                                             GLsizei stride) {
-    ctx()->VertexArrayVertexBuffer(handle(), bindingindex, buffer, offset, stride);
+    ctx().glVertexArrayVertexBuffer(handle(), bindingindex, buffer, offset, stride);
 }
 
 void VertexArray::glVertexArrayAttribBinding(GLuint attribindex, GLuint bindingindex) {
-    ctx()->VertexArrayAttribBinding(handle(), attribindex, bindingindex);
+    ctx().glVertexArrayAttribBinding(handle(), attribindex, bindingindex);
 }
 
-void VertexArray::glVertexArrayAttribFormat(
-    GLuint attribindex, GLint size, GLenum type, GLboolean normalized, GLuint relativeoffset) {
-    ctx()->VertexArrayAttribFormat(handle(), attribindex, size, type, normalized, relativeoffset);
-}
-
-void VertexArray::glVertexAttribPointer(GLuint index,
-                                        GLint size,
-                                        GLenum type,
-                                        GLboolean normalized,
-                                        GLsizei stride,
-                                        const void* pointer) {
-    ctx()->BindVertexArray(handle());
-    ctx()->VertexAttribPointer(index, size, type, normalized, stride, pointer);
-    ctx()->BindVertexArray(0);
+void VertexArray::glVertexArrayAttribFormat(GLuint attribindex,
+                                            GLint size,
+                                            GLenum type,
+                                            GLboolean normalized,
+                                            GLuint relativeoffset) {
+    ctx().glVertexArrayAttribFormat(handle(),
+                                    attribindex,
+                                    size,
+                                    type,
+                                    normalized,
+                                    relativeoffset);
 }
 
 void VertexArray::glVertexArrayBindingDivisor(GLuint bindingindex, GLuint divisor) {
-    ctx()->VertexArrayBindingDivisor(handle(), bindingindex, divisor);
+    ctx().glVertexArrayBindingDivisor(handle(), bindingindex, divisor);
 }
 
 void VertexArray::glEnableVertexArrayAttrib(GLuint index) {
-    ctx()->EnableVertexArrayAttrib(handle(), index);
+    ctx().glEnableVertexArrayAttrib(handle(), index);
 }
 
 void VertexArray::glDisableVertexArrayAttrib(GLuint index) {
-    ctx()->DisableVertexArrayAttrib(handle(), index);
+    ctx().glDisableVertexArrayAttrib(handle(), index);
 }
 
-GLuint* VertexArray::create_handle(const std::shared_ptr<GladGLContext>& ctx) {
-    GLuint* handle = new GLuint(0);
-    if (ctx->VERSION_4_5) {
-        ctx->CreateVertexArrays(1, handle);
-    } else {
-        ctx->GenVertexArrays(1, handle);
-    }
+GLuint VertexArray::createHandle(const Ctx& ctx) {
+    GLuint handle;
+    ctx.glCreateVertexArrays(1, &handle);
     return handle;
 }
 
-void VertexArray::handle_deleter(GLuint* handle, GladGLContext& ctx) {
-    ctx.DeleteVertexArrays(1, handle);
-    delete handle;
+void VertexArray::freeHandle(const Ctx& ctx, GLuint handle) {
+    ctx.glDeleteVertexArrays(1, &handle);
 }

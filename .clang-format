@@ -13,7 +13,7 @@ BreakBeforeBraces: Attach
 BreakBeforeConceptDeclarations: Always
 BreakConstructorInitializers: BeforeComma
 BreakInheritanceList: BeforeComma
-ColumnLimit: 100
+ColumnLimit: 90
 Cpp11BracedListStyle: true
 EmptyLineBeforeAccessModifier: Always
 IncludeBlocks: Regroup
@@ -27,7 +27,10 @@ IncludeCategories:
     SortPriority:    2
 IndentWidth: 4
 MaxEmptyLinesToKeep: 1
-PenaltyReturnTypeOnItsOwnLine: 4
+PenaltyBreakBeforeFirstCallParameter: 10
+PenaltyBreakOpenParenthesis: 10000
+PenaltyExcessCharacter: 1000
+PenaltyReturnTypeOnItsOwnLine: 99
 PointerAlignment: Left
 SeparateDefinitionBlocks: Always
 UseTab: Never

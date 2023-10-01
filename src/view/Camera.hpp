@@ -1,22 +1,25 @@
 #pragma once
 
-#include "gl/BufferArrayCoherent.hpp"
+#include "gl/buffer/Array.hpp"
 #include "glm/glm.hpp"
 
 namespace gnev {
 
 struct CameraBuffer {
-    glm::mat4 mat;
-    glm::vec3 viewPos;
-    glm::vec3 viewDir;
+    glm::mat4 mat = glm::mat4(1.f);
+    glm::vec3 viewPos = {0, 0, 0};
+    glm::vec3 viewDir = {1, 0, 0};
 };
 
 class EXPORT Camera {
 public:
-    Camera(const std::shared_ptr<GladGLContext>& ctx);
+    static constexpr GLbitfield STORAGE_FLAGS =
+        GL_MAP_READ_BIT | GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT;
+
+    Camera(const gl::Ctx& ctx);
     virtual ~Camera();
 
-    gl::BufferArrayCoherent<CameraBuffer> buffer;
+    gl::buffer::Array<CameraBuffer> buffer;
 
     void apply();
     void applyLookAt(const glm::vec3& dst);
@@ -34,6 +37,8 @@ public:
     int height = 1080;
 
 private:
+    CameraBuffer* _map;
+
     glm::vec3 _forward = {1, 0, 0};
     glm::vec3 _up = {0, 1, 0};
 };
