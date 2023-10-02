@@ -1,5 +1,6 @@
 #include "gl/texture/ResizableStorage.hpp"
 
+#include <memory>
 #include <stdexcept>
 
 using namespace gnev::gl;
@@ -65,7 +66,7 @@ Image ResizableStorage::getElement(std::size_t pos,
         .height = getLevelHeight(level),
         .format = format,
         .type = type,
-        .data = std::make_shared<char[]>(buffer_size),
+        .data = std::shared_ptr<char[]>(new char[buffer_size]),
     };
 
     getSubImage({GLint(level), 0, 0, GLint(pos)},

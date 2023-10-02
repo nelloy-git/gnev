@@ -16,7 +16,7 @@
             "console": "externalTerminal"
         },
         {
-            "name": "Tests",
+            "name": "TestsWin",
             "type": "cppvsdbg",
             "request": "launch",
             "program": "${workspaceFolder}/build/Debug/tests.exe",
@@ -27,11 +27,23 @@
             "console": "externalTerminal"
         },
         {
+            "name": "LLDB",
             "type": "lldb",
             "request": "launch",
-            "name": "LLDB",
             "program": "${workspaceFolder}/build/gnev_sample",
             "cwd": "${workspaceFolder}",
-        }
+        },
+        {
+            "name": "TestsUbuntu",
+            "type": "lldb",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/tests",
+            "cwd": "${workspaceFolder}",
+            "console": "internalConsole",
+            "env": {
+                "MESA_GL_VERSION_OVERRIDE": "4.6",
+                "MESA_GLSL_VERSION_OVERRIDE": "460"
+            }
+        },
     ]
 }

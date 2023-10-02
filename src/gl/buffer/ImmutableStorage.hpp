@@ -18,7 +18,7 @@ public:
     ImmutableStorage(const Ctx& ctx,
                      GLbitfield storage_flags,
                      std::initializer_list<T> initial_data,
-                     std::size_t capacity = initial_data.size());
+                     std::size_t capacity);
     ImmutableStorage(const ImmutableStorage& other) = delete;
     ImmutableStorage(ImmutableStorage&& other) = default;
     virtual ~ImmutableStorage();
@@ -42,7 +42,7 @@ public:
     T* mapRange(std::size_t first, std::size_t count, GLbitfield access);
     void flushRange(std::size_t offset, std::size_t count);
 
-    GLsizeiptr getCapacity() const;
+    std::size_t getCapacity() const;
     GLbitfield getStorageFlags() const;
 
 private:
@@ -102,6 +102,7 @@ T ImmutableStorage<T>::getElement(std::size_t pos) const {
     if (pos >= getCapacity()) {
         throw std::out_of_range("");
     }
+
     T result;
     getSubData(pos * sizeof(T), sizeof(T), &result);
     return result;
@@ -169,7 +170,7 @@ std::vector<T> ImmutableStorage<T>::getRange(std::size_t first, std::size_t coun
 }
 
 template <IsTriviallyCopyable T>
-GLsizeiptr ImmutableStorage<T>::getCapacity() const {
+std::size_t ImmutableStorage<T>::getCapacity() const {
     return capacity;
 }
 

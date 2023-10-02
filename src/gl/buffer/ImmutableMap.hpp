@@ -4,46 +4,46 @@
 #include <unordered_map>
 #include <unordered_set>
 
-#include "gl/buffer/ResizableStorage.hpp"
+#include "gl/buffer/ImmutableStorage.hpp"
 
 namespace gnev::gl::buffer {
 
 template <typename K, IsTriviallyCopyable V>
-class EXPORT ResizableMap : public ResizableStorage<V> {
+class EXPORT ImmutableMap : public ImmutableStorage<V> {
 public:
     static constexpr std::size_t CAP_MULT = 2;
 
-    ResizableMap(const Ctx& ctx,
+    ImmutableMap(const Ctx& ctx,
                  GLenum usage,
                  std::size_t initial_capacity,
                  std::initializer_list<std::pair<K, V>> initial_data = {});
-    ResizableMap(const ResizableMap& other) = delete;
-    ResizableMap(ResizableMap&& other) = default;
-    virtual ~ResizableMap();
+    ImmutableMap(const ImmutableMap& other) = delete;
+    ImmutableMap(ImmutableMap&& other) = default;
+    virtual ~ImmutableMap();
 
     void setElement(const K& key, const V& value);
     std::optional<V> getElement(const K& key) const;
     void removeElement(const K& key);
 
 private:
-    using ResizableStorage<V>::setElement;
-    using ResizableStorage<V>::copyElement;
-    using ResizableStorage<V>::getElement;
+    using ImmutableStorage<V>::setElement;
+    using ImmutableStorage<V>::copyElement;
+    using ImmutableStorage<V>::getElement;
 
-    using ResizableStorage<V>::setRange;
-    using ResizableStorage<V>::copyRange;
-    using ResizableStorage<V>::getRange;
+    using ImmutableStorage<V>::setRange;
+    using ImmutableStorage<V>::copyRange;
+    using ImmutableStorage<V>::getRange;
 
     std::unordered_map<K, std::size_t> key_map;
     std::unordered_set<std::size_t> unused_poses;
 };
 
 template <typename K, IsTriviallyCopyable V>
-ResizableMap<K, V>::ResizableMap(const Ctx& ctx,
+ImmutableMap<K, V>::ImmutableMap(const Ctx& ctx,
                                  GLenum usage,
                                  std::size_t initial_capacity,
                                  std::initializer_list<std::pair<K, V>> initial_data)
-    : ResizableStorage<V>(ctx,
+    : ImmutableStorage<V>(ctx,
                           usage,
                           std::max(initial_capacity, initial_data.size()),
                           {}) {
@@ -56,45 +56,45 @@ ResizableMap<K, V>::ResizableMap(const Ctx& ctx,
 }
 
 template <typename K, IsTriviallyCopyable V>
-ResizableMap<K, V>::~ResizableMap() {}
+ImmutableMap<K, V>::~ImmutableMap() {}
 
 template <typename K, IsTriviallyCopyable V>
-void ResizableMap<K, V>::setElement(const K& key, const V& value) {
+void ImmutableMap<K, V>::setElement(const K& key, const V& value) {
     auto found = key_map.find(key);
     if (found != key_map.end()) {
-        ResizableStorage<V>::setElement(found->second, value);
+        ImmutableStorage<V>::setElement(found->second, value);
         return;
     }
 
     if (!unused_poses.empty()) {
         std::size_t pos = *unused_poses.begin();
         unused_poses.erase(unused_poses.begin());
-        ResizableStorage<V>::setElement(pos, value);
+        ImmutableStorage<V>::setElement(pos, value);
         key_map[key] = pos;
         return;
     }
 
-    std::size_t previous_capacity = ResizableStorage<V>::getCapacity();
-    ResizableStorage<V>::setCapacity(CAP_MULT * previous_capacity);
-    for (std::size_t i = previous_capacity + 1; i < ResizableStorage<V>::getCapacity();
+    std::size_t previous_capacity = ImmutableStorage<V>::getCapacity();
+    ImmutableStorage<V>::setCapacity(CAP_MULT * previous_capacity);
+    for (std::size_t i = previous_capacity + 1; i < ImmutableStorage<V>::getCapacity();
          ++i) {
         unused_poses.insert(i);
     }
-    ResizableStorage<V>::setElement(previous_capacity, value);
+    ImmutableStorage<V>::setElement(previous_capacity, value);
     key_map[key] = previous_capacity;
 }
 
 template <typename K, IsTriviallyCopyable V>
-std::optional<V> ResizableMap<K, V>::getElement(const K& key) const {
+std::optional<V> ImmutableMap<K, V>::getElement(const K& key) const {
     auto found = key_map.find(key);
     if (found == key_map.end()) {
         return std::nullopt;
     }
-    return ResizableStorage<V>::getElement(found->second);
+    return ImmutableStorage<V>::getElement(found->second);
 }
 
 template <typename K, IsTriviallyCopyable V>
-void ResizableMap<K, V>::removeElement(const K& key) {
+void ImmutableMap<K, V>::removeElement(const K& key) {
     auto found = key_map.find(key);
     if (found == key_map.end()) {
         return;

@@ -62,6 +62,10 @@ OpenGLContext::Window OpenGLContext::createWindow() {
         glfwWindowHint(hint.first, hint.second);
     }
     auto window = glfwCreateWindow(64, 64, "OpenGLContext", NULL, NULL);
+    if (!window) {
+        throw std::runtime_error("Can not create window");
+    }
+
     glfwMakeContextCurrent(window);
 
     return {window, &destroyWindow};
