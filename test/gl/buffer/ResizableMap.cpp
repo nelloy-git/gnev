@@ -1,4 +1,4 @@
-#include "gl/buffer/Map.hpp"
+#include "gl/buffer/ResizableMap.hpp"
 
 #include <array>
 
@@ -7,7 +7,7 @@
 
 using namespace gnev::gl;
 
-class EXPORT TestBufferMap
+class EXPORT TestBufferResizableMap
     : public testing::Test
     , public OpenGLContext {
 public:
@@ -15,8 +15,8 @@ public:
     std::size_t capacity = 10;
     int init = 0;
 
-    buffer::Map<int, std::array<char, 5>> initBuffer() {
-        buffer::Map<int, std::array<char, 5>> buffer(getCtx(), usage, capacity);
+    buffer::ResizableMap<int, std::array<char, 5>> initBuffer() {
+        buffer::ResizableMap<int, std::array<char, 5>> buffer(getCtx(), usage, capacity);
 
         EXPECT_EQ(usage, buffer.getUsage());
         EXPECT_EQ(capacity, buffer.getCapacity());
@@ -25,22 +25,31 @@ public:
     };
 };
 
-TEST_F(TestBufferMap, ctor) {
+TEST_F(TestBufferResizableMap, ctor) {
     auto usage = GL_DYNAMIC_COPY;
-    auto capacity = 50;
 
     std::initializer_list<std::pair<int, int>> initial = {{1, 3}, {2, 1}, {3, 2}};
 
-    buffer::Map<int, int> buffer(getCtx(), usage, capacity, initial);
+    buffer::ResizableMap<int, int> buffer(getCtx(), usage, 0, initial);
 
     EXPECT_EQ(usage, buffer.getUsage());
-    EXPECT_EQ(capacity, buffer.getCapacity());
-    for (auto& init : initial){
+    EXPECT_EQ(initial.size(), buffer.getCapacity());
+    for (auto& init : initial) {
         EXPECT_EQ(init.second, buffer.getElement(init.first));
     }
 }
 
-TEST_F(TestBufferMap, setElement_getElement) {
+TEST_F(TestBufferResizableMap, ctor2) {
+    auto usage = GL_DYNAMIC_COPY;
+    std::size_t capacity = 50;
+
+    buffer::ResizableMap<int, int> buffer(getCtx(), usage, capacity);
+
+    EXPECT_EQ(usage, buffer.getUsage());
+    EXPECT_EQ(capacity, buffer.getCapacity());
+}
+
+TEST_F(TestBufferResizableMap, setElement_getElement) {
     auto buffer = initBuffer();
     for (char i = 0; i < 100; ++i) {
         std::array<char, 5> value{i, 0, 0, 0, 0};
@@ -52,7 +61,7 @@ TEST_F(TestBufferMap, setElement_getElement) {
     }
 }
 
-TEST_F(TestBufferMap, removeElement) {
+TEST_F(TestBufferResizableMap, removeElement) {
     auto buffer = initBuffer();
     for (char i = 0; i < 100; ++i) {
         std::array<char, 5> value{i, 0, 0, 0, 0};

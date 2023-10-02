@@ -29,6 +29,15 @@ public:
                        GLsizei width,
                        GLsizei height,
                        GLsizei depth);
+    void initImage3D(GLint level,
+                     GLint internalformat,
+                     GLsizei width,
+                     GLsizei height,
+                     GLsizei depth,
+                     GLint border,
+                     GLenum format,
+                     GLenum type,
+                     const void* pixels);
     void setSubImage3D(Pos pos,
                        GLsizei width,
                        GLsizei height,

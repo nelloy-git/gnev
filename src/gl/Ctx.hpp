@@ -128,6 +128,16 @@ public:
                                       GLenum pname,
                                       GLint* param) const;
     void glTextureParameterfv(GLuint texture, GLenum pname, const GLfloat* param) const;
+    void glTexImage3D(GLenum target,
+                      GLint level,
+                      GLint internalformat,
+                      GLsizei width,
+                      GLsizei height,
+                      GLsizei depth,
+                      GLint border,
+                      GLenum format,
+                      GLenum type,
+                      const void* pixels) const;
     void glTextureStorage3D(GLuint texture,
                             GLsizei levels,
                             GLenum internalformat,

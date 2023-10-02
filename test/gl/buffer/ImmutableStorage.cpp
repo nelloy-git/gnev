@@ -1,11 +1,11 @@
-#include "gl/buffer/Array.hpp"
+#include "gl/buffer/ImmutableStorage.hpp"
 
 #include "OpenGLContext.hpp"
 #include "gtest/gtest.h"
 
 using namespace gnev::gl;
 
-class EXPORT TestBufferArray
+class EXPORT TestBufferImmutableStorage
     : public testing::Test
     , public OpenGLContext {
 public:
@@ -14,11 +14,11 @@ public:
     std::size_t size = 10;
     int init = 0;
 
-    buffer::Array<int> initBuffer() {
-        buffer::Array<int> buffer(getCtx(), storage_flags, size, init);
+    buffer::ImmutableStorage<int> initBuffer() {
+        buffer::ImmutableStorage<int> buffer(getCtx(), storage_flags, size, init);
 
         EXPECT_EQ(storage_flags, buffer.getStorageFlags());
-        EXPECT_EQ(size, buffer.getSize());
+        EXPECT_EQ(size, buffer.getCapacity());
         for (int i = 0; i < size; ++i) {
             EXPECT_EQ(init, buffer.getElement(i));
         }
@@ -26,28 +26,30 @@ public:
         return buffer;
     };
 
-    void expectValue(const buffer::Array<int>& buffer, std::size_t pos, int value) {
+    void expectValue(const buffer::ImmutableStorage<int>& buffer,
+                     std::size_t pos,
+                     int value) {
         int dst = -1199448855;
         buffer.getSubData(pos * sizeof(int), sizeof(int), &dst);
         EXPECT_EQ(dst, value);
     }
 };
 
-TEST_F(TestBufferArray, ctor) {
+TEST_F(TestBufferImmutableStorage, ctor) {
     auto flags = GL_MAP_READ_BIT;
     auto size = 50;
     auto init = 101010;
 
-    buffer::Array<int> buffer(getCtx(), flags, size, init);
+    buffer::ImmutableStorage<int> buffer(getCtx(), flags, size, init);
 
     EXPECT_EQ(flags, buffer.getStorageFlags());
-    EXPECT_EQ(size, buffer.getSize());
+    EXPECT_EQ(size, buffer.getCapacity());
     for (int i = 0; i < size; ++i) {
         expectValue(buffer, i, init);
     }
 }
 
-TEST_F(TestBufferArray, setElement) {
+TEST_F(TestBufferImmutableStorage, setElement) {
     auto buffer = initBuffer();
     for (int i = 0; i < size; ++i) {
         buffer.setElement(i, size - i);
@@ -57,7 +59,7 @@ TEST_F(TestBufferArray, setElement) {
     }
 }
 
-TEST_F(TestBufferArray, getElement) {
+TEST_F(TestBufferImmutableStorage, getElement) {
     auto buffer = initBuffer();
     for (int i = 0; i < size; ++i) {
         buffer.setElement(i, size - i);
@@ -67,7 +69,7 @@ TEST_F(TestBufferArray, getElement) {
     }
 }
 
-TEST_F(TestBufferArray, copyElement) {
+TEST_F(TestBufferImmutableStorage, copyElement) {
     int value = 15;
 
     auto buffer = initBuffer();
@@ -81,7 +83,7 @@ TEST_F(TestBufferArray, copyElement) {
     }
 }
 
-TEST_F(TestBufferArray, setRange) {
+TEST_F(TestBufferImmutableStorage, setRange) {
     auto buffer = initBuffer();
 
     int first = 3;
@@ -101,7 +103,7 @@ TEST_F(TestBufferArray, setRange) {
     }
 }
 
-TEST_F(TestBufferArray, copyRange) {
+TEST_F(TestBufferImmutableStorage, copyRange) {
     auto buffer = initBuffer();
     std::vector<int> data{10, 20, 30};
 
@@ -117,7 +119,7 @@ TEST_F(TestBufferArray, copyRange) {
     }
 }
 
-TEST_F(TestBufferArray, copyRangeOverlap) {
+TEST_F(TestBufferImmutableStorage, copyRangeOverlap) {
     auto buffer = initBuffer();
     std::vector<int> data{10, 20, 30};
 
@@ -129,7 +131,7 @@ TEST_F(TestBufferArray, copyRangeOverlap) {
     expectValue(buffer, 3, data[2]);
 }
 
-TEST_F(TestBufferArray, getRange) {
+TEST_F(TestBufferImmutableStorage, getRange) {
     auto buffer = initBuffer();
 
     std::vector<int> data{10, 20, 30, 40, 50, 60, 70, 80, 90, 100};

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "gl/buffer/Array.hpp"
+#include "gl/buffer/ImmutableStorage.hpp"
 #include "glm/glm.hpp"
 
 namespace gnev {
@@ -19,7 +19,7 @@ public:
     Camera(const gl::Ctx& ctx);
     virtual ~Camera();
 
-    gl::buffer::Array<CameraBuffer> buffer;
+    gl::buffer::ImmutableStorage<CameraBuffer> buffer;
 
     void apply();
     void applyLookAt(const glm::vec3& dst);

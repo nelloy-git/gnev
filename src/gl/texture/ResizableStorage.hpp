@@ -38,7 +38,10 @@ public:
     std::size_t getMaxLayers() const;
 
 private:
+    std::size_t levels;
     std::size_t capacity;
+
+    GLenum selectFormat(GLenum internal_format) const;
 };
 
 } // namespace gnev::gl::texture

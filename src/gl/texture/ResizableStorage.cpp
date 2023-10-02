@@ -12,8 +12,19 @@ ResizableStorage::ResizableStorage(const Ctx& ctx,
                                    std::size_t height,
                                    std::size_t initial_capacity)
     : Texture(ctx, GL_TEXTURE_2D_ARRAY)
+    , levels(levels)
     , capacity(initial_capacity) {
-    initStorage3D(levels, internalformat, width, height, capacity);
+    // initStorage3D(levels, internalformat, width, height, capacity);
+    initImage3D(0,
+                internalformat,
+                width,
+                height,
+                initial_capacity,
+                0,
+                internalformat,
+                GL_UNSIGNED_BYTE,
+                nullptr);
+    constexpr int a = GL_RGBA;
 }
 
 ResizableStorage::~ResizableStorage() {}
@@ -114,11 +125,7 @@ void ResizableStorage::copyRange(std::size_t src, std::size_t dst, std::size_t c
     }
 }
 
-std::size_t ResizableStorage::getLevels() const {
-    GLint levels;
-    getParameteriv(GL_TEXTURE_IMMUTABLE_LEVELS, &levels);
-    return levels;
-}
+std::size_t ResizableStorage::getLevels() const { return levels; }
 
 GLenum ResizableStorage::getLevelInternalFormat(std::size_t level) const {
     GLenum internal_format;
@@ -169,6 +176,8 @@ std::size_t ResizableStorage::getLevelBufferSize(std::size_t level,
     case GL_STENCIL_INDEX:
         elements = 1;
         break;
+    default:
+        throw std::out_of_range("");
     }
 
     float elem_size = 0;
@@ -212,6 +221,8 @@ std::size_t ResizableStorage::getLevelBufferSize(std::size_t level,
     case GL_UNSIGNED_INT_2_10_10_10_REV:
         elem_size = sizeof(GLuint) / 4;
         break;
+    default:
+        throw std::out_of_range("");
     }
 
     return getLevelWidth(level) * getLevelHeight(level) * (elements * elem_size);
@@ -261,4 +272,24 @@ std::size_t ResizableStorage::getMaxLayers() const {
     GLint size;
     ctx().glGetIntegerv(GL_MAX_ARRAY_TEXTURE_LAYERS, &size);
     return size;
+}
+
+GLenum ResizableStorage::selectFormat(GLenum internal_format) const {
+    switch (internal_format) {
+    case GL_DEPTH_COMPONENT:
+        return GL_DEPTH_COMPONENT;
+    case GL_DEPTH_STENCIL:
+        return GL_DEPTH_STENCIL;
+    case GL_RED:
+        return GL_RED;
+    case GL_RG:
+        return GL_RG;
+    case GL_RGB:
+        return GL_RGB;
+    case GL_RGBA:
+        return GL_RGBA;
+
+    default:
+        throw std::out_of_range("");
+    }
 }

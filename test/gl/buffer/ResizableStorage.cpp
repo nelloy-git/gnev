@@ -25,7 +25,9 @@ public:
         return buffer;
     };
 
-    void expectValue(const buffer::ResizableStorage<int>& buffer, std::size_t pos, int value) {
+    void expectValue(const buffer::ResizableStorage<int>& buffer,
+                     std::size_t pos,
+                     int value) {
         int dst = -1199448855;
         buffer.getSubData(pos * sizeof(int), sizeof(int), &dst);
         EXPECT_EQ(dst, value);

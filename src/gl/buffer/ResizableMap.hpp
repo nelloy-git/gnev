@@ -9,17 +9,17 @@
 namespace gnev::gl::buffer {
 
 template <typename K, IsTriviallyCopyable V>
-class EXPORT Map : public ResizableStorage<V> {
+class EXPORT ResizableMap : public ResizableStorage<V> {
 public:
     static constexpr GLsizeiptr CAP_MULT = 2;
 
-    Map(const Ctx& ctx,
-        GLenum usage,
-        std::size_t initial_capacity,
-        std::initializer_list<std::pair<K, V>> initial_data = {});
-    Map(const Map& other) = delete;
-    Map(Map&& other) = default;
-    virtual ~Map();
+    ResizableMap(const Ctx& ctx,
+                 GLenum usage,
+                 std::size_t initial_capacity,
+                 std::initializer_list<std::pair<K, V>> initial_data = {});
+    ResizableMap(const ResizableMap& other) = delete;
+    ResizableMap(ResizableMap&& other) = default;
+    virtual ~ResizableMap();
 
     void setElement(const K& key, const V& value);
     std::optional<V> getElement(const K& key) const;
@@ -39,12 +39,15 @@ private:
 };
 
 template <typename K, IsTriviallyCopyable V>
-Map<K, V>::Map(const Ctx& ctx,
-               GLenum usage,
-               std::size_t initial_capacity,
-               std::initializer_list<std::pair<K, V>> initial_data)
-    : ResizableStorage<V>(ctx, usage, initial_capacity, {}) {
-    for (std::size_t i = 0; i < initial_capacity; ++i) {
+ResizableMap<K, V>::ResizableMap(const Ctx& ctx,
+                                 GLenum usage,
+                                 std::size_t initial_capacity,
+                                 std::initializer_list<std::pair<K, V>> initial_data)
+    : ResizableStorage<V>(ctx,
+                          usage,
+                          std::max(initial_capacity, initial_data.size()),
+                          {}) {
+    for (std::size_t i = 0; i < std::max(initial_capacity, initial_data.size()); ++i) {
         unused_poses.insert(i);
     }
     for (auto& init : initial_data) {
@@ -53,10 +56,10 @@ Map<K, V>::Map(const Ctx& ctx,
 }
 
 template <typename K, IsTriviallyCopyable V>
-Map<K, V>::~Map() {}
+ResizableMap<K, V>::~ResizableMap() {}
 
 template <typename K, IsTriviallyCopyable V>
-void Map<K, V>::setElement(const K& key, const V& value) {
+void ResizableMap<K, V>::setElement(const K& key, const V& value) {
     auto found = key_map.find(key);
     if (found != key_map.end()) {
         ResizableStorage<V>::setElement(found->second, value);
@@ -82,7 +85,7 @@ void Map<K, V>::setElement(const K& key, const V& value) {
 }
 
 template <typename K, IsTriviallyCopyable V>
-std::optional<V> Map<K, V>::getElement(const K& key) const {
+std::optional<V> ResizableMap<K, V>::getElement(const K& key) const {
     auto found = key_map.find(key);
     if (found == key_map.end()) {
         return std::nullopt;
@@ -91,7 +94,7 @@ std::optional<V> Map<K, V>::getElement(const K& key) const {
 }
 
 template <typename K, IsTriviallyCopyable V>
-void Map<K, V>::removeElement(const K& key) {
+void ResizableMap<K, V>::removeElement(const K& key) {
     auto found = key_map.find(key);
     if (found == key_map.end()) {
         return;

@@ -221,6 +221,28 @@ void Ctx::glTextureParameterfv(GLuint texture, GLenum pname, const GLfloat* para
     glad->TextureParameterfv(texture, pname, param);
 }
 
+void Ctx::glTexImage3D(GLenum target,
+                       GLint level,
+                       GLint internalformat,
+                       GLsizei width,
+                       GLsizei height,
+                       GLsizei depth,
+                       GLint border,
+                       GLenum format,
+                       GLenum type,
+                       const void* pixels) const {
+    glad->TexImage3D(target,
+                     level,
+                     internalformat,
+                     width,
+                     height,
+                     depth,
+                     border,
+                     format,
+                     type,
+                     pixels);
+}
+
 void Ctx::glTextureStorage3D(GLuint texture,
                              GLsizei levels,
                              GLenum internalformat,
