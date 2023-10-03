@@ -1,7 +1,5 @@
 #pragma once
 
-#include <initializer_list>
-
 #include "gl/buffer/ImmutableStorage.hpp"
 
 namespace gnev::gl::buffer {
@@ -11,7 +9,9 @@ class EXPORT ImmutableVector : public ImmutableStorage<T> {
 public:
     static constexpr float CAP_MULT = 2;
 
-    ImmutableVector(const Ctx& ctx, GLbitfield storage_flags, std::size_t capacity);
+    ImmutableVector(const Ctx& ctx,
+                    GLbitfield storage_flags,
+                    std::size_t capacity);
     ImmutableVector(const Ctx& ctx,
                     GLbitfield storage_flags,
                     std::size_t capacity,
@@ -76,7 +76,7 @@ void ImmutableVector<T>::insertElement(std::size_t pos, const T& value) {
 
 template <IsTriviallyCopyable T>
 void ImmutableVector<T>::pushElementBack(const T& value) {
-    insertRange(size, 1, &value);
+    pushRangeBack(1, value);
 }
 
 template <IsTriviallyCopyable T>

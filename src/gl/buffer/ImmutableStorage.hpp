@@ -1,5 +1,6 @@
 #pragma once
 
+#include <initializer_list>
 #include <stdexcept>
 
 #include "gl/Buffer.hpp"
@@ -17,8 +18,8 @@ public:
                      const T& initial_value = T{});
     ImmutableStorage(const Ctx& ctx,
                      GLbitfield storage_flags,
-                     std::initializer_list<T> initial_data,
-                     std::size_t capacity);
+                     std::size_t capacity,
+                     std::initializer_list<T> initial_data);
     ImmutableStorage(const ImmutableStorage& other) = delete;
     ImmutableStorage(ImmutableStorage&& other) = default;
     virtual ~ImmutableStorage();
@@ -67,8 +68,8 @@ ImmutableStorage<T>::ImmutableStorage(const Ctx& ctx,
 template <IsTriviallyCopyable T>
 ImmutableStorage<T>::ImmutableStorage(const Ctx& ctx,
                                       GLbitfield storage_flags,
-                                      std::initializer_list<T> initial_data,
-                                      std::size_t capacity)
+                                      std::size_t capacity,
+                                      std::initializer_list<T> initial_data)
     : Buffer(ctx)
     , capacity(capacity) {
     if (initial_data.size() == capacity) {
@@ -164,7 +165,7 @@ std::vector<T> ImmutableStorage<T>::getRange(std::size_t first, std::size_t coun
         throw std::out_of_range("");
     }
 
-    std::vector<T> result(count, T{});
+    std::vector<T> result(count);
     getSubData(first * sizeof(T), count * sizeof(T), result.data());
     return result;
 }

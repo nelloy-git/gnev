@@ -18,6 +18,12 @@ public:
     T& operator[](std::size_t pos);
     const T& operator[](std::size_t pos) const;
 
+    T* begin();
+    const T* begin() const;
+
+    T* end();
+    const T* end() const;
+
     T* data();
     const T* data() const;
 
@@ -61,6 +67,26 @@ const T& ClientStorage<T>::operator[](std::size_t pos) const {
         throw std::out_of_range("");
     }
     return mapped[pos];
+}
+
+template <IsTriviallyCopyable T>
+T* ClientStorage<T>::begin() {
+    return mapped;
+}
+
+template <IsTriviallyCopyable T>
+const T* ClientStorage<T>::begin() const {
+    return mapped;
+}
+
+template <IsTriviallyCopyable T>
+T* ClientStorage<T>::end() {
+    return mapped + ImmutableStorage<T>::getCapacity();
+}
+
+template <IsTriviallyCopyable T>
+const T* ClientStorage<T>::end() const {
+    return mapped + ImmutableStorage<T>::getCapacity();
 }
 
 template <IsTriviallyCopyable T>

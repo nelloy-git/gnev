@@ -31,6 +31,7 @@ include_directories(./3rdparty/glfw/include)
 include_directories(./3rdparty/json/include)
 include_directories(./3rdparty/glm)
 include_directories(./3rdparty/stb)
+include_directories(./3rdparty/thread_pool/include())
 include_directories(./3rdparty/VLD/include)
 link_directories(./3rdparty/VLD/lib/Win64)
 
