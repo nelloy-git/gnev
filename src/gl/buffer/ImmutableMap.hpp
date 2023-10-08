@@ -43,10 +43,13 @@ private:
 
 template <typename K, IsTriviallyCopyable V>
 ImmutableMap<K, V>::ImmutableMap(const Ctx& ctx,
-                                 GLenum usage,
+                                 GLenum storage_flags,
                                  std::size_t capacity,
                                  std::initializer_list<std::pair<K, V>> initial_data)
-    : ImmutableStorage<V>(ctx, usage, std::max(capacity, initial_data.size()), {}) {
+    : ImmutableStorage<V>(ctx,
+                          storage_flags,
+                          std::max(capacity, initial_data.size()),
+                          {}) {
     for (std::size_t i = 0; i < ImmutableStorage<V>::getCapacity(); ++i) {
         unused_poses.insert(i);
     }
