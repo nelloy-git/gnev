@@ -1,6 +1,7 @@
 #pragma once
 
 #include <memory>
+#include <stdexcept>
 
 #include "glad/gl.h"
 #include "util/Util.hpp"
@@ -14,11 +15,12 @@ public:
     using ApiProc = void (*)(void);
     using LoadFunc = ApiProc (*)(const char*);
 
-    static constexpr int MAJOR = GNEV_GL_MAJOR;
-    static constexpr int MINOR = GNEV_GL_MINOR;
-
-    Ctx(LoadFunc load_func);
+    static void Init(LoadFunc load_func);
+    static bool IsInited();
+    static Ctx& Get();
     virtual ~Ctx();
+
+public:
 
     // Global
 
@@ -31,6 +33,13 @@ public:
                                GLsizei count,
                                const GLuint* ids,
                                GLboolean enabled) const;
+
+    // Draw
+
+    void glDrawElements(GLenum mode,
+                        GLsizei count,
+                        GLenum type,
+                        const void* indices) const;
 
     // Buffer
 
@@ -220,7 +229,11 @@ public:
     void glDisableVertexArrayAttrib(GLuint vaobj, GLuint index) const;
 
 private:
-    std::shared_ptr<GladGLContext> glad;
+    static thread_local std::unique_ptr<Ctx> thread_ctx;
+
+    Ctx(LoadFunc load_func);
+
+    std::unique_ptr<GladGLContext> glad;
 };
 
 } // namespace gnev::gl

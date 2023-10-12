@@ -2,9 +2,9 @@
 
 #include <stdexcept>
 
-#include "data/VertexAttributeType.hpp"
+#include "gl/data/VertexAttributeType.hpp"
 
-namespace gnev::data {
+namespace gnev::gl::data {
 
 struct VertexAttributeInfo {
     constexpr VertexAttributeInfo(GLuint elements, GLenum type, bool normalized)
@@ -106,4 +106,4 @@ constexpr size_t VertexAttributeInfo::get_type_size(GLuint elements, GLenum type
     }
 }
 
-} // namespace gnev::data
+} // namespace gnev::gl::data

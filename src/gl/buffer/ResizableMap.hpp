@@ -13,8 +13,7 @@ class EXPORT ResizableMap : public ResizableStorage<V> {
 public:
     static constexpr std::size_t CAP_MULT = 2;
 
-    ResizableMap(const Ctx& ctx,
-                 GLenum usage,
+    ResizableMap(GLenum usage,
                  std::size_t initial_capacity,
                  std::initializer_list<std::pair<K, V>> initial_data = {});
     ResizableMap(const ResizableMap& other) = delete;
@@ -39,14 +38,10 @@ private:
 };
 
 template <typename K, IsTriviallyCopyable V>
-ResizableMap<K, V>::ResizableMap(const Ctx& ctx,
-                                 GLenum usage,
+ResizableMap<K, V>::ResizableMap(GLenum usage,
                                  std::size_t initial_capacity,
                                  std::initializer_list<std::pair<K, V>> initial_data)
-    : ResizableStorage<V>(ctx,
-                          usage,
-                          std::max(initial_capacity, initial_data.size()),
-                          {}) {
+    : ResizableStorage<V>(usage, std::max(initial_capacity, initial_data.size()), {}) {
     for (std::size_t i = 0; i < std::max(initial_capacity, initial_data.size()); ++i) {
         unused_poses.insert(i);
     }

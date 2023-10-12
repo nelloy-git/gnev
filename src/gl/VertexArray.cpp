@@ -2,26 +2,26 @@
 
 using namespace gnev::gl;
 
-VertexArray::VertexArray(const Ctx& ctx)
-    : Handler(ctx, createHandle(ctx), &freeHandle) {}
+VertexArray::VertexArray()
+    : Handler(createHandle(), &deleteHandle) {}
 
 VertexArray::~VertexArray() {}
 
-void VertexArray::glBindVertexArray() const { ctx().glBindVertexArray(handle()); }
+void VertexArray::glBindVertexArray() const { Ctx::Get().glBindVertexArray(handle()); }
 
 void VertexArray::glVertexArrayElementBuffer(GLuint buffer) {
-    ctx().glVertexArrayElementBuffer(handle(), buffer);
+    Ctx::Get().glVertexArrayElementBuffer(handle(), buffer);
 }
 
 void VertexArray::glVertexArrayVertexBuffer(GLuint bindingindex,
                                             GLuint buffer,
                                             GLintptr offset,
                                             GLsizei stride) {
-    ctx().glVertexArrayVertexBuffer(handle(), bindingindex, buffer, offset, stride);
+    Ctx::Get().glVertexArrayVertexBuffer(handle(), bindingindex, buffer, offset, stride);
 }
 
 void VertexArray::glVertexArrayAttribBinding(GLuint attribindex, GLuint bindingindex) {
-    ctx().glVertexArrayAttribBinding(handle(), attribindex, bindingindex);
+    Ctx::Get().glVertexArrayAttribBinding(handle(), attribindex, bindingindex);
 }
 
 void VertexArray::glVertexArrayAttribFormat(GLuint attribindex,
@@ -29,7 +29,7 @@ void VertexArray::glVertexArrayAttribFormat(GLuint attribindex,
                                             GLenum type,
                                             GLboolean normalized,
                                             GLuint relativeoffset) {
-    ctx().glVertexArrayAttribFormat(handle(),
+    Ctx::Get().glVertexArrayAttribFormat(handle(),
                                     attribindex,
                                     size,
                                     type,
@@ -38,23 +38,24 @@ void VertexArray::glVertexArrayAttribFormat(GLuint attribindex,
 }
 
 void VertexArray::glVertexArrayBindingDivisor(GLuint bindingindex, GLuint divisor) {
-    ctx().glVertexArrayBindingDivisor(handle(), bindingindex, divisor);
+    Ctx::Get().glVertexArrayBindingDivisor(handle(), bindingindex, divisor);
 }
 
 void VertexArray::glEnableVertexArrayAttrib(GLuint index) {
-    ctx().glEnableVertexArrayAttrib(handle(), index);
+    Ctx::Get().glEnableVertexArrayAttrib(handle(), index);
 }
 
 void VertexArray::glDisableVertexArrayAttrib(GLuint index) {
-    ctx().glDisableVertexArrayAttrib(handle(), index);
+    Ctx::Get().glDisableVertexArrayAttrib(handle(), index);
 }
 
-GLuint VertexArray::createHandle(const Ctx& ctx) {
-    GLuint handle;
-    ctx.glCreateVertexArrays(1, &handle);
+GLuint* VertexArray::createHandle() {
+    auto handle = new GLuint(0);
+    Ctx::Get().glCreateVertexArrays(1, handle);
     return handle;
 }
 
-void VertexArray::freeHandle(const Ctx& ctx, GLuint handle) {
-    ctx.glDeleteVertexArrays(1, &handle);
+void VertexArray::deleteHandle(GLuint* handle) {
+    Ctx::Get().glDeleteVertexArrays(1, handle);
+    delete handle;
 }

@@ -16,7 +16,7 @@ public:
     static constexpr GLbitfield STORAGE_FLAGS =
         GL_MAP_READ_BIT | GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT;
 
-    Camera(const gl::Ctx& ctx);
+    Camera();
     virtual ~Camera();
 
     gl::buffer::ImmutableStorage<CameraBuffer> buffer;

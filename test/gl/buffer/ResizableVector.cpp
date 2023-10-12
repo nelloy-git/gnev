@@ -14,7 +14,7 @@ public:
     int init = 0;
 
     buffer::ResizableVector<int> initBuffer() {
-        buffer::ResizableVector<int> buffer(getCtx(), usage, init_size, init);
+        buffer::ResizableVector<int> buffer(usage, init_size, init);
 
         EXPECT_EQ(usage, buffer.getUsage());
         EXPECT_EQ(init_size, buffer.getSize());
@@ -41,7 +41,7 @@ TEST_F(TestBufferResizableVector, ctor) {
     auto size = 50;
     auto init = 101010;
 
-    buffer::ResizableVector<int> buffer(getCtx(), usage, size, init);
+    buffer::ResizableVector<int> buffer(usage, size, init);
 
     EXPECT_EQ(usage, buffer.getUsage());
     EXPECT_EQ(size, buffer.getSize());

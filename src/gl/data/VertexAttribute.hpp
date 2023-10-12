@@ -1,8 +1,8 @@
 #pragma once
 
-#include "data/VertexAttributeInfo.hpp"
+#include "gl/data/VertexAttributeInfo.hpp"
 
-namespace gnev::data {
+namespace gnev::gl::data {
 
 template <VertexAttributeInfo T>
 struct VertexAttribute final {
@@ -50,4 +50,4 @@ struct is_VertexAttribute {
 template <typename T>
 concept IsVertexAttribute = details::is_VertexAttribute<T>::value;
 
-} // namespace gnev::data
+} // namespace gnev::gl::data

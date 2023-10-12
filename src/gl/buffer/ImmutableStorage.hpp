@@ -1,6 +1,7 @@
 #pragma once
 
 #include <initializer_list>
+#include <memory>
 #include <stdexcept>
 
 #include "gl/Buffer.hpp"
@@ -9,20 +10,38 @@ namespace gnev::gl::buffer {
 
 template <IsTriviallyCopyable T>
 class EXPORT ImmutableStorage : public Buffer {
+    class Iterator {
+    public:
+        Iterator(ImmutableStorage<T>& owner, std::size_t pos);
+        Iterator(const Iterator&) = delete;
+        Iterator(Iterator&&) = default;
+        virtual ~Iterator();
+
+        Iterator& operator+=(long int offset);
+        T* operator->();
+        const T* operator->() const;
+
+    private:
+        ImmutableStorage<T>& owner;
+        std::size_t pos;
+        T value;
+    };
+
 public:
     using Element = T;
 
-    ImmutableStorage(const Ctx& ctx,
-                     GLbitfield storage_flags,
+    ImmutableStorage(GLbitfield storage_flags,
                      std::size_t capacity,
                      const T& initial_value = T{});
-    ImmutableStorage(const Ctx& ctx,
-                     GLbitfield storage_flags,
+    ImmutableStorage(GLbitfield storage_flags,
                      std::size_t capacity,
                      std::initializer_list<T> initial_data);
     ImmutableStorage(const ImmutableStorage& other) = delete;
     ImmutableStorage(ImmutableStorage&& other) = default;
     virtual ~ImmutableStorage();
+
+    Iterator operator[](std::size_t pos);
+    const Iterator operator[](std::size_t pos) const;
 
     void setElement(std::size_t pos, const T& value, bool use_tmp_buffer = false);
     void copyElement(std::size_t src, std::size_t dst);
@@ -51,11 +70,10 @@ private:
 };
 
 template <IsTriviallyCopyable T>
-ImmutableStorage<T>::ImmutableStorage(const Ctx& ctx,
-                                      GLbitfield storage_flags,
+ImmutableStorage<T>::ImmutableStorage(GLbitfield storage_flags,
                                       std::size_t capacity,
                                       const T& initial_value)
-    : Buffer(ctx)
+    : Buffer()
     , capacity(capacity) {
     if (capacity == 0) {
         throw std::out_of_range("");
@@ -66,11 +84,10 @@ ImmutableStorage<T>::ImmutableStorage(const Ctx& ctx,
 }
 
 template <IsTriviallyCopyable T>
-ImmutableStorage<T>::ImmutableStorage(const Ctx& ctx,
-                                      GLbitfield storage_flags,
+ImmutableStorage<T>::ImmutableStorage(GLbitfield storage_flags,
                                       std::size_t capacity,
                                       std::initializer_list<T> initial_data)
-    : Buffer(ctx)
+    : Buffer()
     , capacity(capacity) {
     if (initial_data.size() == capacity) {
         initStorage(capacity * sizeof(T), initial_data.begin(), storage_flags);
@@ -119,7 +136,7 @@ void ImmutableStorage<T>::setRange(std::size_t first,
     }
 
     if (use_tmp_buffer) {
-        Buffer tmp_buffer(ctx());
+        Buffer tmp_buffer;
         tmp_buffer.initStorage(count * sizeof(T), src, 0);
         tmp_buffer.copyTo(*this, 0, first * sizeof(T), count * sizeof(T));
     } else {
@@ -136,7 +153,7 @@ void ImmutableStorage<T>::copyRange(std::size_t src, std::size_t dst, std::size_
     if (src >= dst + count || src + count <= dst) {
         copyTo(*this, src * sizeof(T), dst * sizeof(T), count * sizeof(T));
     } else {
-        Buffer tmp_buffer(ctx());
+        Buffer tmp_buffer;
         tmp_buffer.initStorage(count * sizeof(T), nullptr, 0);
         copyTo(tmp_buffer, src * sizeof(T), 0, count * sizeof(T));
         tmp_buffer.copyTo(*this, 0, dst * sizeof(T), count * sizeof(T));
@@ -151,7 +168,7 @@ void ImmutableStorage<T>::fillRange(std::size_t first,
     std::vector<T> initial_data(count, value);
 
     if (use_tmp_buffer) {
-        Buffer tmp_buffer(ctx());
+        Buffer tmp_buffer;
         tmp_buffer.initStorage(count * sizeof(T), initial_data.data(), 0);
         tmp_buffer.copyTo(*this, 0, first * sizeof(T), count * sizeof(T));
     } else {
@@ -199,6 +216,35 @@ T* ImmutableStorage<T>::mapRange(std::size_t first,
 template <IsTriviallyCopyable T>
 void ImmutableStorage<T>::flushRange(std::size_t first, std::size_t count) {
     Buffer::flushRange(first * sizeof(T), count * sizeof(T));
+}
+
+template <IsTriviallyCopyable T>
+ImmutableStorage<T>::Iterator::Iterator(ImmutableStorage<T>& owner, std::size_t pos)
+    : owner(owner)
+    , pos(pos) {
+    owner.getSubData(pos * sizeof(T), sizeof(T), &value);
+}
+
+template <IsTriviallyCopyable T>
+ImmutableStorage<T>::Iterator::~Iterator() {
+    owner.setSubData(pos * sizeof(T), sizeof(T), &value);
+}
+
+template <IsTriviallyCopyable T>
+ImmutableStorage<T>::Iterator& ImmutableStorage<T>::Iterator::operator+=(long int
+                                                                             offset) {
+    pos += offset;
+    owner.getSubData(pos * sizeof(T), sizeof(T), &value);
+}
+
+template <IsTriviallyCopyable T>
+T* ImmutableStorage<T>::Iterator::operator->() {
+    return &value;
+}
+
+template <IsTriviallyCopyable T>
+const T* ImmutableStorage<T>::Iterator::operator->() const {
+    return &value;
 }
 
 } // namespace gnev::gl::buffer

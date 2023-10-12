@@ -13,7 +13,7 @@ public:
     int init = 0;
 
     buffer::CoherentStorage<int> initBuffer() {
-        buffer::CoherentStorage<int> buffer(getCtx(), capacity, init);
+        buffer::CoherentStorage<int> buffer(capacity, init);
 
         EXPECT_EQ(capacity, buffer.getCapacity());
         for (int i = 0; i < capacity; ++i) {
@@ -36,7 +36,7 @@ TEST_F(TestBufferCoherentStorage, ctor) {
     {
         auto size = 50;
         auto initial_value = 101010;
-        buffer::CoherentStorage<int> buffer(getCtx(), size, initial_value);
+        buffer::CoherentStorage<int> buffer(size, initial_value);
         EXPECT_EQ(size, buffer.getCapacity());
         for (int i = 0; i < size; ++i) {
             expectValue(buffer, i, initial_value);
@@ -44,7 +44,7 @@ TEST_F(TestBufferCoherentStorage, ctor) {
     }
     {
         std::initializer_list<int> initial_data = {0, 5, 1, 4, 2, 3, -10};
-        buffer::CoherentStorage<int> buffer(getCtx(), initial_data);
+        buffer::CoherentStorage<int> buffer(initial_data);
         EXPECT_EQ(initial_data.size(), buffer.getCapacity());
         for (int i = 0; i < initial_data.size(); ++i) {
             expectValue(buffer, i, initial_data.begin()[i]);
@@ -79,7 +79,7 @@ TEST_F(TestBufferCoherentStorage, front_back_begin_end_data) {
     auto back = -222;
 
     std::initializer_list<int> initial_data = {front, 5, 1, 4, 2, 3, back};
-    buffer::CoherentStorage<int> buffer(getCtx(), initial_data);
+    buffer::CoherentStorage<int> buffer(initial_data);
 
     EXPECT_EQ(buffer.getCapacity(), initial_data.size());
     EXPECT_EQ(buffer.front(), front);

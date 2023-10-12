@@ -14,7 +14,7 @@ public:
     int init = 0;
 
     buffer::ResizableStorage<int> initBuffer() {
-        buffer::ResizableStorage<int> buffer(getCtx(), usage, init_capacity, init);
+        buffer::ResizableStorage<int> buffer(usage, init_capacity, init);
 
         EXPECT_EQ(usage, buffer.getUsage());
         EXPECT_EQ(init_capacity, buffer.getCapacity());
@@ -39,7 +39,7 @@ TEST_F(TestBufferResizableStorage, ctor) {
     auto capacity = 50;
     auto init = 101010;
 
-    buffer::ResizableStorage<int> buffer(getCtx(), usage, capacity, init);
+    buffer::ResizableStorage<int> buffer(usage, capacity, init);
 
     EXPECT_EQ(usage, buffer.getUsage());
     EXPECT_EQ(capacity, buffer.getCapacity());

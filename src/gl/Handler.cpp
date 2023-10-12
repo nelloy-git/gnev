@@ -1,14 +1,15 @@
 #include "gl/Handler.hpp"
 
+#include <memory>
+#include <stdexcept>
+
 using namespace gnev::gl;
 
-Handler::Handler(const Ctx& ctx, GLuint handle, const FreeHandle& deleter)
-    : _ctx(ctx)
-    , _handle(std::make_unique<GLuint>(handle))
-    , _deleter(deleter) {}
-
-Handler::~Handler() {
-    if (_handle) {
-        _deleter(_ctx, *_handle);
+Handler::Handler(GLuint* handle, void (*deleter)(GLuint*))
+    : _handle(std::unique_ptr<GLuint, void (*)(GLuint*)>(handle, deleter)) {
+    if (!_handle) {
+        throw std::runtime_error("");
     }
 }
+
+Handler::~Handler() {}

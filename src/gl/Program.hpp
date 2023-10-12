@@ -7,7 +7,7 @@ namespace gnev::gl {
 
 class EXPORT Program : public Handler {
 public:
-    Program(const Ctx& ctx);
+    Program();
     Program(const Program& other) = delete;
     Program(Program&& other) = default;
     virtual ~Program();
@@ -29,8 +29,8 @@ public:
                                      GLuint storageBlockBinding) const;
 
 private:
-    static GLuint createHandle(const Ctx& ctx);
-    static void freeHandle(const Ctx& ctx, GLuint handle);
+    static GLuint* createHandle();
+    static void deleteHandle(GLuint* handle);
 };
 
 } // namespace gnev::gl

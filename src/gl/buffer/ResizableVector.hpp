@@ -9,14 +9,13 @@ class EXPORT ResizableVector : public ResizableStorage<T> {
 public:
     static constexpr float CAP_MULT = 2;
 
-    ResizableVector(const Ctx& ctx,
-           GLenum usage = GL_DYNAMIC_COPY,
-           std::size_t initial_size = 4,
-           const T& initial_data = T{});
+    ResizableVector(GLenum usage = GL_DYNAMIC_COPY,
+                    std::size_t initial_size = 4,
+                    const T& initial_data = T{});
     ResizableVector(const ResizableVector& other) = delete;
     ResizableVector(ResizableVector&& other) = default;
 
-    ResizableVector(const Ctx& ctx, GLenum usage, std::size_t initial_size, const T* initial_data);
+    ResizableVector(GLenum usage, std::size_t initial_size, const T* initial_data);
     virtual ~ResizableVector();
 
     void setElement(std::size_t pos, const T& value);
@@ -43,19 +42,17 @@ private:
 };
 
 template <IsTriviallyCopyable T>
-ResizableVector<T>::ResizableVector(const Ctx& ctx,
-                  GLenum usage,
-                  std::size_t initial_size,
-                  const T& initial_data)
-    : ResizableStorage<T>(ctx, usage, initial_size, initial_data)
+ResizableVector<T>::ResizableVector(GLenum usage,
+                                    std::size_t initial_size,
+                                    const T& initial_data)
+    : ResizableStorage<T>(usage, initial_size, initial_data)
     , size(initial_size) {}
 
 template <IsTriviallyCopyable T>
-ResizableVector<T>::ResizableVector(const Ctx& ctx,
-                  GLenum usage,
-                  std::size_t initial_size,
-                  const T* initial_data)
-    : ResizableStorage<T>(ctx, usage, initial_size, initial_data)
+ResizableVector<T>::ResizableVector(GLenum usage,
+                                    std::size_t initial_size,
+                                    const T* initial_data)
+    : ResizableStorage<T>(usage, initial_size, initial_data)
     , size(initial_size) {}
 
 template <IsTriviallyCopyable T>

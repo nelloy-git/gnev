@@ -9,8 +9,12 @@
 #include "gl/Debug.hpp"
 
 OpenGLContext::OpenGLContext()
-    : window(createWindow())
-    , ctx(glfwGetProcAddress) {
+    : window(createWindow()) {
+
+    if (!gnev::gl::Ctx::IsInited()) {
+        gnev::gl::Ctx::Init(glfwGetProcAddress);
+    }
+    auto& ctx = gnev::gl::Ctx::Get();
 
     GLint context_flags;
     ctx.glGetIntegerv(GL_CONTEXT_FLAGS, &context_flags);
@@ -35,7 +39,7 @@ OpenGLContext::OpenGLContext()
 
 OpenGLContext::~OpenGLContext() {}
 
-const gnev::gl::Ctx& OpenGLContext::getCtx() const { return ctx; }
+const gnev::gl::Ctx& OpenGLContext::getCtx() { return gnev::gl::Ctx::Get(); }
 
 OpenGLContext::Window OpenGLContext::createWindow() {
     if (!glfwInit()) {

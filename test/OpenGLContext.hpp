@@ -12,13 +12,12 @@ public:
     OpenGLContext();
     virtual ~OpenGLContext();
 
-    const gnev::gl::Ctx& getCtx() const;
+    static const gnev::gl::Ctx& getCtx();
 
 private:
     using Window = std::unique_ptr<GLFWwindow, void (*)(GLFWwindow*)>;
 
     Window window;
-    gnev::gl::Ctx ctx;
 
     Window createWindow();
     static void destroyWindow(GLFWwindow* window);

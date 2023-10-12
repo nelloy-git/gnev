@@ -7,22 +7,16 @@ namespace gnev::gl {
 
 class EXPORT Handler {
 public:
-    using FreeHandle = std::function<void(const Ctx&, GLuint)>;
-
-    Handler(const Ctx& ctx, GLuint handle, const FreeHandle& deleter);
+    Handler(GLuint* handle, void(*deleter)(GLuint*));
     Handler(const Handler&) = delete;
     Handler(Handler&&) = default;
 
     virtual ~Handler();
 
-    inline const Ctx& ctx() const { return _ctx; };
-
     inline GLuint handle() const { return *_handle; };
 
 private:
-    Ctx _ctx;
-    std::unique_ptr<GLuint> _handle;
-    std::function<void(const Ctx&, GLuint)> _deleter;
+    std::unique_ptr<GLuint, void(*)(GLuint*)> _handle;
 };
 
 } // namespace gnev::gl

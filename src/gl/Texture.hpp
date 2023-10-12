@@ -13,7 +13,7 @@ public:
         GLint z;
     };
 
-    Texture(const Ctx& ctx, GLenum target);
+    Texture(GLenum target);
     Texture(const Texture&) = delete;
     Texture(Texture&&) = default;
     virtual ~Texture();
@@ -63,8 +63,8 @@ public:
     GLenum getTarget() const;
 
 private:
-    static GLuint createHandle(const Ctx& ctx, GLenum target);
-    static void freeHandle(const Ctx& ctx, GLuint handle);
+    static GLuint* createHandle(GLenum target);
+    static void deleteHandle(GLuint* handle);
 };
 
 } // namespace gnev::gl

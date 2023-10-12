@@ -5,8 +5,7 @@
 
 using namespace gnev;
 
-ProgramBuilder::ProgramBuilder(const gl::Ctx& ctx)
-    : _ctx(ctx) {}
+ProgramBuilder::ProgramBuilder(){}
 
 ProgramBuilder::~ProgramBuilder() {}
 
@@ -19,10 +18,10 @@ ProgramBuilder::build(const std::unordered_map<GLenum, std::string>& sources) {
     _reason = "";
     _help = "";
 
-    gl::Program program(_ctx);
+    gl::Program program;
     std::vector<gl::Shader> shaders;
     for (auto& shader_info : sources) {
-        gl::Shader shader(_ctx, shader_info.first);
+        gl::Shader shader(shader_info.first);
         auto shader_status = compile_shader(shader, shader_info.second);
         if (!shader_status) {
             return std::nullopt;

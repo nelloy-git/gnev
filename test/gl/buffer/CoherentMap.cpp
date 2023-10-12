@@ -13,7 +13,7 @@ public:
     int init = 0;
 
     buffer::CoherentMap<int, int> initBuffer() {
-        buffer::CoherentMap<int, int> buffer(getCtx(), capacity, {}, init);
+        buffer::CoherentMap<int, int> buffer(capacity, {}, init);
         EXPECT_EQ(capacity, buffer.getCapacity());
         return buffer;
     };
@@ -22,14 +22,14 @@ public:
 TEST_F(TestBufferCoherentMap, ctor) {
     auto size = 50;
     std::initializer_list<std::pair<int, int>> initial_data = {{19, 9},
-                                                                {28, 8},
-                                                                {37, 7},
-                                                                {46, 6},
-                                                                {55, 5}};
-    buffer::CoherentMap<int, int> buffer(getCtx(), size, initial_data, 0, true);
+                                                               {28, 8},
+                                                               {37, 7},
+                                                               {46, 6},
+                                                               {55, 5}};
+    buffer::CoherentMap<int, int> buffer(size, initial_data, 0, true);
     EXPECT_EQ(buffer.getSize(), initial_data.size());
     EXPECT_EQ(buffer.getCapacity(), size);
-    for (auto& pair : initial_data){
+    for (auto& pair : initial_data) {
         EXPECT_EQ(buffer[pair.first], pair.second);
     }
 }

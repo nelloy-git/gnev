@@ -16,7 +16,7 @@ public:
     int init = 0;
 
     buffer::ResizableMap<int, std::array<char, 5>> initBuffer() {
-        buffer::ResizableMap<int, std::array<char, 5>> buffer(getCtx(), usage, capacity);
+        buffer::ResizableMap<int, std::array<char, 5>> buffer(usage, capacity);
 
         EXPECT_EQ(usage, buffer.getUsage());
         EXPECT_EQ(capacity, buffer.getCapacity());
@@ -30,7 +30,7 @@ TEST_F(TestBufferResizableMap, ctor) {
 
     std::initializer_list<std::pair<int, int>> initial = {{1, 3}, {2, 1}, {3, 2}};
 
-    buffer::ResizableMap<int, int> buffer(getCtx(), usage, 0, initial);
+    buffer::ResizableMap<int, int> buffer(usage, 0, initial);
 
     EXPECT_EQ(usage, buffer.getUsage());
     EXPECT_EQ(initial.size(), buffer.getCapacity());
@@ -43,7 +43,7 @@ TEST_F(TestBufferResizableMap, ctor2) {
     auto usage = GL_DYNAMIC_COPY;
     std::size_t capacity = 50;
 
-    buffer::ResizableMap<int, int> buffer(getCtx(), usage, capacity);
+    buffer::ResizableMap<int, int> buffer(usage, capacity);
 
     EXPECT_EQ(usage, buffer.getUsage());
     EXPECT_EQ(capacity, buffer.getCapacity());

@@ -6,7 +6,7 @@ namespace gnev::gl {
 
 class EXPORT VertexArray : public Handler {
 public:
-    VertexArray(const Ctx& ctx);
+    VertexArray();
     virtual ~VertexArray();
 
     void glBindVertexArray() const;
@@ -26,8 +26,8 @@ public:
     void glDisableVertexArrayAttrib(GLuint index);
 
 private:
-    static GLuint createHandle(const Ctx& ctx);
-    static void freeHandle(const Ctx& ctx, GLuint handle);
+    static GLuint* createHandle();
+    static void deleteHandle(GLuint* handle);
 };
 
 } // namespace gnev::gl

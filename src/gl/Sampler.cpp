@@ -2,31 +2,32 @@
 
 using namespace gnev::gl;
 
-Sampler::Sampler(const Ctx& ctx)
-    : Handler(ctx, createHandle(ctx), &freeHandle) {}
+Sampler::Sampler()
+    : Handler(createHandle(), &deleteHandle) {}
 
 Sampler::~Sampler() {}
 
-void Sampler::glBindSampler(GLuint unit) { ctx().glBindSampler(unit, handle()); }
+void Sampler::glBindSampler(GLuint unit) { Ctx::Get().glBindSampler(unit, handle()); }
 
 void Sampler::glSamplerParameteri(GLuint pname, GLint param) {
-    ctx().glSamplerParameteri(handle(), pname, param);
+    Ctx::Get().glSamplerParameteri(handle(), pname, param);
 }
 
 void Sampler::glSamplerParameterf(GLuint pname, GLfloat param) {
-    ctx().glSamplerParameterf(handle(), pname, param);
+    Ctx::Get().glSamplerParameterf(handle(), pname, param);
 }
 
 void Sampler::glSamplerParameterfv(GLuint pname, const GLfloat* param) {
-    ctx().glSamplerParameterfv(handle(), pname, param);
+    Ctx::Get().glSamplerParameterfv(handle(), pname, param);
 }
 
-GLuint Sampler::createHandle(const Ctx& ctx) {
-    GLuint handle;
-    ctx.glCreateSamplers(1, &handle);
+GLuint* Sampler::createHandle() {
+    auto handle = new GLuint(0);
+    Ctx::Get().glCreateSamplers(1, handle);
     return handle;
 }
 
-void Sampler::freeHandle(const Ctx& ctx, GLuint handle) {
-    ctx.glDeleteSamplers(1, &handle);
+void Sampler::deleteHandle(GLuint* handle) {
+    Ctx::Get().glDeleteSamplers(1, handle);
+    delete handle;
 }

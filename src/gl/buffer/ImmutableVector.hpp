@@ -9,11 +9,9 @@ class EXPORT ImmutableVector : public ImmutableStorage<T> {
 public:
     static constexpr float CAP_MULT = 2;
 
-    ImmutableVector(const Ctx& ctx,
-                    GLbitfield storage_flags,
+    ImmutableVector(GLbitfield storage_flags,
                     std::size_t capacity);
-    ImmutableVector(const Ctx& ctx,
-                    GLbitfield storage_flags,
+    ImmutableVector(GLbitfield storage_flags,
                     std::size_t capacity,
                     std::initializer_list<T> initial_data);
     ImmutableVector(const ImmutableVector& other) = delete;
@@ -42,18 +40,16 @@ private:
 };
 
 template <IsTriviallyCopyable T>
-ImmutableVector<T>::ImmutableVector(const Ctx& ctx,
-                                    GLbitfield storage_flags,
+ImmutableVector<T>::ImmutableVector(GLbitfield storage_flags,
                                     std::size_t capacity)
-    : ImmutableStorage<T>(ctx, storage_flags, capacity, {})
+    : ImmutableStorage<T>(storage_flags, capacity, {})
     , size(0) {}
 
 template <IsTriviallyCopyable T>
-ImmutableVector<T>::ImmutableVector(const Ctx& ctx,
-                                    GLbitfield storage_flags,
+ImmutableVector<T>::ImmutableVector(GLbitfield storage_flags,
                                     std::size_t capacity,
                                     std::initializer_list<T> initial_data)
-    : ImmutableStorage<T>(ctx, storage_flags, capacity, initial_data)
+    : ImmutableStorage<T>(storage_flags, capacity, initial_data)
     , size(initial_data.size()) {}
 
 template <IsTriviallyCopyable T>

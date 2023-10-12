@@ -15,12 +15,10 @@ public:
     static constexpr GLbitfield MAP_FLAGS =
         GL_MAP_READ_BIT | GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT;
 
-    CoherentStorage(const Ctx& ctx,
-                    std::size_t capacity,
+    CoherentStorage(std::size_t capacity,
                     const T& initial_value = T{},
                     bool is_client_storage = false);
-    CoherentStorage(const Ctx& ctx,
-                    std::initializer_list<T> initial_data,
+    CoherentStorage(std::initializer_list<T> initial_data,
                     bool is_client_storage = false);
     CoherentStorage(const CoherentStorage& other) = delete;
     CoherentStorage(CoherentStorage&& other) = default;
@@ -53,11 +51,10 @@ private:
 };
 
 template <IsTriviallyCopyable T>
-CoherentStorage<T>::CoherentStorage(const Ctx& ctx,
-                                    std::size_t capacity,
+CoherentStorage<T>::CoherentStorage(std::size_t capacity,
                                     const T& initial_value,
                                     bool is_client_storage)
-    : Buffer(ctx)
+    : Buffer()
     , capacity(capacity) {
     if (capacity == 0) {
         throw std::out_of_range("");
@@ -72,10 +69,9 @@ CoherentStorage<T>::CoherentStorage(const Ctx& ctx,
 }
 
 template <IsTriviallyCopyable T>
-CoherentStorage<T>::CoherentStorage(const Ctx& ctx,
-                                    std::initializer_list<T> initial_data,
+CoherentStorage<T>::CoherentStorage(std::initializer_list<T> initial_data,
                                     bool is_client_storage)
-    : Buffer(ctx)
+    : Buffer()
     , capacity(initial_data.size()) {
 
     Buffer::initStorage(capacity * sizeof(T),

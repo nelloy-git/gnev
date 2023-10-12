@@ -5,8 +5,8 @@
 
 using namespace gnev;
 
-Camera::Camera(const gl::Ctx& ctx)
-    : buffer(ctx, STORAGE_FLAGS, 1, CameraBuffer{})
+Camera::Camera()
+    : buffer(STORAGE_FLAGS, 1, CameraBuffer{})
     , _map(static_cast<CameraBuffer*>(buffer.mapRange(0,
                                                               sizeof(CameraBuffer),
                                                               STORAGE_FLAGS))) {}

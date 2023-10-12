@@ -1,8 +1,8 @@
 #pragma once
 
-#include "data/VertexAttribute.hpp"
+#include "gl/data/VertexAttribute.hpp"
 
-namespace gnev::data {
+namespace gnev::gl::data {
 
 struct VertexInfo {
     static constexpr unsigned int MAX_ATTRIBUTES = 16;
@@ -99,4 +99,4 @@ VertexInfo::_init_attributes(const std::initializer_list<VertexAttributeInfo>& a
     return list;
 }
 
-} // namespace gnev::data
+} // namespace gnev::gl::data

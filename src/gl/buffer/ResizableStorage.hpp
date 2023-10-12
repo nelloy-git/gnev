@@ -14,12 +14,10 @@ class EXPORT ResizableStorage : public Buffer {
 public:
     using Element = T;
 
-    ResizableStorage(const Ctx& ctx,
-                     GLenum usage,
+    ResizableStorage(GLenum usage,
                      std::size_t initial_capacity,
                      const T& initial_data = T{});
-    ResizableStorage(const Ctx& ctx,
-                     GLenum usage,
+    ResizableStorage(GLenum usage,
                      std::size_t initial_capacity,
                      std::initializer_list<T> initial_data);
     ResizableStorage(const ResizableStorage& other) = delete;
@@ -46,11 +44,10 @@ private:
 };
 
 template <IsTriviallyCopyable T>
-ResizableStorage<T>::ResizableStorage(const Ctx& ctx,
-                                      GLenum usage,
+ResizableStorage<T>::ResizableStorage(GLenum usage,
                                       std::size_t initial_capacity,
                                       const T& initial_data)
-    : Buffer(ctx)
+    : Buffer()
     , usage(usage)
     , buffer_size(std::max(initial_capacity * sizeof(T), sizeof(T))) {
     std::vector<T> tmp(initial_capacity, initial_data);
@@ -58,11 +55,10 @@ ResizableStorage<T>::ResizableStorage(const Ctx& ctx,
 }
 
 template <IsTriviallyCopyable T>
-ResizableStorage<T>::ResizableStorage(const Ctx& ctx,
-                                      GLenum usage,
+ResizableStorage<T>::ResizableStorage(GLenum usage,
                                       std::size_t initial_capacity,
                                       std::initializer_list<T> initial_data)
-    : Buffer(ctx)
+    : Buffer()
     , usage(usage)
     , buffer_size(std::max(initial_capacity * sizeof(T), sizeof(T))) {
     std::size_t initializer_size = initial_data.size() * sizeof(T);
@@ -118,7 +114,7 @@ void ResizableStorage<T>::copyRange(std::size_t src, std::size_t dst, std::size_
     if (src >= dst + count || src + count <= dst) {
         copyTo(*this, src * sizeof(T), dst * sizeof(T), count * sizeof(T));
     } else {
-        Buffer tmp_buffer(ctx());
+        Buffer tmp_buffer;
         tmp_buffer.initStorage(count * sizeof(T), nullptr, 0);
         copyTo(tmp_buffer, src * sizeof(T), 0, count * sizeof(T));
         tmp_buffer.copyTo(*this, 0, dst * sizeof(T), count * sizeof(T));
@@ -139,7 +135,7 @@ template <IsTriviallyCopyable T>
 void ResizableStorage<T>::setCapacity(std::size_t cap) {
     std::size_t tmp_buffer_size = std::min<GLsizeiptr>(buffer_size, cap * sizeof(T));
 
-    Buffer tmp_buffer(ctx());
+    Buffer tmp_buffer;
     tmp_buffer.initStorage(tmp_buffer_size, nullptr, 0);
     copyTo(tmp_buffer, 0, 0, tmp_buffer_size);
 

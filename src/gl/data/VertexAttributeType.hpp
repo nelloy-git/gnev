@@ -4,7 +4,7 @@
 
 #include "glad/gl.h"
 
-namespace gnev::data {
+namespace gnev::gl::data {
 
 template <GLenum T, GLuint S>
 struct VertexAttributeType {};
@@ -56,4 +56,4 @@ struct VertexAttributeType<GL_UNSIGNED_INT_10_10_10_2, 4> {
     using type = std::array<GLuint, 1>;
 };
 
-} // namespace gnev::data
+} // namespace gnev::gl::data

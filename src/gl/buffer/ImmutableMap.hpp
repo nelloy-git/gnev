@@ -14,8 +14,7 @@ class EXPORT ImmutableMap : public ImmutableStorage<V> {
 public:
     static constexpr std::size_t CAP_MULT = 2;
 
-    ImmutableMap(const Ctx& ctx,
-                 GLenum storage_flags,
+    ImmutableMap(GLenum storage_flags,
                  std::size_t capacity,
                  std::initializer_list<std::pair<K, V>> initial_data = {});
     ImmutableMap(const ImmutableMap& other) = delete;
@@ -42,14 +41,10 @@ private:
 };
 
 template <typename K, IsTriviallyCopyable V>
-ImmutableMap<K, V>::ImmutableMap(const Ctx& ctx,
-                                 GLenum storage_flags,
+ImmutableMap<K, V>::ImmutableMap(GLenum storage_flags,
                                  std::size_t capacity,
                                  std::initializer_list<std::pair<K, V>> initial_data)
-    : ImmutableStorage<V>(ctx,
-                          storage_flags,
-                          std::max(capacity, initial_data.size()),
-                          {}) {
+    : ImmutableStorage<V>(storage_flags, std::max(capacity, initial_data.size()), {}) {
     for (std::size_t i = 0; i < ImmutableStorage<V>::getCapacity(); ++i) {
         unused_poses.insert(i);
     }

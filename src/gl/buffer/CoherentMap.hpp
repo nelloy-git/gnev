@@ -9,8 +9,7 @@ namespace gnev::gl::buffer {
 template <typename K, IsTriviallyCopyable V>
 class CoherentMap : public CoherentStorage<V> {
 public:
-    CoherentMap(const Ctx& ctx,
-                std::size_t capacity,
+    CoherentMap(std::size_t capacity,
                 std::initializer_list<std::pair<K, V>> initial_data = {},
                 const V& initial_value = V{},
                 bool is_client_storage = false);
@@ -42,12 +41,11 @@ private:
 };
 
 template <typename K, IsTriviallyCopyable V>
-CoherentMap<K, V>::CoherentMap(const Ctx& ctx,
-                               std::size_t capacity,
+CoherentMap<K, V>::CoherentMap(std::size_t capacity,
                                std::initializer_list<std::pair<K, V>> initial_data,
                                const V& initial_value,
                                bool is_client_storage)
-    : CoherentStorage<V>(ctx, capacity, initial_value, is_client_storage) {
+    : CoherentStorage<V>(capacity, initial_value, is_client_storage) {
     if (capacity < initial_data.size()) {
         throw std::out_of_range("");
     }

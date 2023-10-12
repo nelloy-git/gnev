@@ -15,7 +15,7 @@ public:
     int init = 0;
 
     buffer::ImmutableStorage<int> initBuffer() {
-        buffer::ImmutableStorage<int> buffer(getCtx(), storage_flags, size, init);
+        buffer::ImmutableStorage<int> buffer(storage_flags, size, init);
 
         EXPECT_EQ(storage_flags, buffer.getStorageFlags());
         EXPECT_EQ(size, buffer.getCapacity());
@@ -40,7 +40,7 @@ TEST_F(TestBufferImmutableStorage, ctor) {
     auto size = 50;
     auto init = 101010;
 
-    buffer::ImmutableStorage<int> buffer(getCtx(), flags, size, init);
+    buffer::ImmutableStorage<int> buffer(flags, size, init);
 
     EXPECT_EQ(flags, buffer.getStorageFlags());
     EXPECT_EQ(size, buffer.getCapacity());

@@ -1,9 +1,30 @@
 #include "gl/Ctx.hpp"
+#include <memory>
 
 using namespace gnev::gl;
 
+thread_local std::unique_ptr<Ctx> Ctx::thread_ctx = nullptr;
+
+void Ctx::Init(LoadFunc load_func) {
+    if (thread_ctx) {
+        throw std::runtime_error("");
+    }
+    thread_ctx = std::unique_ptr<Ctx>(new Ctx(load_func));
+}
+
+bool Ctx::IsInited() {
+    return thread_ctx.get();
+}
+
+Ctx& Ctx::Get() {
+    if (!thread_ctx) {
+        throw std::runtime_error("");
+    }
+    return *thread_ctx;
+}
+
 Ctx::Ctx(LoadFunc load_func)
-    : glad(std::make_shared<GladGLContext>()) {
+    : glad(std::make_unique<GladGLContext>()) {
     gladLoadGLContext(glad.get(), load_func);
 }
 
@@ -26,6 +47,13 @@ void Ctx::glDebugMessageControl(GLenum source,
                                 const GLuint* ids,
                                 GLboolean enabled) const {
     glad->DebugMessageControl(source, type, severity, count, ids, enabled);
+}
+
+void Ctx::glDrawElements(GLenum mode,
+                         GLsizei count,
+                         GLenum type,
+                         const void* indices) const {
+    glad->DrawElements(mode, count, type, indices);
 }
 
 void Ctx::glCreateBuffers(GLsizei n, GLuint* buffers) const {

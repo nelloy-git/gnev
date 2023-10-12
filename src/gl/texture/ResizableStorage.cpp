@@ -12,7 +12,7 @@ ResizableStorage::ResizableStorage(const Ctx& ctx,
                                    std::size_t width,
                                    std::size_t height,
                                    std::size_t initial_capacity)
-    : Texture(ctx, GL_TEXTURE_2D_ARRAY)
+    : Texture(GL_TEXTURE_2D_ARRAY)
     , levels(levels)
     , capacity(initial_capacity) {
     // initStorage3D(levels, internalformat, width, height, capacity);
@@ -99,7 +99,7 @@ void ResizableStorage::copyRange(std::size_t src, std::size_t dst, std::size_t c
                    count);
         }
     } else {
-        Texture tmp(ctx(), GL_TEXTURE_2D_ARRAY);
+        Texture tmp(GL_TEXTURE_2D_ARRAY);
         tmp.initStorage3D(getLevels(),
                           getLevelInternalFormat(0),
                           getLevelWidth(0),
@@ -234,7 +234,7 @@ void ResizableStorage::setCapacity(std::size_t cap) {
         throw std::out_of_range("");
     }
 
-    Texture tmp(ctx(), GL_TEXTURE_2D_ARRAY);
+    Texture tmp(GL_TEXTURE_2D_ARRAY);
     tmp.initStorage3D(getLevels(),
                       getLevelInternalFormat(0),
                       getLevelWidth(0),
@@ -271,7 +271,7 @@ std::size_t ResizableStorage::getCapacity() const { return capacity; }
 
 std::size_t ResizableStorage::getMaxLayers() const {
     GLint size;
-    ctx().glGetIntegerv(GL_MAX_ARRAY_TEXTURE_LAYERS, &size);
+    Ctx::Get().glGetIntegerv(GL_MAX_ARRAY_TEXTURE_LAYERS, &size);
     return size;
 }
 
