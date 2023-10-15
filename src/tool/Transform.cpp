@@ -1,20 +1,23 @@
-#include "data/Transform.hpp"
+#include "tool/Transform.hpp"
 
 #include "glm/ext/matrix_transform.hpp"
 #include "glm/gtx/euler_angles.hpp"
 #include "glm/gtx/transform.hpp"
 
-using namespace gnev::data;
+namespace gnev::tool {
 
-Transform::Transform() {}
+Transform::Transform()
+    : node({.index = RESERVED_INDEX, .parent = RESERVED_INDEX}) {}
 
-void Transform::setParentIndex(Index index) { parent_index = index; }
+void Transform::setParent(Index parent) { node.parent = parent; }
 
-Transform::Index Transform::getParentIndex() const { return parent_index; }
+void Transform::setParent(const Transform& parent) { setParent(parent.node.index); }
 
-const glm::mat4& Transform::getMat() const {
-    return mat;
-}
+void Transform::clearParent() { setParent(RESERVED_INDEX); }
+
+Transform::Index Transform::getParentIndex() const { return node.parent; }
+
+const glm::mat4& Transform::getMat() const { return mat; }
 
 void Transform::setPos(const glm::vec3& position) {
     pos = position;
@@ -62,3 +65,5 @@ void Transform::apply() {
     mat = glm::translate(pos) * glm::eulerAngleYXZ(angles.y, angles.x, angles.z) *
           glm::scale(scale);
 }
+
+} // namespace gnev::tool

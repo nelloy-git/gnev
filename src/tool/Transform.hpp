@@ -1,20 +1,27 @@
 #pragma once
 
 #include <limits>
+#include <optional>
 
 #include "glm/glm.hpp"
+#include "util/Util.hpp"
 
-namespace gnev::data {
+namespace gnev::tool {
 
-class alignas(16) Transform final {
+class EXPORT alignas(16) Transform final {
+    friend class TransformMap; 
+
 public:
     using Index = unsigned int;
+    static constexpr glm::vec3 UP = {0, 1, 0};
     static constexpr Index RESERVED_INDEX = std::numeric_limits<Index>::max();
 
     Transform();
     ~Transform() = default;
 
-    void setParentIndex(Index index);
+    void setParent(Index parent);
+    void setParent(const Transform& parent);
+    void clearParent();
     Index getParentIndex() const;
 
     const glm::mat4& getMat() const;
@@ -33,10 +40,13 @@ public:
     void setScale(const glm::vec3& value);
     const glm::vec3& getScale() const;
 
-private:
-    static constexpr glm::vec3 UP = {0, 1, 0};
+protected:
+    struct Node {
+        Index index;
+        Index parent;
+    };
 
-    Index parent_index = 0;
+    Node node;
     glm::mat4 mat = glm::mat4{1.f};
     glm::vec3 pos = glm::vec3{0, 0, 0};
     glm::vec3 angles = glm::vec3{0, 0, 0};
@@ -45,6 +55,6 @@ private:
     void apply();
 };
 
-} // namespace gnev::data
+} // namespace gnev::tool
 
 // namespace

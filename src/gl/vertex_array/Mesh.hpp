@@ -6,25 +6,23 @@
 #include "gl/data/Index.hpp"
 #include "gl/data/VertexInfo.hpp"
 
-namespace gnev::gl::data {
+namespace gnev::gl::vertex_array {
 
-using Mesh = gl::VertexArray;
-
-class MeshedBuffer : public Mesh {
+class Mesh : public gl::VertexArray {
 public:
     using Loc = unsigned int;
 
-    MeshedBuffer(const VertexInfo& vertex_info);
-    virtual ~MeshedBuffer();
+    Mesh(const data::VertexInfo& vertex_info);
+    virtual ~Mesh();
 
     void bindElements(const gl::Buffer& index_buffer, GLenum index_type);
     void bindVertices(const gl::Buffer& buffer);
-    void bindAttribute(Loc shader_loc, Loc mesh_loc);
+    void bindAttribute(Loc shader_loc, Loc attrib_loc);
 
     void draw(std::size_t n_triangles, std::size_t first = 0) const;
 
 private:
-    VertexInfo vertex_info;
+    data::VertexInfo vertex_info;
     GLenum index_enum;
 };
 

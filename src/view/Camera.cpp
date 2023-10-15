@@ -8,8 +8,8 @@ using namespace gnev;
 Camera::Camera()
     : buffer(STORAGE_FLAGS, 1, CameraBuffer{})
     , _map(static_cast<CameraBuffer*>(buffer.mapRange(0,
-                                                              sizeof(CameraBuffer),
-                                                              STORAGE_FLAGS))) {}
+                                                      sizeof(CameraBuffer),
+                                                      STORAGE_FLAGS))) {}
 
 Camera::~Camera() {}
 

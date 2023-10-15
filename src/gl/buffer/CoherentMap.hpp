@@ -17,8 +17,11 @@ public:
     CoherentMap(CoherentMap&& other) = default;
     virtual ~CoherentMap();
 
-    V& operator[](const K& pos);
-    const V& operator[](const K& pos) const;
+    V& operator[](const K& key);
+    const V& operator[](const K& key) const;
+
+    bool contains(const K& key) const;
+    V extract(const K& key);
 
     bool isEmpty() const;
     std::size_t getSize() const;
@@ -36,6 +39,7 @@ private:
 
     using CoherentStorage<V>::data;
 
+    V initial_value;
     std::unordered_map<K, std::size_t> key_map;
     std::unordered_set<std::size_t> unused_poses;
 };
@@ -45,7 +49,8 @@ CoherentMap<K, V>::CoherentMap(std::size_t capacity,
                                std::initializer_list<std::pair<K, V>> initial_data,
                                const V& initial_value,
                                bool is_client_storage)
-    : CoherentStorage<V>(capacity, initial_value, is_client_storage) {
+    : CoherentStorage<V>(capacity, initial_value, is_client_storage)
+    , initial_value(initial_value) {
     if (capacity < initial_data.size()) {
         throw std::out_of_range("");
     }
@@ -87,6 +92,24 @@ const V& CoherentMap<K, V>::operator[](const K& key) const {
         throw std::out_of_range("");
     }
     return CoherentStorage<V>::operator[](iter.second);
+}
+
+template <typename K, IsTriviallyCopyable V>
+bool CoherentMap<K, V>::contains(const K& key) const {
+    return key_map.contains(key);
+}
+
+template <typename K, IsTriviallyCopyable V>
+V CoherentMap<K, V>::extract(const K& key) {
+    auto iter = key_map.find(key);
+    if (iter == key_map.end()) {
+        throw std::out_of_range("");
+    }
+
+    V value = CoherentStorage<V>::operator[](iter.second);
+    unused_poses.insert(iter.second);
+    key_map.erase(iter);
+    return value;
 }
 
 template <typename K, IsTriviallyCopyable V>

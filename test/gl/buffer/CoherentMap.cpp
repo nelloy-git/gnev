@@ -59,3 +59,24 @@ TEST_F(TestBufferCoherentMap, getSize) {
     buffer[5] = 3;
     EXPECT_EQ(buffer.getSize(), 2);
 }
+
+TEST_F(TestBufferCoherentMap, contains) {
+    auto buffer = initBuffer();
+    EXPECT_EQ(buffer.getSize(), 0);
+    buffer[3] = 3;
+    buffer[5] = 5;
+    buffer[5] = 3;
+    EXPECT_EQ(buffer.contains(3), true);
+    EXPECT_EQ(buffer.contains(5), true);
+    EXPECT_EQ(buffer.contains(1), false);
+}
+
+TEST_F(TestBufferCoherentMap, extract) {
+    auto buffer = initBuffer();
+    EXPECT_EQ(buffer.getSize(), 0);
+    buffer[3] = 3;
+    buffer[5] = 5;
+    buffer.extract(5);
+    EXPECT_EQ(buffer.contains(3), true);
+    EXPECT_EQ(buffer.contains(5), false);
+}

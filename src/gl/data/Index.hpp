@@ -27,6 +27,14 @@ constexpr GLenum GetIndexEnum() {
     }
 }
 
+}; // namespace details
+
+template <typename T>
+concept IsIndex = details::IsValidIndexType<T>;
+
+template <IsIndex T>
+constexpr GLenum IndexEnum = details::GetIndexEnum<T>();
+
 constexpr std::size_t GetIndexSize(GLenum index_enum) {
     switch (index_enum){
         case GL_UNSIGNED_BYTE: return sizeof(GLubyte);
@@ -35,13 +43,5 @@ constexpr std::size_t GetIndexSize(GLenum index_enum) {
         default: throw std::out_of_range("");
     }
 }
-
-}; // namespace details
-
-template <typename T>
-concept IsIndex = details::IsValidIndexType<T>;
-
-template <IsIndex T>
-constexpr GLenum IndexEnum = details::GetIndexEnum<T>();
 
 } // namespace gnev::gl::data
