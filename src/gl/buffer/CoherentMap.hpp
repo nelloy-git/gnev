@@ -91,7 +91,7 @@ const V& CoherentMap<K, V>::operator[](const K& key) const {
     if (iter == key_map.end()) {
         throw std::out_of_range("");
     }
-    return CoherentStorage<V>::operator[](iter.second);
+    return CoherentStorage<V>::operator[](iter->second);
 }
 
 template <typename K, IsTriviallyCopyable V>
@@ -106,8 +106,8 @@ V CoherentMap<K, V>::extract(const K& key) {
         throw std::out_of_range("");
     }
 
-    V value = CoherentStorage<V>::operator[](iter.second);
-    unused_poses.insert(iter.second);
+    V value = CoherentStorage<V>::operator[](iter->second);
+    unused_poses.insert(iter->second);
     key_map.erase(iter);
     return value;
 }

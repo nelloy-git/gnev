@@ -15,6 +15,9 @@ public:
     static const gnev::gl::Ctx& getCtx();
 
 private:
+    static constexpr unsigned int WINDOW_SIZE = 64;
+
+    
     using Window = std::unique_ptr<GLFWwindow, void (*)(GLFWwindow*)>;
 
     Window window;
