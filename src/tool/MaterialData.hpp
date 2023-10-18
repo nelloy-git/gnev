@@ -7,15 +7,15 @@
 
 namespace gnev::tool {
 
-class EXPORT alignas(16) Material final {
+class EXPORT alignas(16) MaterialData final {
     friend class MaterialMap;
 
 public:
     using Index = unsigned int;
     static constexpr Index RESERVED_INDEX = std::numeric_limits<Index>::max();
 
-    Material();
-    ~Material() = default;
+    MaterialData();
+    ~MaterialData() = default;
 
     Index getIndex() const;
 
@@ -46,7 +46,6 @@ public:
     void setSpecularAdd(const glm::vec4& specular);
     glm::vec4 getSpecularAdd() const;
 
-
 private:
     struct Indices {
         Index self_index = RESERVED_INDEX;
@@ -62,7 +61,6 @@ private:
     glm::vec4 normal_add = {0, 0, 0, 0};
     glm::vec4 specular_mult = {1, 1, 1, 1};
     glm::vec4 specular_add = {0, 0, 0, 0};
-
 };
 
-} // namespace gnev
+} // namespace gnev::tool

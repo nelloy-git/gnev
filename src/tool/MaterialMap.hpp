@@ -3,34 +3,39 @@
 #include <unordered_set>
 
 #include "gl/buffer/CoherentStorage.hpp"
-#include "tool/Material.hpp"
+#include "gl/texture/ImmutableStorage.hpp"
+#include "tool/MaterialData.hpp"
 
 namespace gnev::tool {
 
-class MaterialMap : public gl::buffer::CoherentStorage<Material> {
+class MaterialMap {
 public:
-    using Index = Material::Index;
-    static constexpr Index RESERVED_INDEX = Material::RESERVED_INDEX;
+    using Index = MaterialData::Index;
+    static constexpr Index RESERVED_INDEX = MaterialData::RESERVED_INDEX;
 
     MaterialMap(Index capacity);
     virtual ~MaterialMap();
 
-    Material& initMaterial();
-    void freeMaterial(Material& material);
-    Material& getMaterial(Index index);
-    const Material& getMaterial(Index index) const;
+    MaterialData& initMaterial();
+    void freeMaterial(MaterialData& material);
+    MaterialData& getMaterial(Index index);
+    const MaterialData& getMaterial(Index index) const;
+
+    void initDiffuseStorage(std::size_t width,
+                            std::size_t height,
+                            GLenum internal_format,
+                            std::size_t capacity,
+                            std::size_t levels);
+    Index initDiffuseTexture();
+    void freeDiffuseTexture(Index index);
+    void loadImage(const gl::texture::Image& img);
 
 private:
-    using CoherentStorage<Material>::at;
-    using CoherentStorage<Material>::operator[];
+    gl::buffer::CoherentStorage<MaterialData> data_buffer;
 
-    using CoherentStorage<Material>::back;
-    using CoherentStorage<Material>::front;
-
-    using CoherentStorage<Material>::begin;
-    using CoherentStorage<Material>::end;
-
-    using CoherentStorage<Material>::data;
+    std::unique_ptr<gl::texture::ImmutableStorage> diffuse_tex;
+    std::unique_ptr<gl::texture::ImmutableStorage> normal_tex;
+    std::unique_ptr<gl::texture::ImmutableStorage> specular_tex;
 
     std::unordered_set<Index> unused;
 

@@ -18,8 +18,7 @@
             "defines": [
                 "GLWPP_DEBUG",
                 "GLAD_GL_IMPLEMENTATION",
-                "GNEV_GL_MAJOR=4",
-                "GNEV_GL_MINOR=6"
+                "WIN32"
             ],
             "compilerPath": "D:\\VisualStudio\\VC\\Tools\\MSVC\\14.29.30037\\bin\\Hostx64\\x64\\cl.exe",
             "cppStandard": "c++20"

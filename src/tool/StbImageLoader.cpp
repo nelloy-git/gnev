@@ -9,6 +9,8 @@
 
 namespace gnev::tool {
 
+StbImageLoader::~StbImageLoader() {}
+
 StbImageLoader::LoadResult StbImageLoader::load(const std::filesystem::path& path,
                                                 unsigned int width,
                                                 unsigned int height,

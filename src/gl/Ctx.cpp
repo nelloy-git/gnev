@@ -1,20 +1,81 @@
 #include "gl/Ctx.hpp"
+
 #include <memory>
+#include <windows.h>
 
 using namespace gnev::gl;
 
+#ifdef WIN32
+
+namespace {
+
+void freeTlsCtx(unsigned long* tls_index) {
+    auto tls_ptr = TlsGetValue(*tls_index);
+    if (tls_ptr == 0) {
+        throw std::runtime_error("TlsGetValue error");
+    }
+
+    auto ctx_ptr = static_cast<Ctx*>(tls_ptr);
+    delete ctx_ptr;
+    TlsSetValue(*tls_index, nullptr);
+
+    TlsFree(*tls_index);
+    delete tls_index;
+}
+
+} // namespace
+
+std::unique_ptr<unsigned long, void (*)(unsigned long*)> Ctx::tls_index{nullptr, nullptr};
+
+void Ctx::Init(LoadFunc load_func) {
+    if (!tls_index) {
+        auto index_value = TlsAlloc();
+        if (index_value == TLS_OUT_OF_INDEXES) {
+            throw std::runtime_error("TlsAlloc error");
+        }
+
+        tls_index = std::unique_ptr<unsigned long,
+                                    void (*)(unsigned long*)>(new DWORD(index_value),
+                                                              &freeTlsCtx);
+    }
+
+    auto current_tls_ptr = TlsGetValue(*tls_index);
+    if (GetLastError() != ERROR_SUCCESS) {
+        throw std::runtime_error("TlsGetValue error");
+    }
+
+    if (current_tls_ptr != 0) {
+        throw std::runtime_error("Context already inited");
+    }
+
+    bool saved = TlsSetValue(*tls_index, new Ctx(load_func));
+    if (!saved) {
+        throw std::runtime_error("TlsSetValue error");
+    }
+}
+
+bool Ctx::IsInited() { return tls_index && (TlsGetValue(*tls_index) != 0); }
+
+Ctx& Ctx::Get() {
+    auto tls_ptr = TlsGetValue(*tls_index);
+    if (tls_ptr == 0) {
+        throw std::runtime_error("TlsGetValue error");
+    }
+
+    return *static_cast<Ctx*>(tls_ptr);
+}
+
+#else
 thread_local std::unique_ptr<Ctx> Ctx::thread_ctx = nullptr;
 
 void Ctx::Init(LoadFunc load_func) {
     if (thread_ctx) {
         throw std::runtime_error("");
     }
-    thread_ctx = std::unique_ptr<Ctx>(new Ctx(load_func));
+    TlsSetValue() thread_ctx = std::unique_ptr<Ctx>(new Ctx(load_func));
 }
 
-bool Ctx::IsInited() {
-    return thread_ctx.get();
-}
+bool Ctx::IsInited() { return thread_ctx.get(); }
 
 Ctx& Ctx::Get() {
     if (!thread_ctx) {
@@ -22,6 +83,7 @@ Ctx& Ctx::Get() {
     }
     return *thread_ctx;
 }
+#endif
 
 Ctx::Ctx(LoadFunc load_func)
     : glad(std::make_unique<GladGLContext>()) {

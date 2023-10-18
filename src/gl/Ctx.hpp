@@ -21,7 +21,6 @@ public:
     virtual ~Ctx();
 
 public:
-
     // Global
 
     void glGetIntegerv(GLenum pname, GLint* params) const;
@@ -229,7 +228,11 @@ public:
     void glDisableVertexArrayAttrib(GLuint vaobj, GLuint index) const;
 
 private:
+#ifdef WIN32
+    static std::unique_ptr<unsigned long, void (*)(unsigned long*)> tls_index;
+#else
     static thread_local std::unique_ptr<Ctx> thread_ctx;
+#endif
 
     Ctx(LoadFunc load_func);
 

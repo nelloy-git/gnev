@@ -45,7 +45,6 @@ target_link_libraries(${PROJECT_NAME}
     nlohmann_json
 )
 target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_20)
-target_compile_definitions(${PROJECT_NAME} PUBLIC GNEV_GL_MAJOR=4 GNEV_GL_MINOR=6)
 
 set_property (TARGET ${PROJECT_NAME}
   PROPERTY
