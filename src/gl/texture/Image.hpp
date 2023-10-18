@@ -6,37 +6,31 @@
 
 namespace gnev::gl::texture {
 
-struct ImagePoint {
+struct ImageInfo {
     GLuint level = 0;
     GLuint x = 0;
     GLuint y = 0;
     GLuint z = 0;
-};
-
-struct ImageRect : public ImagePoint {
     GLuint width = 0;
     GLuint height = 0;
-};
-
-struct ImageInfo : public ImageRect {
     GLenum format;
     GLenum type;
 };
 
 struct ImageData {
-    ImageData() {}
+    ImageData() = default;
 
     ImageData(std::size_t size)
         : size(size)
         , buffer(new GLubyte[size]) {}
 
     ImageData(std::size_t size,
-              void* p_buffer)
+              const std::shared_ptr<void> buffer)
         : size(size)
-        , buffer(static_cast<GLubyte*>(p_buffer)) {}
+        , buffer(buffer) {}
 
     std::size_t size = 0;
-    GLubyte* buffer = nullptr;
+    std::shared_ptr<void> buffer = nullptr;
 };
 
 struct Image {

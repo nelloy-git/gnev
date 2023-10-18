@@ -40,10 +40,10 @@ TEST_F(TestTextureImmutableStorage, setImage_getImage) {
     auto storage = initStorage();
 
     std::size_t img_bytes = init_width * init_height * 3;
-    void* img_buffer = malloc(img_bytes);
+    std::shared_ptr<GLubyte[]> img_buffer(new GLubyte[img_bytes]);
     texture::ImageData img_data(img_bytes, img_buffer);
 
-    unsigned char* raw_img = static_cast<unsigned char*>(img_buffer);
+    unsigned char* raw_img = static_cast<unsigned char*>(img_buffer.get());
     for (std::size_t i = 0; i < init_width * init_height * 3; ++i) {
         raw_img[i] = 2 * i;
     }
@@ -71,23 +71,21 @@ TEST_F(TestTextureImmutableStorage, setImage_getImage) {
         EXPECT_EQ(img_info.width, init_width);
         EXPECT_EQ(img_info.height, init_height);
 
-        unsigned char* raw_img = static_cast<unsigned char*>(img.data.buffer);
+        unsigned char* raw_img = static_cast<unsigned char*>(img.data.buffer.get());
         for (std::size_t i = 0; i < init_width * init_height * 3; ++i) {
             EXPECT_EQ(2 * i, raw_img[i]);
         }
     }
-
-    free(img_buffer);
 }
 
 TEST_F(TestTextureImmutableStorage, setImage_getImagePreallocated) {
     auto storage = initStorage();
 
     std::size_t img_bytes = init_width * init_height * 3;
-    void* img_buffer = malloc(img_bytes);
+    std::shared_ptr<GLubyte[]> img_buffer(new GLubyte[img_bytes]);
     texture::ImageData img_data(img_bytes, img_buffer);
 
-    unsigned char* raw_img = static_cast<unsigned char*>(img_buffer);
+    unsigned char* raw_img = static_cast<unsigned char*>(img_buffer.get());
     for (std::size_t i = 0; i < init_width * init_height * 3; ++i) {
         raw_img[i] = 2 * i;
     }
@@ -115,11 +113,9 @@ TEST_F(TestTextureImmutableStorage, setImage_getImagePreallocated) {
         EXPECT_EQ(img.info.width, init_width);
         EXPECT_EQ(img.info.height, init_height);
 
-        unsigned char* raw_img = static_cast<unsigned char*>(img.data.buffer);
+        unsigned char* raw_img = static_cast<unsigned char*>(img.data.buffer.get());
         for (std::size_t i = 0; i < init_width * init_height * 3; ++i) {
             EXPECT_EQ(2 * i, raw_img[i]);
         }
     }
-
-    free(img_buffer);
 }

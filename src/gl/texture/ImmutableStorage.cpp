@@ -44,7 +44,7 @@ Image ImmutableStorage::getImage(ImageInfo& info) const {
                 info.format,
                 info.type,
                 dst.data.size,
-                dst.data.buffer);
+                dst.data.buffer.get());
 
     return dst;
 }
@@ -71,7 +71,7 @@ void ImmutableStorage::getImage(Image& dst) const {
                 info.format,
                 info.type,
                 dst.data.size,
-                dst.data.buffer);
+                dst.data.buffer.get());
 }
 
 void ImmutableStorage::setImage(const Image& dst) {
@@ -95,7 +95,7 @@ void ImmutableStorage::setImage(const Image& dst) {
                   1,
                   info.format,
                   info.type,
-                  dst.data.buffer);
+                  dst.data.buffer.get());
 }
 
 std::size_t ImmutableStorage::getLevels() const { return levels; }
@@ -131,10 +131,10 @@ std::size_t ImmutableStorage::getMaxLayers() const {
 std::size_t ImmutableStorage::getBufferSize(const ImageInfo& info) const {
     return (info.width > 0 ? info.width : getLevelWidth(info.level) - info.x) *
            (info.height > 0 ? info.height : getLevelHeight(info.level) - info.y) *
-           getElements(info.format) * getBytesPerElement(info.type);
+           getComponents(info.format) * getBytesPerElement(info.type);
 }
 
-GLuint ImmutableStorage::getElements(GLenum format) {
+GLuint ImmutableStorage::getComponents(GLenum format) {
     switch (format) {
     case GL_RED:
         return 1;

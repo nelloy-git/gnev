@@ -6,8 +6,9 @@
 
 namespace gnev::tool {
 
-Transform::Transform()
-    : node({.index = RESERVED_INDEX, .parent = RESERVED_INDEX}) {}
+Transform::Transform() {}
+
+Transform::Index Transform::getIndex() const { return node.index; }
 
 void Transform::setParent(Index parent) { node.parent = parent; }
 

@@ -1,7 +1,6 @@
 #pragma once
 
 #include <limits>
-#include <optional>
 
 #include "glm/glm.hpp"
 #include "util/Util.hpp"
@@ -9,7 +8,7 @@
 namespace gnev::tool {
 
 class EXPORT alignas(16) Transform final {
-    friend class TransformMap; 
+    friend class TransformMap;
 
 public:
     using Index = unsigned int;
@@ -18,6 +17,8 @@ public:
 
     Transform();
     ~Transform() = default;
+
+    Index getIndex() const;
 
     void setParent(Index parent);
     void setParent(const Transform& parent);
@@ -40,10 +41,10 @@ public:
     void setScale(const glm::vec3& value);
     const glm::vec3& getScale() const;
 
-protected:
+private:
     struct Node {
-        Index index;
-        Index parent;
+        Index index = RESERVED_INDEX;
+        Index parent = RESERVED_INDEX;
     };
 
     Node node;

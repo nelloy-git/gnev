@@ -36,8 +36,7 @@ private:
 
     void applyImageSize(ImageInfo& info) const;
 
-    static GLenum selectFormat(GLenum internal_format);
-    static GLuint getElements(GLenum format);
+    static GLuint getComponents(GLenum format);
     static double getBytesPerElement(GLenum type);
 };
 
