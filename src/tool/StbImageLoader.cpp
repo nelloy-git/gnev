@@ -14,7 +14,9 @@ StbImageLoader::~StbImageLoader() {}
 StbImageLoader::LoadResult StbImageLoader::load(const std::filesystem::path& path,
                                                 unsigned int width,
                                                 unsigned int height,
-                                                unsigned int req_comp) const {
+                                                unsigned int req_comp,
+                                                unsigned int level,
+                                                unsigned int z) const {
     LoadResult result{{}, std::nullopt};
 
     if (!std::filesystem::exists(path)) {
@@ -52,10 +54,10 @@ StbImageLoader::LoadResult StbImageLoader::load(const std::filesystem::path& pat
         return result;
     }
 
-    gl::texture::ImageInfo info = {.level = 0,
+    gl::texture::ImageInfo info = {.level = level,
                                    .x = 0,
                                    .y = 0,
-                                   .z = 0,
+                                   .z = z,
                                    .width = width,
                                    .height = height,
                                    .format = format,

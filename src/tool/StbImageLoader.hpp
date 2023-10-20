@@ -27,10 +27,13 @@ public:
     StbImageLoader();
     virtual ~StbImageLoader();
 
+    // "level", "z" just for output Image struct
     LoadResult load(const std::filesystem::path& path,
                     unsigned int width = 0,
                     unsigned int height = 0,
-                    unsigned int req_comp = 4) const;
+                    unsigned int req_comp = 4,
+                    unsigned int level = 0,
+                    unsigned int z = 0) const;
 
 private:
     using Buffer = std::shared_ptr<GLubyte[]>;
