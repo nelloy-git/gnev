@@ -16,7 +16,7 @@ public:
         GL_MAP_READ_BIT | GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT;
 
     CoherentStorage(std::size_t capacity,
-                    const T& initial_value = T{},
+                    const T& clean_up = T{},
                     bool is_client_storage = false);
     CoherentStorage(std::initializer_list<T> initial_data,
                     bool is_client_storage = false);
@@ -52,7 +52,7 @@ private:
 
 template <IsTriviallyCopyable T>
 CoherentStorage<T>::CoherentStorage(std::size_t capacity,
-                                    const T& initial_value,
+                                    const T& clean_up,
                                     bool is_client_storage)
     : Buffer()
     , capacity(capacity) {
@@ -65,7 +65,7 @@ CoherentStorage<T>::CoherentStorage(std::size_t capacity,
                         is_client_storage ? STORAGE_FLAGS | GL_CLIENT_STORAGE_BIT
                                           : STORAGE_FLAGS);
     mapped = static_cast<T*>(Buffer::mapRange(0, capacity * sizeof(T), MAP_FLAGS));
-    std::fill_n(mapped, capacity, initial_value);
+    std::fill_n(mapped, capacity, clean_up);
 }
 
 template <IsTriviallyCopyable T>

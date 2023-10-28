@@ -11,7 +11,7 @@ class CoherentMap : public CoherentStorage<V> {
 public:
     CoherentMap(std::size_t capacity,
                 std::initializer_list<std::pair<K, V>> initial_data = {},
-                const V& initial_value = V{},
+                const V& clean_up = V{},
                 bool is_client_storage = false);
     CoherentMap(const CoherentMap& other) = delete;
     CoherentMap(CoherentMap&& other) = default;
@@ -39,7 +39,7 @@ private:
 
     using CoherentStorage<V>::data;
 
-    V initial_value;
+    V clean_up;
     std::unordered_map<K, std::size_t> key_map;
     std::unordered_set<std::size_t> unused_poses;
 };
@@ -47,10 +47,10 @@ private:
 template <typename K, IsTriviallyCopyable V>
 CoherentMap<K, V>::CoherentMap(std::size_t capacity,
                                std::initializer_list<std::pair<K, V>> initial_data,
-                               const V& initial_value,
+                               const V& clean_up,
                                bool is_client_storage)
-    : CoherentStorage<V>(capacity, initial_value, is_client_storage)
-    , initial_value(initial_value) {
+    : CoherentStorage<V>(capacity, clean_up, is_client_storage)
+    , clean_up(clean_up) {
     if (capacity < initial_data.size()) {
         throw std::out_of_range("");
     }
@@ -64,7 +64,7 @@ CoherentMap<K, V>::CoherentMap(std::size_t capacity,
 
     for (std::size_t i = initial_data.size(); i < capacity; ++i) {
         unused_poses.insert(i);
-        CoherentStorage<V>::operator[](i) = initial_value;
+        CoherentStorage<V>::operator[](i) = clean_up;
     }
 }
 

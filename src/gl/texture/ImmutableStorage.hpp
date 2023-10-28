@@ -1,34 +1,27 @@
 #pragma once
 
 #include "gl/Texture.hpp"
-#include "gl/texture/Image.hpp"
+#include "gl/texture/ImmutableStorageIterator.hpp"
 
 namespace gnev::gl::texture {
 
 class EXPORT ImmutableStorage : public Texture {
 public:
-    ImmutableStorage(std::size_t width,
+    ImmutableStorage(std::size_t levels,
+                     std::size_t width,
                      std::size_t height,
-                     GLenum internal_format,
                      std::size_t capacity,
-                     std::size_t levels);
+                     GLenum internal_format);
     ImmutableStorage(const ImmutableStorage& other) = delete;
     ImmutableStorage(ImmutableStorage&& other) = default;
     virtual ~ImmutableStorage();
 
-    Image getImage(ImageInfo& info) const;
-    void getImage(Image& dst) const;
-
-    void setImage(const Image& img);
+    ImmutableStorageIterator operator[](std::size_t index);
+    const ImmutableStorageIterator operator[](std::size_t index) const;
 
     std::size_t getLevels() const;
-    GLenum getLevelInternalFormat(std::size_t level) const;
-    std::size_t getLevelWidth(std::size_t level) const;
-    std::size_t getLevelHeight(std::size_t level) const;
-
     std::size_t getCapacity() const;
-    std::size_t getMaxLayers() const;
-    std::size_t getBufferSize(const ImageInfo& info) const;
+    std::size_t getMaxCapacity() const;
 
 private:
     std::size_t levels;

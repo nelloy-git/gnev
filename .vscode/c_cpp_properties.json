@@ -13,7 +13,8 @@
                 "3rdparty/glm",
                 "3rdparty/gtest/googletest/include",
                 "3rdparty/stb",
-                "3rdparty/thread_pool/include"
+                "3rdparty/thread_pool/include",
+                "${workspaceFolder}/3rdparty/thread_pool/include"
             ],
             "defines": [
                 "GLWPP_DEBUG",

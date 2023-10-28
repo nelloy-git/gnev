@@ -88,7 +88,8 @@
         "unordered_set": "cpp",
         "valarray": "cpp",
         "variant": "cpp",
-        "shared_mutex": "cpp"
+        "shared_mutex": "cpp",
+        "stack": "cpp"
     },
     "cSpell.words": [
         "gnev"

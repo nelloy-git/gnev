@@ -8,7 +8,7 @@
 namespace gnev {
 
 class EXPORT alignas(16) Material final {
-    friend class MaterialMap;
+    friend class MaterialStorage;
 
 public:
     using Index = unsigned int;

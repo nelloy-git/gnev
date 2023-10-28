@@ -14,14 +14,15 @@ template <IsTriviallyCopyable V>
 class CoherentIndexMap : public CoherentStorage<V> {
 public:
     CoherentIndexMap(std::size_t capacity,
-                     const V& initial_value = V{},
+                     std::variant<std::monostate, V, std::function<V(std::size_t)>>&
+                         clean_up = std::monostate,
                      bool is_client_storage = false);
     CoherentIndexMap(const CoherentIndexMap& other) = delete;
     CoherentIndexMap(CoherentIndexMap&& other) = default;
     virtual ~CoherentIndexMap();
 
-    V& operator[](const std::size_t& index);
-    const V& operator[](const std::size_t& index) const;
+    V& operator[](std::size_t index);
+    const V& operator[](std::size_t index) const;
 
     std::optional<std::size_t> initUnusedIndex();
     void freeIndex(std::size_t index);
@@ -44,18 +45,19 @@ private:
 
     using CoherentStorage<V>::data;
 
-    V initial_value;
+    std::variant<std::monostate, V, std::function<V(std::size_t)>> clean_up;
     std::unordered_set<std::size_t> unused;
 };
 
 template <IsTriviallyCopyable V>
-CoherentIndexMap<V>::CoherentIndexMap(std::size_t capacity,
-                                      const V& initial_value,
-                                      bool is_client_storage)
-    : CoherentStorage<V>(capacity, initial_value, is_client_storage)
-    , initial_value(initial_value) {
+CoherentIndexMap<
+    V>::CoherentIndexMap(std::size_t capacity,
 
-    std::fill_n(data(), capacity, initial_value);
+                         std::variant<std::monostate, V, std::function<V(std::size_t)>>&
+                             clean_up,
+                         bool is_client_storage)
+    : CoherentStorage<V>(capacity, clean_up, is_client_storage)
+    , clean_up(clean_up) {
     for (std::size_t i = 0; i < capacity; ++i) {
         unused.insert(unused.end(), i);
     }
@@ -65,7 +67,7 @@ template <IsTriviallyCopyable V>
 CoherentIndexMap<V>::~CoherentIndexMap() {}
 
 template <IsTriviallyCopyable V>
-V& CoherentIndexMap<V>::operator[](const std::size_t& index) {
+V& CoherentIndexMap<V>::operator[](std::size_t index) {
     if (unused.contains(index)) {
         throw std::out_of_range("");
     }
@@ -73,7 +75,7 @@ V& CoherentIndexMap<V>::operator[](const std::size_t& index) {
 }
 
 template <IsTriviallyCopyable V>
-const V& CoherentIndexMap<V>::operator[](const std::size_t& index) const {
+const V& CoherentIndexMap<V>::operator[](std::size_t index) const {
     if (unused.contains(index)) {
         throw std::out_of_range("");
     }
@@ -83,7 +85,7 @@ const V& CoherentIndexMap<V>::operator[](const std::size_t& index) const {
 template <IsTriviallyCopyable V>
 std::optional<std::size_t> CoherentIndexMap<V>::initUnusedIndex() {
     auto iter = unused.begin();
-    if (iter == unused.end()){
+    if (iter == unused.end()) {
         return std::nullopt;
     }
     std::size_t index = *iter;
@@ -94,7 +96,15 @@ std::optional<std::size_t> CoherentIndexMap<V>::initUnusedIndex() {
 template <IsTriviallyCopyable V>
 void CoherentIndexMap<V>::freeIndex(std::size_t index) {
     unused.insert(unused.end(), index);
-    CoherentStorage<V>::operator[](index) = initial_value;
+
+    if (clean_up.index() == 0) {
+        // monostate
+    } else if (clean_up.index() == 1) {
+        CoherentStorage<V>::operator[](index) = std::get<V>(clean_up);
+    } else {
+        CoherentStorage<V>::operator[](index) =
+            std::get<std::function<V(std::size_t)>>(clean_up)(index);
+    }
 }
 
 template <IsTriviallyCopyable V>
@@ -104,35 +114,19 @@ bool CoherentIndexMap<V>::containsIndex(const std::size_t& index) const {
 
 template <IsTriviallyCopyable V>
 V extractIndex(const std::size_t& index) {
-    
-}
-
-template <IsTriviallyCopyable V>
-bool CoherentIndexMap<V>::contains(const K& key) const {
-    return key_map.contains(key);
-}
-
-template <IsTriviallyCopyable V>
-V CoherentIndexMap<V>::extract(const K& key) {
-    auto iter = key_map.find(key);
-    if (iter == key_map.end()) {
-        throw std::out_of_range("");
-    }
-
-    V value = CoherentStorage<V>::operator[](iter->second);
-    unused_poses.insert(iter->second);
-    key_map.erase(iter);
+    auto value = CoherentStorage<V>::operator[](index);
+    freeIndex(index);
     return value;
 }
 
 template <IsTriviallyCopyable V>
 bool CoherentIndexMap<V>::isEmpty() const {
-    return key_map.empty();
+    return unused.size() == getCapacity();
 }
 
 template <IsTriviallyCopyable V>
 std::size_t CoherentIndexMap<V>::getSize() const {
-    return key_map.size();
+    return getCapacity() - key_map.size();
 }
 
 } // namespace gnev::gl::buffer
