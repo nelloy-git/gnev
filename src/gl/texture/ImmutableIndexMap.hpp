@@ -8,28 +8,28 @@ namespace gnev::gl::texture {
 
 class EXPORT ImmutableIndexMap : public ImmutableStorage {
 public:
-    using CleanUp = std::optional<std::function<void(ImmutableIndexMap&, std::size_t)>>;
+    using CleanUp = std::optional<std::function<void(ImmutableIndexMap&, GLuint)>>;
 
-    ImmutableIndexMap(std::size_t levels,
-                      std::size_t width,
-                      std::size_t height,
-                      std::size_t capacity,
+    ImmutableIndexMap(GLuint levels,
+                      GLuint width,
+                      GLuint height,
+                      GLuint capacity,
                       GLenum internal_format,
                       CleanUp clean_up = {});
     ImmutableIndexMap(const ImmutableIndexMap& other) = delete;
     ImmutableIndexMap(ImmutableIndexMap&& other) = default;
     virtual ~ImmutableIndexMap();
 
-    ImmutableStorageIterator operator[](std::size_t index);
-    const ImmutableStorageIterator operator[](std::size_t index) const;
+    ImmutableStorageIterator operator[](GLuint index);
+    const ImmutableStorageIterator operator[](GLuint index) const;
 
-    std::optional<std::size_t> initUnusedIndex();
-    void freeIndex(std::size_t index);
-    bool containsIndex(const std::size_t& index) const;
+    std::optional<GLuint> initUnusedIndex();
+    void freeIndex(GLuint index);
+    bool containsIndex(const GLuint& index) const;
 
 private:
     CleanUp clean_up;
-    std::unordered_set<std::size_t> unused;
+    std::unordered_set<GLuint> unused;
 };
 
 } // namespace gnev::gl::texture

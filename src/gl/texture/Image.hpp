@@ -21,7 +21,7 @@ struct ImageData {
 
     ImageData(std::size_t size)
         : buffer_size(size)
-        , buffer(new GLubyte[size]) {}
+        , buffer(std::make_shared<GLubyte[]>(size)) {}
 
     ImageData(std::size_t size, const std::shared_ptr<void> buffer)
         : buffer_size(size)
@@ -29,8 +29,27 @@ struct ImageData {
 
     std::size_t size() const { return buffer_size; };
 
-    void* data() { return buffer.get(); }
-    const void* data() const { return buffer.get(); }
+    template <typename T = void>
+    std::shared_ptr<T> share() {
+        return std::reinterpret_pointer_cast<T>(buffer);
+    }
+
+    template <typename T = void>
+    std::shared_ptr<const T> share() {
+        return std::reinterpret_pointer_cast<const T>(buffer);
+    }
+
+    template <typename T = void>
+        requires(!std::is_array_v<T>)
+    T* data() {
+        return reinterpret_cast<T*>(buffer.get());
+    }
+
+    template <typename T = void>
+        requires(!std::is_array_v<T>)
+    const T* data() const {
+        return reinterpret_cast<const T*>(buffer.get());
+    }
 
 private:
     std::size_t buffer_size = 0;

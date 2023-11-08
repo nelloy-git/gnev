@@ -7,27 +7,28 @@ namespace gnev::gl::texture {
 
 class EXPORT ImmutableStorage : public Texture {
 public:
-    ImmutableStorage(std::size_t levels,
-                     std::size_t width,
-                     std::size_t height,
-                     std::size_t capacity,
+    ImmutableStorage(GLuint levels,
+                     GLuint width,
+                     GLuint height,
+                     GLuint capacity,
                      GLenum internal_format);
     ImmutableStorage(const ImmutableStorage& other) = delete;
     ImmutableStorage(ImmutableStorage&& other) = default;
     virtual ~ImmutableStorage();
 
-    ImmutableStorageIterator operator[](std::size_t index);
-    const ImmutableStorageIterator operator[](std::size_t index) const;
+    ImmutableStorageIterator operator[](GLuint index);
+    const ImmutableStorageIterator operator[](GLuint index) const;
 
-    std::size_t getLevels() const;
-    std::size_t getCapacity() const;
-    std::size_t getMaxCapacity() const;
+    GLuint getLevels() const;
+    GLuint getLevelWidth(GLuint level) const;
+    GLuint getLevelHeight(GLuint level) const;
+    GLuint getImageBufferSize(const ImageInfo& info) const;
+    GLuint getCapacity() const;
+    GLuint getMaxCapacity() const;
 
 private:
-    std::size_t levels;
-    std::size_t capacity;
-
-    void applyImageSize(ImageInfo& info) const;
+    GLuint levels;
+    GLuint capacity;
 
     static GLuint getComponents(GLenum format);
     static double getBytesPerElement(GLenum type);

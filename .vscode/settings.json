@@ -89,7 +89,9 @@
         "valarray": "cpp",
         "variant": "cpp",
         "shared_mutex": "cpp",
-        "stack": "cpp"
+        "stack": "cpp",
+        "bitset": "cpp",
+        "cinttypes": "cpp"
     },
     "cSpell.words": [
         "gnev"
