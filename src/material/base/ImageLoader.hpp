@@ -2,15 +2,15 @@
 
 #include <filesystem>
 
-#include "gl/texture/Image.hpp"
+#include "gl/texture/TexImage.hpp"
 
 namespace gnev::base {
 
 class EXPORT ImageLoader {
 public:
-    using Image = gl::texture::Image;
-    using ImageData = gl::texture::ImageData;
-    using ImageInfo = gl::texture::ImageInfo;
+    using Image = gl::TexImage;
+    using ImageData = gl::TexImageData;
+    using ImageInfo = gl::TexImageInfo;
 
     enum class LoadStatus {
         Done,

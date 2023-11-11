@@ -1,12 +1,12 @@
-#include "gl/texture/ImmutableStorage.hpp"
+#include "gl/texture/TexStorage.hpp"
 
 #include "OpenGLContext.hpp"
-#include "gl/texture/Image.hpp"
+#include "gl/texture/TexImage.hpp"
 #include "gtest/gtest.h"
 
 using namespace gnev::gl;
 
-class EXPORT TestTextureImmutableStorage
+class EXPORT TestTexStorage
     : public testing::Test
     , public OpenGLContext {
 public:
@@ -17,13 +17,13 @@ public:
     std::size_t init_capacity = 4;
     static constexpr auto init_value = [](GLuint level, GLuint pos) { return 0; };
 
-    texture::ImmutableStorage initStorage(std::function<GLubyte(GLuint level, GLuint pos)>
-                                              initial = init_value) const {
-        texture::ImmutableStorage storage(init_levels,
-                                          init_width,
-                                          init_height,
-                                          init_capacity,
-                                          init_internal_format);
+    TexStorage initStorage(std::function<GLubyte(GLuint level, GLuint pos)>
+                                     initial = init_value) const {
+        TexStorage storage(init_levels,
+                                 init_width,
+                                 init_height,
+                                 init_capacity,
+                                 init_internal_format);
 
         EXPECT_EQ(init_levels, storage.getLevels());
         EXPECT_EQ(init_capacity, storage.getCapacity());
@@ -83,8 +83,8 @@ public:
         return storage;
     };
 
-    texture::ImageInfo initImageInfo(GLuint level = 0) const {
-        texture::ImageInfo info;
+    TexImageInfo initImageInfo(GLuint level = 0) const {
+        TexImageInfo info;
         info.level = level;
         info.width = init_width / (1 << level);
         info.height = init_height / (1 << level);
@@ -94,7 +94,7 @@ public:
     }
 };
 
-TEST_F(TestTextureImmutableStorage, rawSet) {
+TEST_F(TestTexStorage, rawSet) {
     auto storage = initStorage([](GLuint level, GLuint pos) { return 97 + pos; });
 
     GLuint img_bytes = init_width * init_height * 3;
@@ -138,15 +138,15 @@ TEST_F(TestTextureImmutableStorage, rawSet) {
     }
 }
 
-TEST_F(TestTextureImmutableStorage, setImage) {
+TEST_F(TestTexStorage, setImage) {
     auto storage = initStorage();
 
-    std::vector<std::vector<texture::Image>> images;
+    std::vector<std::vector<TexImage>> images;
     for (GLuint i = 0; i < init_capacity; ++i) {
         images.push_back({});
 
         for (GLuint l = 0; l < init_levels; ++l) {
-            texture::ImageInfo info = initImageInfo(l);
+            TexImageInfo info = initImageInfo(l);
             auto level_bytes = info.width * info.height * 3;
 
             images[i].push_back({info, level_bytes});
@@ -189,15 +189,15 @@ TEST_F(TestTextureImmutableStorage, setImage) {
     }
 }
 
-TEST_F(TestTextureImmutableStorage, getImage) {
+TEST_F(TestTexStorage, getImage) {
     auto storage = initStorage();
 
-    std::vector<std::vector<texture::Image>> images;
+    std::vector<std::vector<TexImage>> images;
     for (GLuint i = 0; i < init_capacity; ++i) {
         images.push_back({});
 
         for (GLuint l = 0; l < init_levels; ++l) {
-            texture::ImageInfo info = initImageInfo(l);
+            TexImageInfo info = initImageInfo(l);
             auto level_bytes = info.width * info.height * 3;
 
             images[i].push_back({info, level_bytes});

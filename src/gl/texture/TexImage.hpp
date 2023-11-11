@@ -4,9 +4,9 @@
 
 #include "gl/Texture.hpp"
 
-namespace gnev::gl::texture {
+namespace gnev::gl {
 
-struct ImageInfo {
+struct TexImageInfo {
     GLuint level = 0;
     GLuint x = 0;
     GLuint y = 0;
@@ -16,14 +16,14 @@ struct ImageInfo {
     GLenum type;
 };
 
-struct ImageData {
-    ImageData() = default;
+struct TexImageData {
+    TexImageData() = default;
 
-    ImageData(std::size_t size)
+    TexImageData(std::size_t size)
         : buffer_size(size)
         , buffer(std::make_shared<GLubyte[]>(size)) {}
 
-    ImageData(std::size_t size, const std::shared_ptr<void> buffer)
+    TexImageData(std::size_t size, const std::shared_ptr<void> buffer)
         : buffer_size(size)
         , buffer(buffer) {}
 
@@ -56,19 +56,19 @@ private:
     std::shared_ptr<void> buffer = nullptr;
 };
 
-struct Image {
-    Image() {}
+struct TexImage {
+    TexImage() {}
 
-    Image(const ImageInfo& info, std::size_t size)
+    TexImage(const TexImageInfo& info, std::size_t size)
         : info(info)
         , data(size) {}
 
-    Image(const ImageInfo& info, const ImageData& data)
+    TexImage(const TexImageInfo& info, const TexImageData& data)
         : info(info)
         , data(data) {}
 
-    ImageInfo info;
-    ImageData data;
+    TexImageInfo info;
+    TexImageData data;
 };
 
-} // namespace gnev::gl::texture
+} // namespace gnev::gl

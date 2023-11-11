@@ -13,7 +13,6 @@ struct EXPORT alignas(16) MaterialData {
 public:
     using Index = unsigned int;
 
-    Index self_index;
     std::array<Index, TexN> tex_index;
     std::array<glm::vec4, TexN> tex_offset;
     std::array<glm::vec4, TexN> tex_scale;

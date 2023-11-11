@@ -1,17 +1,17 @@
-#include "gl/texture/ImmutableStorage.hpp"
+#include "gl/texture/TexStorage.hpp"
 
 #include <stdexcept>
 
 #include "gl/Texture.hpp"
-#include "gl/texture/Image.hpp"
+#include "gl/texture/TexImage.hpp"
 
-namespace gnev::gl::texture {
+namespace gnev::gl {
 
-ImmutableStorage::ImmutableStorage(GLuint levels,
-                                   GLuint width,
-                                   GLuint height,
-                                   GLuint capacity,
-                                   GLenum internal_format)
+TexStorage::TexStorage(GLuint levels,
+                       GLuint width,
+                       GLuint height,
+                       GLuint capacity,
+                       GLenum internal_format)
     : Texture(GL_TEXTURE_2D_ARRAY)
     , levels(levels)
     , capacity(capacity) {
@@ -22,45 +22,45 @@ ImmutableStorage::ImmutableStorage(GLuint levels,
     initStorage3D(levels, internal_format, width, height, capacity);
 }
 
-ImmutableStorage::~ImmutableStorage() {}
+TexStorage::~TexStorage() {}
 
-ImmutableStorageIterator ImmutableStorage::operator[](GLuint index) {
-    return ImmutableStorageIterator(*this, index);
+TexStorageIterator TexStorage::operator[](GLuint index) {
+    return TexStorageIterator(*this, index);
 }
 
-const ImmutableStorageIterator ImmutableStorage::operator[](GLuint index) const {
-    return ImmutableStorageIterator(*this, index);
+const TexStorageIterator TexStorage::operator[](GLuint index) const {
+    return TexStorageIterator(*this, index);
 }
 
-GLuint ImmutableStorage::getLevels() const { return levels; }
+GLuint TexStorage::getLevels() const { return levels; }
 
-GLuint ImmutableStorage::getLevelWidth(GLuint level) const {
+GLuint TexStorage::getLevelWidth(GLuint level) const {
     GLint width;
     getLevelParameteriv(level, GL_TEXTURE_WIDTH, &width);
     return width;
 }
 
-GLuint ImmutableStorage::getLevelHeight(GLuint level) const {
+GLuint TexStorage::getLevelHeight(GLuint level) const {
     GLint height;
     getLevelParameteriv(level, GL_TEXTURE_HEIGHT, &height);
     return height;
 }
 
-GLuint ImmutableStorage::getImageBufferSize(const ImageInfo& info) const {
+GLuint TexStorage::getImageBufferSize(const TexImageInfo& info) const {
     return (info.width > 0 ? info.width : getLevelWidth(info.level) - info.x) *
            (info.height > 0 ? info.height : getLevelHeight(info.level) - info.y) *
            getComponents(info.format) * getBytesPerElement(info.type);
 }
 
-GLuint ImmutableStorage::getCapacity() const { return capacity; }
+GLuint TexStorage::getCapacity() const { return capacity; }
 
-GLuint ImmutableStorage::getMaxCapacity() const {
+GLuint TexStorage::getMaxCapacity() const {
     GLint layers;
     Ctx::Get().glGetIntegerv(GL_MAX_ARRAY_TEXTURE_LAYERS, &layers);
     return layers;
 }
 
-GLuint ImmutableStorage::getComponents(GLenum format) {
+GLuint TexStorage::getComponents(GLenum format) {
     switch (format) {
     case GL_RED:
         return 1;
@@ -83,7 +83,7 @@ GLuint ImmutableStorage::getComponents(GLenum format) {
     }
 }
 
-double ImmutableStorage::getBytesPerElement(GLenum type) {
+double TexStorage::getBytesPerElement(GLenum type) {
     switch (type) {
     case GL_UNSIGNED_BYTE:
         return sizeof(GLubyte);

@@ -33,10 +33,10 @@ ImageLoaderStb::LoadResult ImageLoaderStb::load(const std::filesystem::path& pat
 
     ImageInfo result_info = prepareInfo(result, load_info, stb_info);
     raw_img = stbiResize(raw_img, stb_info, result_info);
-    gl::texture::ImageData data(getBufferSize(result_info), raw_img);
+    ImageData data(getBufferSize(result_info), raw_img);
 
     result.first.push_back(LoadStatus::Done);
-    result.second = gl::texture::Image(load_info, data);
+    result.second = Image(load_info, data);
     return result;
 }
 
@@ -107,7 +107,7 @@ unsigned int ImageLoaderStb::getComponents(const ImageInfo& info) {
     }
 }
 
-std::size_t ImageLoaderStb::getBufferSize(const ImageInfo& info){
+std::size_t ImageLoaderStb::getBufferSize(const ImageInfo& info) {
     return info.width * info.height * getComponents(info) * sizeof(unsigned int);
 }
 
