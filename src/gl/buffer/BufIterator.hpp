@@ -21,6 +21,9 @@ public:
     virtual T& operator*() = 0;
     virtual const T& operator*() const = 0;
 
+    virtual T* operator->() = 0;
+    virtual const T* operator->() const = 0;
+
 protected:
     BufIterator(Buffer& buffer, GLuint index);
     BufIterator(const Buffer& buffer, GLuint index);
@@ -29,8 +32,8 @@ protected:
     const Buffer& getStorage() const;
 
 private:
-    template <typename T>
-    using ref = std::reference_wrapper<T>;
+    template <typename V>
+    using ref = std::reference_wrapper<V>;
 
     const std::variant<ref<Buffer>, ref<const Buffer>> buffer;
     GLuint index;

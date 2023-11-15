@@ -1,5 +1,7 @@
 #pragma once
 
+#include <optional>
+
 #include "gl/buffer/BufStorage.hpp"
 
 namespace gnev::gl {
@@ -36,14 +38,14 @@ BufStorageIndexMap<T>::BufStorageIndexMap(GLbitfield storage_flags,
 }
 
 template <IsTriviallyCopyable T>
-BufStorageIndexMap<T>::~ImmutableIndexMap() {}
+BufStorageIndexMap<T>::~BufStorageIndexMap() {}
 
 template <IsTriviallyCopyable T>
 BufStorageIterator<T> BufStorageIndexMap<T>::operator[](GLuint index) {
     if (unused.contains(index)) {
         throw std::out_of_range("");
     }
-    return ImmutableStorage::operator[](index);
+    return BufStorage<T>::operator[](index);
 }
 
 template <IsTriviallyCopyable T>
@@ -51,7 +53,7 @@ const BufStorageIterator<T> BufStorageIndexMap<T>::operator[](GLuint index) cons
     if (unused.contains(index)) {
         throw std::out_of_range("");
     }
-    return ImmutableStorage::operator[](index);
+    return BufStorage<T>::operator[](index);
 }
 
 template <IsTriviallyCopyable T>

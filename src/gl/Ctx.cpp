@@ -1,11 +1,12 @@
 #include "gl/Ctx.hpp"
 
 #include <memory>
-#include <windows.h>
 
 using namespace gnev::gl;
 
 #ifdef WIN32
+
+#include <windows.h>
 
 namespace {
 
@@ -66,13 +67,14 @@ Ctx& Ctx::Get() {
 }
 
 #else
+
 thread_local std::unique_ptr<Ctx> Ctx::thread_ctx = nullptr;
 
 void Ctx::Init(LoadFunc load_func) {
     if (thread_ctx) {
         throw std::runtime_error("");
     }
-    TlsSetValue() thread_ctx = std::unique_ptr<Ctx>(new Ctx(load_func));
+    thread_ctx = std::unique_ptr<Ctx>(new Ctx(load_func));
 }
 
 bool Ctx::IsInited() { return thread_ctx.get(); }

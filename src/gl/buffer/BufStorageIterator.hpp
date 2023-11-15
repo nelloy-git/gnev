@@ -20,6 +20,9 @@ public:
     T& operator*() override;
     const T& operator*() const override;
 
+    T* operator->() override;
+    const T* operator->() const override;
+
 protected:
     BufStorageIterator(BufStorage<T>& buffer, GLuint index);
     BufStorageIterator(const BufStorage<T>& buffer, GLuint index);
@@ -83,6 +86,28 @@ const T& BufStorageIterator<T>::operator*() const {
                                                 data.get());
     }
     return *data;
+}
+
+template <IsTriviallyCopyable T>
+T* BufStorageIterator<T>::operator->() {
+    if (not data) {
+        data = std::make_unique_for_overwrite<T>();
+        BufIterator<T>::getStorage().getSubData(BufIterator<T>::getIndex() * sizeof(T),
+                                                sizeof(T),
+                                                data.get());
+    }
+    return data.get();
+}
+
+template <IsTriviallyCopyable T>
+const T* BufStorageIterator<T>::operator->() const {
+    if (not data) {
+        data = std::make_unique_for_overwrite<T>();
+        BufIterator<T>::getStorage().getSubData(BufIterator<T>::getIndex() * sizeof(T),
+                                                sizeof(T),
+                                                data.get());
+    }
+    return data.get();
 }
 
 template <IsTriviallyCopyable T>

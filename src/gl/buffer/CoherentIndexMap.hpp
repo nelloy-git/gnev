@@ -15,7 +15,7 @@ class CoherentIndexMap : public CoherentStorage<V> {
 public:
     CoherentIndexMap(std::size_t capacity,
                      std::variant<std::monostate, V, std::function<V(std::size_t)>>&
-                         clean_up = std::monostate,
+                         clean_up = std::monostate{},
                      bool is_client_storage = false);
     CoherentIndexMap(const CoherentIndexMap& other) = delete;
     CoherentIndexMap(CoherentIndexMap&& other) = default;
@@ -113,7 +113,7 @@ bool CoherentIndexMap<V>::containsIndex(const std::size_t& index) const {
 };
 
 template <IsTriviallyCopyable V>
-V extractIndex(const std::size_t& index) {
+V CoherentIndexMap<V>::extractIndex(const std::size_t& index) {
     auto value = CoherentStorage<V>::operator[](index);
     freeIndex(index);
     return value;
@@ -126,7 +126,7 @@ bool CoherentIndexMap<V>::isEmpty() const {
 
 template <IsTriviallyCopyable V>
 std::size_t CoherentIndexMap<V>::getSize() const {
-    return getCapacity() - key_map.size();
+    return getCapacity() - unused.size();
 }
 
 } // namespace gnev::gl::buffer

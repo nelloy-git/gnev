@@ -7,8 +7,10 @@
 
 namespace gnev::gl {
 
+class TexStorage;
+
 class EXPORT TexStorageIterator {
-    friend class TexStorage;
+    friend TexStorage;
 
 public:
     virtual ~TexStorageIterator();
@@ -35,8 +37,8 @@ protected:
     const TexStorage& getStorage() const;
 
 private:
-    template <typename T>
-    using reference = std::reference_wrapper<T>;
+    template <typename V>
+    using reference = std::reference_wrapper<V>;
 
     std::variant<reference<TexStorage>, reference<const TexStorage>> storage;
     GLuint index;
