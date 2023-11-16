@@ -12,8 +12,8 @@
 #include "GLFW/glfw3native.h"
 #include "gl/Debug.hpp"
 
-OpenGLContext::OpenGLContext()
-    : window(createWindow()) {
+OpenGLContext::OpenGLContext(unsigned int width, unsigned int height, bool visible)
+    : window(createWindow(width, height, visible)) {
 
     if (!gnev::gl::Ctx::IsInited()) {
         gnev::gl::Ctx::Init(glfwGetProcAddress);
@@ -45,7 +45,11 @@ OpenGLContext::~OpenGLContext() {}
 
 const gnev::gl::Ctx& OpenGLContext::getCtx() { return gnev::gl::Ctx::Get(); }
 
-OpenGLContext::Window OpenGLContext::createWindow() {
+GLFWwindow& OpenGLContext::getWindow() { return *window; }
+
+OpenGLContext::Window OpenGLContext::createWindow(unsigned int width,
+                                                  unsigned int height,
+                                                  bool visible) {
     if (!glfwInit()) {
         throw std::runtime_error("Can not init GLFW");
     }
@@ -64,12 +68,12 @@ OpenGLContext::Window OpenGLContext::createWindow() {
                                               {GLFW_CONTEXT_VERSION_MINOR, 6},
                                               {GLFW_REFRESH_RATE, 60},
                                               {GLFW_OPENGL_DEBUG_CONTEXT, true},
-                                              {GLFW_VISIBLE, false}};
+                                              {GLFW_VISIBLE, visible}};
 
     for (auto& hint : hints) {
         glfwWindowHint(hint.first, hint.second);
     }
-    auto window = glfwCreateWindow(WINDOW_SIZE, WINDOW_SIZE, "OpenGLContext", NULL, NULL);
+    auto window = glfwCreateWindow(width, height, "OpenGLContext", NULL, NULL);
     if (!window) {
         throw std::runtime_error("Can not create window");
     }

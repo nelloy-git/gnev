@@ -10,12 +10,10 @@ class MaterialStoragePBR;
 class MaterialPBR : public base::Material<MaterialDataPBR> {
 public:
     using Base = base::Material<MaterialDataPBR>;
-    using Storage = MaterialStoragePBR;
+    using Storage = base::MaterialStorage<MaterialDataPBR>;
 
-    MaterialPBR(const std::shared_ptr<MaterialStoragePBR>& storage, GLuint data_index);
+    MaterialPBR(const std::shared_ptr<Storage>& storage, GLuint data_index);
     ~MaterialPBR();
-
-    std::shared_ptr<MaterialStoragePBR> getStorage() const;
 
     void setTextureIndex(ParamPBR param, GLuint value);
     GLuint getTextureIndex(ParamPBR param) const;

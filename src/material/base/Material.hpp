@@ -3,6 +3,7 @@
 #include <memory>
 #include <stdexcept>
 
+#include "gl/buffer/BufStorageIterator.hpp"
 #include "material/base/Defines.hpp"
 
 namespace gnev::base {
@@ -20,13 +21,19 @@ public:
 
     std::shared_ptr<MaterialStorage<T>> getStorage() const;
 
-    virtual GLuint getDataIndex() const;
-    virtual Data getData() const;
-    virtual void setData(const Data&);
+    gl::BufStorageIterator<T> getDataIterator();
+    const gl::BufStorageIterator<T> getDataIterator() const;
+
+    GLuint getDataIndex() const;
+    Data getData() const;
+    void setData(const Data&);
+    void changeData(const std::function<void(Data&)>& apply);
 
 private:
     std::weak_ptr<MaterialStorage<T>> weak_storage;
     GLuint index;
+
+    gl::BufStorageIterator<T> getIterator();
 };
 
 namespace details {
@@ -55,10 +62,20 @@ Material<T>::~Material() {}
 template <IsTriviallyCopyable T>
 std::shared_ptr<MaterialStorage<T>> Material<T>::getStorage() const {
     auto store = weak_storage.lock();
-    if (!store){
+    if (!store) {
         throw std::runtime_error("");
     }
     return store;
+}
+
+template <IsTriviallyCopyable T>
+gl::BufStorageIterator<T> Material<T>::getDataIterator() {
+    return getStorage()->getDataStorage()[index];
+}
+
+template <IsTriviallyCopyable T>
+const gl::BufStorageIterator<T> Material<T>::getDataIterator() const {
+    return getStorage()->getDataStorage()[index];
 }
 
 template <IsTriviallyCopyable T>
@@ -68,14 +85,18 @@ GLuint Material<T>::getDataIndex() const {
 
 template <IsTriviallyCopyable T>
 Material<T>::Data Material<T>::getData() const {
-    auto store = getStorage();
     return getStorage()->getDataStorage()[index].getData();
 }
 
 template <IsTriviallyCopyable T>
 void Material<T>::setData(const Data& data) {
-    auto store = getStorage();
     return getStorage()->getDataStorage()[index].setData(data);
+}
+
+template <IsTriviallyCopyable T>
+void Material<T>::changeData(const std::function<void(Data&)>& apply) {
+    auto iter = getDataIterator();
+    apply(*iter);
 }
 
 } // namespace gnev::base

@@ -4,7 +4,6 @@
 #include <unordered_map>
 
 #include "material/base/Defines.hpp"
-#include "material/base/ImageLoader.hpp"
 #include "material/base/Material.hpp"
 
 namespace gnev::base {
@@ -37,8 +36,8 @@ public:
     const TexStorage& getTexStorage(GLuint tex_i) const;
 
 private:
-    std::unique_ptr<DataStorage> data_storage;
-    std::unordered_map<GLuint, std::unique_ptr<TexStorage>> tex_storage;
+    std::shared_ptr<DataStorage> data_storage;
+    std::unordered_map<GLuint, std::shared_ptr<TexStorage>> tex_storage;
 };
 
 template <IsTriviallyCopyable T>
@@ -54,7 +53,7 @@ void MaterialStorage<T>::initDataStorage(GLuint capacity,
     if (data_storage) {
         throw std::logic_error("Already initialized");
     }
-    data_storage = std::make_unique<DataStorage>(storage_flags, capacity, cleanup);
+    data_storage = std::make_shared<DataStorage>(storage_flags, capacity, cleanup);
 }
 
 template <IsTriviallyCopyable T>
@@ -69,7 +68,7 @@ void MaterialStorage<T>::initTexStorage(GLuint tex_i,
     if (tex_storage.contains(tex_i)) {
         throw std::logic_error("Already initialized");
     }
-    tex_storage[tex_i] = std::make_unique<TexStorage>(levels,
+    tex_storage[tex_i] = std::make_shared<TexStorage>(levels,
                                                       width,
                                                       height,
                                                       capacity,

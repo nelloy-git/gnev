@@ -34,10 +34,22 @@
             "cwd": "${workspaceFolder}",
         },
         {
-            "name": "TestsUbuntu",
+            "name": "AutoTestsUbuntu",
             "type": "lldb",
             "request": "launch",
-            "program": "${workspaceFolder}/build/tests",
+            "program": "${workspaceFolder}/build/auto_test",
+            "cwd": "${workspaceFolder}",
+            "console": "internalConsole",
+            "env": {
+                "MESA_GL_VERSION_OVERRIDE": "4.6",
+                "MESA_GLSL_VERSION_OVERRIDE": "460"
+            }
+        },
+        {
+            "name": "ManualTestsUbuntu",
+            "type": "lldb",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/manual_test",
             "cwd": "${workspaceFolder}",
             "console": "internalConsole",
             "env": {

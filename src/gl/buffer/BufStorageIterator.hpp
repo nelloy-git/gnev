@@ -1,5 +1,10 @@
 #pragma once
 
+#include <cstddef>
+#include <cstring>
+#include <stdexcept>
+#include <type_traits>
+
 #include "gl/buffer/BufIterator.hpp"
 
 namespace gnev::gl {
@@ -12,10 +17,14 @@ class EXPORT BufStorageIterator : public BufIterator<T> {
     friend BufStorage<T>;
 
 public:
+    BufStorageIterator(const BufStorageIterator&) = delete;
+    BufStorageIterator(BufStorageIterator&&) = default;
     ~BufStorageIterator();
 
     T getData() const override;
     void setData(const T&) override;
+    void copyFrom(void* dst, std::size_t offset, std::size_t n) const override;
+    void copyTo(const void* src, std::size_t offset, std::size_t n) override;
 
     T& operator*() override;
     const T& operator*() const override;
@@ -64,6 +73,34 @@ void BufStorageIterator<T>::setData(const T& value) {
     BufIterator<T>::getStorage().setSubData(BufIterator<T>::getIndex() * sizeof(T),
                                             sizeof(T),
                                             &value);
+}
+
+template <IsTriviallyCopyable T>
+void BufStorageIterator<T>::copyFrom(void* dst, std::size_t offset, std::size_t n) const {
+    if (offset >= sizeof(T)) {
+        throw std::out_of_range("");
+    }
+
+    if (data) {
+        std::memcpy(dst, reinterpret_cast<char*>(data.get()) + offset, n);
+    }
+    auto buf_offset = BufIterator<T>::getIndex() * sizeof(T) + offset;
+    BufIterator<T>::getStorage().getSubData(BufIterator<T>::getIndex() * sizeof(T),
+                                            sizeof(T),
+                                            dst);
+}
+
+template <IsTriviallyCopyable T>
+void BufStorageIterator<T>::copyTo(const void* src, std::size_t offset, std::size_t n) {
+    if (offset >= sizeof(T)) {
+        throw std::out_of_range("");
+    }
+
+    if (data) {
+        std::memcpy(reinterpret_cast<char*>(data.get()) + offset, src, n);
+    }
+    auto buf_offset = BufIterator<T>::getIndex() * sizeof(T) + offset;
+    BufIterator<T>::getStorage().setSubData(buf_offset, n, src);
 }
 
 template <IsTriviallyCopyable T>

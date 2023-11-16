@@ -8,7 +8,7 @@
 namespace gnev::base {
 
 template <IsMaterial M>
-class MaterialFactory {
+class EXPORT MaterialFactory {
 public:
     using Material = M;
     using Data = M::Data;
@@ -17,7 +17,7 @@ public:
     struct DataStorageSettings {
         GLuint capacity;
         GLbitfield storage_flags;
-        const Storage::DataStorageCleanup& cleanup;
+        const Storage::DataStorageCleanup& clean_up;
     };
 
     struct TexStorageSettings {
@@ -31,13 +31,14 @@ public:
     };
 
     MaterialFactory(const DataStorageSettings& data_settings,
-                    std::initializer_list<TexStorageSettings> tex_settings);
+                    std::initializer_list<
+                        std::reference_wrapper<const TexStorageSettings>> tex_settings);
     virtual ~MaterialFactory();
 
     std::shared_ptr<Storage> getStorage();
     std::shared_ptr<const Storage> getStorage() const;
 
-    Material create();
+    virtual Material create() = 0;
 
 private:
     std::shared_ptr<Storage> storage;
@@ -45,13 +46,15 @@ private:
 
 template <IsMaterial M>
 MaterialFactory<M>::MaterialFactory(const DataStorageSettings& data_settings,
-                                    std::initializer_list<TexStorageSettings>
+                                    std::initializer_list<
+                                        std::reference_wrapper<const TexStorageSettings>>
                                         tex_settings)
     : storage(std::make_shared<Storage>()) {
     storage->initDataStorage(data_settings.capacity,
                              data_settings.storage_flags,
-                             data_settings.cleanup);
-    for (auto& cur : tex_settings) {
+                             data_settings.clean_up);
+    for (auto ref : tex_settings) {
+        const TexStorageSettings& cur = ref;
         storage->initTexStorage(cur.tex_i,
                                 cur.capacity,
                                 cur.levels,
@@ -71,19 +74,9 @@ std::shared_ptr<typename MaterialFactory<M>::Storage> MaterialFactory<M>::getSto
 }
 
 template <IsMaterial M>
-std::shared_ptr<const typename MaterialFactory<M>::Storage> MaterialFactory<M>::getStorage() const {
+std::shared_ptr<const typename MaterialFactory<M>::Storage> MaterialFactory<
+    M>::getStorage() const {
     return storage;
-}
-
-template <IsMaterial M>
-MaterialFactory<M>::Material MaterialFactory<M>::create(){
-    auto store = getStorage();
-    auto data_index = store->getDataStorage().initUnusedIndex();
-    if (not data_index.has_value()){
-        throw std::out_of_range("");
-    }
-    return MaterialPBR(store, data_index.value());
-
 }
 
 } // namespace gnev::base

@@ -4,19 +4,27 @@
 #include <stdexcept>
 
 #include "material/base/MaterialFactory.hpp"
+#include "material/pbr/MaterialDataPBR.hpp"
 #include "material/pbr/MaterialPBR.hpp"
-#include "material/pbr/MaterialStoragePBR.hpp"
 
 namespace gnev {
 
 using Base = base::MaterialFactory<MaterialPBR>;
 
-std::shared_ptr<MaterialStoragePBR> MaterialFactoryPBR::getStorage() {
-    return std::dynamic_pointer_cast<MaterialStoragePBR>(Base::getStorage());
-}
+MaterialFactoryPBR::MaterialFactoryPBR(const DataStorageSettings& data_settings,
+                                       std::initializer_list<std::reference_wrapper<
+                                           const TexStorageSettings>> tex_settings)
+    : base::MaterialFactory<MaterialPBR>(data_settings, tex_settings) {}
 
-std::shared_ptr<const MaterialStoragePBR> MaterialFactoryPBR::getStorage() const {
-    return std::dynamic_pointer_cast<const MaterialStoragePBR>(Base::getStorage());
+MaterialFactoryPBR::~MaterialFactoryPBR() {}
+
+MaterialPBR MaterialFactoryPBR::create() {
+    auto store = getStorage();
+    auto data_index = store->getDataStorage().initUnusedIndex();
+    if (not data_index.has_value()) {
+        throw std::out_of_range("");
+    }
+    return MaterialPBR(store, data_index.value());
 }
 
 } // namespace gnev

@@ -23,7 +23,6 @@ else ()
 endif (WIN32)
 
 include_directories(./src)
-include_directories(./test)
 include_directories(./sample)
 include_directories(./3rdparty/bimap)
 include_directories(./3rdparty/glad/include)
@@ -52,53 +51,63 @@ set_property (TARGET ${PROJECT_NAME}
     CXX_STANDARD 20
 )
 
-# Unit tests
+# Auto tests
 
-file(GLOB_RECURSE TEST_FILES "test/**.cpp")
+include_directories(./test/shared)
+include_directories(./test/auto)
 
-add_executable(tests
+file(GLOB_RECURSE AUTO_TEST_FILES
+    "test/shared/**.cpp"
+    "test/auto/**.cpp"
+)
+
+add_executable(auto_test
     3rdparty/glad/src/gl.c
-    ${TEST_FILES}
+    ${AUTO_TEST_FILES}
 )
 if (WIN32)
-    target_link_libraries(tests
+    target_link_libraries(auto_test
         ${PROJECT_NAME}
         glfw
         GTest::gtest_main
     )
 else()
-    target_link_libraries(tests
+    target_link_libraries(auto_test
         ${PROJECT_NAME}
         glfw
         dl
         GTest::gtest_main
     )
 endif (WIN32)
-target_compile_features(tests PUBLIC cxx_std_20)
+target_compile_features(auto_test PUBLIC cxx_std_20)
 
 include(GoogleTest)
-gtest_discover_tests(tests)
+gtest_discover_tests(auto_test)
 
-# Main test
+# Manual test
 
-# file(GLOB_RECURSE SAMPLE_SRC_FILES "sample/**.cpp")
-# add_executable(${PROJECT_NAME}_sample
-#     ${SAMPLE_SRC_FILES}
-# )
-# target_compile_features(${PROJECT_NAME}_sample PUBLIC cxx_std_20)
+include_directories(./test/shared)
+include_directories(./test/manual)
 
-# if (WIN32)
-#     target_link_libraries(${PROJECT_NAME}_sample
-#         ${PROJECT_NAME}
-#         glfw
-#     )
-# else()
-#     target_link_libraries(${PROJECT_NAME}_sample
-#         ${PROJECT_NAME}
-#         glfw
-#         dl
-#     )
-# endif (WIN32)
+file(GLOB_RECURSE MANUAL_TEST_FILES
+    "test/shared/**.cpp"
+    "test/manual/**.cpp"
+)
 
-# configure_file(shaders/vertex_2d.vs vertex_2d.vs)
-# configure_file(shaders/vertex_2d.fs vertex_2d.fs)
+add_executable(manual_test
+    3rdparty/glad/src/gl.c
+    ${MANUAL_TEST_FILES}
+)
+if (WIN32)
+    target_link_libraries(manual_test
+        ${PROJECT_NAME}
+        glfw
+    )
+else()
+    target_link_libraries(manual_test
+        ${PROJECT_NAME}
+        glfw
+        dl
+    )
+endif (WIN32)
+target_compile_features(manual_test PUBLIC cxx_std_20)

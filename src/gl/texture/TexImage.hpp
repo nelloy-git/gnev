@@ -35,7 +35,7 @@ struct TexImageData {
     }
 
     template <typename T = void>
-    std::shared_ptr<const T> share() {
+    std::shared_ptr<const T> share() const {
         return std::reinterpret_pointer_cast<const T>(buffer);
     }
 
