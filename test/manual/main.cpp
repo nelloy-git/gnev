@@ -4,6 +4,7 @@
 #include <stdexcept>
 
 #include "gl/texture/TexImage.hpp"
+#include "magic_enum.hpp"
 #include "material/image_loader/MaterialImageLoaderStb.hpp"
 #include "material/pbr/MaterialDataStorage_PBR.hpp"
 #include "material/pbr/MaterialGL_PBR.hpp"
@@ -101,9 +102,9 @@ gnev::Material_PBR createMaterial(gnev::MaterialFactory_PBR& factory) {
     gnev::gl::TexImageInfo info{.level = 0,
                                 .x = 0,
                                 .y = 0,
-                                .width = 64,
-                                .height = 64,
-                                .format = GL_RGB,
+                                .width = 32,
+                                .height = 32,
+                                .format = GL_RGBA,
                                 .type = GL_UNSIGNED_BYTE};
 
     auto result =
@@ -115,12 +116,19 @@ gnev::Material_PBR createMaterial(gnev::MaterialFactory_PBR& factory) {
         throw std::runtime_error("");
     }
     std::cout << "TexIndex: " << *result->tex_ref.getIndex() << std::endl;
+    auto full_result =
+        std::dynamic_pointer_cast<gnev::MaterialImageLoaderStbResult>(result);
+    std::cout << "Msgs: [";
+    for (auto msg : full_result->messages) {
+        std::cout << magic_enum::enum_name(msg) << ", ";
+    }
+    std::cout << "]" << std::endl;
 
     material.setTexOffset(gnev::MaterialTexType_PBR::Albedo, {0.2, 0.2, 0.2, 0.2});
     material.setTexMultiplier(gnev::MaterialTexType_PBR::Albedo, {0.1, 0.1, 0.1, 0.1});
 
     auto data_iter = material.lockStorage()->data_storage->at(0);
-    std::cout << *data_iter;
+    std::cout << *data_iter << std::endl;
 
     return material;
 }

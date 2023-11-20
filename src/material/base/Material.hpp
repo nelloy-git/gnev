@@ -33,11 +33,10 @@ public:
     std::optional<MaterialTexRef> getTexRef(MaterialDataIndex index) const;
     void setTexRef(MaterialTexIndex index, std::optional<MaterialTexRef> tex_ref);
 
-    std::shared_ptr<MaterialImageLoader::Result>
-    loadTex(MaterialTexIndex index,
-            MaterialImageLoader& loader,
-            const std::filesystem::path& path,
-            const gl::TexImageInfo& info);
+    std::shared_ptr<MaterialImageLoaderResult> loadTex(MaterialTexIndex index,
+                                                       MaterialImageLoader& loader,
+                                                       const std::filesystem::path& path,
+                                                       const gl::TexImageInfo& info);
 
 private:
     std::weak_ptr<MaterialStorage<T>> weak_storage;
@@ -100,7 +99,7 @@ void Material<T>::setTexRef(MaterialTexIndex index,
 }
 
 template <IsMaterialGL T>
-std::shared_ptr<MaterialImageLoader::Result>
+std::shared_ptr<MaterialImageLoaderResult>
 Material<T>::loadTex(MaterialTexIndex index,
                      MaterialImageLoader& loader,
                      const std::filesystem::path& path,

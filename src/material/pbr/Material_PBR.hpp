@@ -21,7 +21,7 @@ public:
     std::optional<base::MaterialTexRef> getTexRef(MaterialTexType_PBR type) const;
     void setTexRef(MaterialTexType_PBR type, std::optional<base::MaterialTexRef> tex_ref);
 
-    std::shared_ptr<base::MaterialImageLoader::Result>
+    std::shared_ptr<base::MaterialImageLoaderResult>
     loadTex(MaterialTexType_PBR type,
             base::MaterialImageLoader& loader,
             const std::filesystem::path& path,

@@ -19,14 +19,16 @@ public:
     public:
         gl::TexImage to_write;
 
-        std::shared_ptr<Result>
+        std::shared_ptr<base::MaterialImageLoaderResult>
         upload(std::weak_ptr<base::MaterialTexStorage> weak_tex_storage,
                const std::filesystem::path& path,
                const gl::TexImageInfo& info) override {
 
             std::promise<bool> done;
             base::MaterialTexRef tex_ref(weak_tex_storage);
-            auto result = std::make_shared<Result>(done.get_future(), tex_ref);
+            auto result =
+                std::make_shared<base::MaterialImageLoaderResult>(done.get_future(),
+                                                                  tex_ref);
             weak_tex_storage.lock()->at(*tex_ref.getIndex()).setImage(to_write);
             done.set_value(true);
             return result;

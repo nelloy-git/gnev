@@ -35,7 +35,7 @@ void Material_PBR::setTexRef(MaterialTexType_PBR type,
     Base::setTexRef(toUint(type), tex_ref);
 }
 
-std::shared_ptr<base::MaterialImageLoader::Result>
+std::shared_ptr<base::MaterialImageLoaderResult>
 Material_PBR::loadTex(MaterialTexType_PBR type,
                       base::MaterialImageLoader& loader,
                       const std::filesystem::path& path,
