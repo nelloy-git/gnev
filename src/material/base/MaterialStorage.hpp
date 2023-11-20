@@ -1,112 +1,37 @@
 #pragma once
 
+#include <array>
 #include <memory>
-#include <unordered_map>
 
-#include "material/base/Defines.hpp"
-#include "material/base/Material.hpp"
+#include "material/base/MaterialDataStorage.hpp"
+#include "material/base/MaterialGL.hpp"
+#include "material/base/MaterialTexStorage.hpp"
 
 namespace gnev::base {
 
-template <IsTriviallyCopyable T>
+template <IsMaterialGL T>
 class EXPORT MaterialStorage {
 public:
-    using DataStorage = MaterialDataStorage<T>;
-    using TexStorage = MaterialTexStorage;
+    static constexpr MaterialTexIndex TexSize = T::TexSize;
 
-    MaterialStorage();
+    MaterialStorage(const std::shared_ptr<MaterialDataStorage<T>>& data_storage,
+                    const std::array<const std::shared_ptr<MaterialTexRefStorage>,
+                                     TexSize>& tex_storages);
     virtual ~MaterialStorage();
 
-    using DataStorageCleanup = DataStorage::CleanUp;
-    void initDataStorage(GLuint capacity,
-                         GLbitfield storage_flags,
-                         const DataStorageCleanup& cleanup = std::nullopt);
-    DataStorage& getDataStorage();
-    const DataStorage& getDataStorage() const;
-
-    using TexStorageCleanup = TexStorage::CleanUp;
-    void initTexStorage(GLuint tex_i,
-                        GLuint capacity,
-                        GLuint levels,
-                        GLuint width,
-                        GLuint height,
-                        GLenum internal_format,
-                        const TexStorageCleanup& clean_up = std::nullopt);
-    TexStorage& getTexStorage(GLuint tex_i);
-    const TexStorage& getTexStorage(GLuint tex_i) const;
-
-private:
-    std::shared_ptr<DataStorage> data_storage;
-    std::unordered_map<GLuint, std::shared_ptr<TexStorage>> tex_storage;
+    const std::shared_ptr<MaterialDataStorage<T>> data_storage;
+    const std::array<const std::shared_ptr<MaterialTexRefStorage>, TexSize> tex_storages;
 };
 
-template <IsTriviallyCopyable T>
-MaterialStorage<T>::MaterialStorage() {}
+template <IsMaterialGL T>
+MaterialStorage<
+    T>::MaterialStorage(const std::shared_ptr<MaterialDataStorage<T>>& data_storage,
+                        const std::array<const std::shared_ptr<MaterialTexRefStorage>,
+                                         TexSize>& tex_storages)
+    : data_storage(data_storage)
+    , tex_storages(tex_storages) {}
 
-template <IsTriviallyCopyable T>
+template <IsMaterialGL T>
 MaterialStorage<T>::~MaterialStorage() {}
-
-template <IsTriviallyCopyable T>
-void MaterialStorage<T>::initDataStorage(GLuint capacity,
-                                         GLbitfield storage_flags,
-                                         const DataStorageCleanup& cleanup) {
-    if (data_storage) {
-        throw std::logic_error("Already initialized");
-    }
-    data_storage = std::make_shared<DataStorage>(storage_flags, capacity, cleanup);
-}
-
-template <IsTriviallyCopyable T>
-void MaterialStorage<T>::initTexStorage(GLuint tex_i,
-                                        GLuint capacity,
-                                        GLuint levels,
-                                        GLuint width,
-                                        GLuint height,
-                                        GLenum internal_format,
-                                        const TexStorageCleanup& clean_up) {
-
-    if (tex_storage.contains(tex_i)) {
-        throw std::logic_error("Already initialized");
-    }
-    tex_storage[tex_i] = std::make_shared<TexStorage>(levels,
-                                                      width,
-                                                      height,
-                                                      capacity,
-                                                      internal_format,
-                                                      clean_up);
-};
-
-template <IsTriviallyCopyable T>
-MaterialStorage<T>::DataStorage& MaterialStorage<T>::getDataStorage() {
-    if (not data_storage) {
-        throw std::logic_error("Is not initialized");
-    }
-    return *data_storage;
-}
-
-template <IsTriviallyCopyable T>
-const MaterialStorage<T>::DataStorage& MaterialStorage<T>::getDataStorage() const {
-    if (not data_storage) {
-        throw std::logic_error("Is not initialized");
-    }
-    return *data_storage;
-}
-
-template <IsTriviallyCopyable T>
-MaterialStorage<T>::TexStorage& MaterialStorage<T>::getTexStorage(GLuint tex_i) {
-    if (not tex_storage.contains(tex_i)) {
-        throw std::logic_error("Is not initialized");
-    }
-    return *tex_storage.at(tex_i);
-}
-
-template <IsTriviallyCopyable T>
-const MaterialStorage<T>::TexStorage& MaterialStorage<T>::getTexStorage(GLuint tex_i)
-    const {
-    if (not tex_storage.contains(tex_i)) {
-        throw std::logic_error("Is not initialized");
-    }
-    return *tex_storage.at(tex_i);
-}
 
 } // namespace gnev::base

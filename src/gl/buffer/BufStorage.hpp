@@ -19,6 +19,9 @@ public:
     BufStorageIterator<T> operator[](GLuint index);
     const BufStorageIterator<T> operator[](GLuint index) const;
 
+    BufStorageIterator<T> at(GLuint index);
+    const BufStorageIterator<T> at(GLuint index) const;
+
     T* map(GLenum access);
     T* mapRange(GLuint first, GLuint count, GLbitfield access);
     void flushRange(GLuint offset, GLuint count);
@@ -51,6 +54,16 @@ BufStorage<T>::~BufStorage() {}
 
 template <IsTriviallyCopyable T>
 BufStorageIterator<T> BufStorage<T>::operator[](GLuint index) {
+    return at(index);
+}
+
+template <IsTriviallyCopyable T>
+const BufStorageIterator<T> BufStorage<T>::operator[](GLuint index) const {
+    return at(index);
+}
+
+template <IsTriviallyCopyable T>
+BufStorageIterator<T> BufStorage<T>::at(GLuint index) {
     if (index >= capacity) {
         throw std::out_of_range("");
     }
@@ -58,7 +71,7 @@ BufStorageIterator<T> BufStorage<T>::operator[](GLuint index) {
 }
 
 template <IsTriviallyCopyable T>
-const BufStorageIterator<T> BufStorage<T>::operator[](GLuint index) const {
+const BufStorageIterator<T> BufStorage<T>::at(GLuint index) const {
     if (index >= capacity) {
         throw std::out_of_range("");
     }

@@ -4,38 +4,35 @@
 #include <future>
 #include <memory>
 
-#include "gl/texture/TexImage.hpp"
-#include "material/base/Defines.hpp"
+#include "material/base/MaterialStorage.hpp"
 
 namespace gnev::base {
 
-template <IsTriviallyCopyable T>
+template <IsMaterialData T>
 class MaterialStorage;
 
-struct EXPORT MaterialImageUploadResult {
-    MaterialImageUploadResult(std::promise<void>& promise)
-        : finished(promise.get_future()) {}
-
-    std::future<void> finished;
-    std::optional<GLuint> index;
-};
-
 class EXPORT MaterialImageLoader {
-    template <IsTriviallyCopyable T>
+    template <IsMaterialData T>
     friend class MaterialStorage;
 
 public:
-    using UploadResult = std::shared_ptr<const MaterialImageUploadResult>;
+    struct Result {
+        Result(std::future<bool>&& read_done, std::future<bool>&& upload_done)
+            : read_done(std::move(read_done))
+            , upload_done(std::move(upload_done)){};
 
-    MaterialImageLoader(const std::shared_ptr<MaterialTexStorage>& tex_storage)
-        : tex_storage(tex_storage){};
+        std::future<bool> read_done;
+        std::future<bool> upload_done;
+    };
+
+    MaterialImageLoader(){};
     virtual ~MaterialImageLoader(){};
 
-    virtual UploadResult upload(const std::filesystem::path& path,
-                                const gl::TexImageInfo& info) = 0;
-
-protected:
-    std::shared_ptr<MaterialTexStorage> tex_storage;
+    virtual std::shared_ptr<Result> upload(std::shared_ptr<MaterialTexRefStorage>
+                                               tex_storage,
+                                           GLuint tex_index,
+                                           const std::filesystem::path& path,
+                                           const gl::TexImageInfo& info) = 0;
 };
 
 } // namespace gnev::base

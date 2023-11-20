@@ -1,5 +1,6 @@
 #include "material/image_loader/MaterialImageLoaderStb.hpp"
 
+#include <exception>
 #include <future>
 #include <memory>
 #include <optional>
@@ -15,35 +16,53 @@
 
 namespace gnev {
 
-using enum MaterialImageUploadResultStb::Message;
-using UploadResult = MaterialImageLoaderStb::UploadResult;
+using enum MaterialImageLoaderStb::ResultStb::Message;
+using Result = MaterialImageLoaderStb::Result;
 using ImageOpt = std::optional<gl::TexImage>;
 
-MaterialImageLoaderStb::MaterialImageLoaderStb(const std::shared_ptr<
-                                               base::MaterialTexStorage>& tex_storage)
-    : base::MaterialImageLoader(tex_storage) {}
+MaterialImageLoaderStb::MaterialImageLoaderStb() {}
 
 MaterialImageLoaderStb::~MaterialImageLoaderStb() {}
 
-UploadResult MaterialImageLoaderStb::upload(const std::filesystem::path& path,
-                                            const gl::TexImageInfo& info) {
+std::shared_ptr<Result> MaterialImageLoaderStb::
+    upload(std::shared_ptr<base::MaterialTexRefStorage> p_tex_storage,
+           GLuint tex_index,
+           const std::filesystem::path& path,
+           const gl::TexImageInfo& info) {
+
+    if (not p_tex_storage) {
+        throw std::logic_error("");
+    }
 
     if (cache.contains(path)) {
         return cache[path];
     }
 
-    std::promise<void> promise;
-    cache.emplace(path, std::make_shared<MaterialImageUploadResultStb>(promise));
-    auto result = cache[path];
+    auto& storage = *p_tex_storage;
+    std::promise<bool> promise_read_img;
+    std::promise<bool> promise_upload_done;
 
-    auto img_opt = readImage(path, info, *result);
-    if (img_opt.has_value()) {
-        result->index = tex_storage->initUnusedIndex();
-        if (not result->index.has_value()) {
-            throw std::out_of_range("");
-        }
-        auto tex_iter = tex_storage->operator[](result->index.value());
-        tex_iter.setImage(img_opt.value());
+    auto result = std::make_shared<ResultStb>(promise_read_img.get_future(),
+                                              promise_upload_done.get_future());
+    cache.emplace(path, result);
+
+    std::optional<gl::TexImage> img_opt;
+    try {
+        img_opt = readImage(path, info, *result);
+        promise_read_img.set_value(img_opt.has_value());
+    } catch (...) {
+        promise_read_img.set_exception(std::current_exception());
+        return result;
+    }
+
+    if (not img_opt.has_value()) {
+        return result;
+    }
+
+    try {
+        storage[tex_index].setImage(img_opt.value());
+    } catch (...) {
+        promise_upload_done.set_exception(std::current_exception());
     }
 
     return result;
@@ -51,7 +70,7 @@ UploadResult MaterialImageLoaderStb::upload(const std::filesystem::path& path,
 
 ImageOpt MaterialImageLoaderStb::readImage(const std::filesystem::path& path,
                                            const gl::TexImageInfo& load_info,
-                                           MaterialImageUploadResultStb& result) {
+                                           ResultStb& result) {
     if (not validateInfo(load_info, result)) {
         result.messages.push_back(UnsupportedInfo);
         return std::nullopt;
@@ -75,7 +94,7 @@ ImageOpt MaterialImageLoaderStb::readImage(const std::filesystem::path& path,
 }
 
 bool MaterialImageLoaderStb::validateInfo(const gl::TexImageInfo& info,
-                                          MaterialImageUploadResultStb& result) {
+                                          ResultStb& result) {
     bool valid = true;
 
     if (info.x != 0) {
@@ -107,8 +126,7 @@ bool MaterialImageLoaderStb::validateInfo(const gl::TexImageInfo& info,
 
 gl::TexImageInfo MaterialImageLoaderStb::prepareInfo(const gl::TexImageInfo& info,
                                                      const StbInfo& stb_info,
-                                                     MaterialImageUploadResultStb&
-                                                         result) {
+                                                     ResultStb& result) {
     gl::TexImageInfo dst_info = info;
 
     if (getComponents(info) != stb_info.comp) {

@@ -10,19 +10,19 @@
 
 // namespace gnev {
 
-// class EXPORT MaterialTextureLoader {
+// class EXPORT MaterialTexReftureLoader {
 // public:
 //     struct TextureLocation {
 //         GLuint array_index;
 //         GLuint pos_index;
 //     };
 
-//     MaterialTextureLoader(const std::shared_ptr<GladGLContext>& ctx,
+//     MaterialTexReftureLoader(const std::shared_ptr<GladGLContext>& ctx,
 //                           GLsizei mipmap_levels,
 //                           GLsizei img_width,
 //                           GLsizei img_height,
 //                           GLsizei img_components);
-//     virtual ~MaterialTextureLoader();
+//     virtual ~MaterialTexReftureLoader();
 
 //     const std::shared_ptr<GladGLContext>& ctx() const;
 

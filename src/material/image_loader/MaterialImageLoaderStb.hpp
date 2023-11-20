@@ -10,41 +10,46 @@
 
 namespace gnev {
 
-struct MaterialImageUploadResultStb : public base::MaterialImageUploadResult {
-    enum class Message {
-        Done,
-        Failed,
-        UnsupportedLevel,
-        UnsupportedX,
-        UnsupportedY,
-        UnsupportedWidth,
-        UnsupportedHeight,
-        UnsupportedFormat,
-        UnsupportedType,
-        UnsupportedInfo,
-        FileDoNotExist,
-        OriginalImageHasDifferentFormat,
-        ImageResized,
-        AutoFormat,
-        AutoWidth,
-        AutoHeight
-    };
-
-    std::vector<Message> messages;
-};
-
 class EXPORT MaterialImageLoaderStb : public base::MaterialImageLoader {
 public:
-    MaterialImageLoaderStb(const std::shared_ptr<base::MaterialTexStorage>& tex_storage);
+    MaterialImageLoaderStb();
     virtual ~MaterialImageLoaderStb();
 
-    UploadResult upload(const std::filesystem::path& path,
-                        const gl::TexImageInfo& info) override;
+    std::shared_ptr<Result> upload(std::shared_ptr<base::MaterialTexRefStorage>
+                                       tex_storage,
+                                   GLuint tex_index,
+                                   const std::filesystem::path& path,
+                                   const gl::TexImageInfo& info) override;
+
+    struct ResultStb : public Result {
+        enum class Message {
+            Done,
+            Failed,
+            UnsupportedLevel,
+            UnsupportedX,
+            UnsupportedY,
+            UnsupportedWidth,
+            UnsupportedHeight,
+            UnsupportedFormat,
+            UnsupportedType,
+            UnsupportedInfo,
+            FileDoNotExist,
+            OriginalImageHasDifferentFormat,
+            ImageResized,
+            AutoFormat,
+            AutoWidth,
+            AutoHeight
+        };
+
+        ResultStb(std::future<bool>&& read_done, std::future<bool>&& upload_done)
+            : Result(std::move(read_done), std::move(upload_done)) {}
+
+        std::vector<Message> messages;
+    };
 
 private:
     using Buffer = std::shared_ptr<GLubyte[]>;
-
-    std::unordered_map<std::filesystem::path, std::shared_ptr<MaterialImageUploadResultStb>> cache;
+    std::unordered_map<std::filesystem::path, std::shared_ptr<ResultStb>> cache;
 
     struct StbInfo {
         int width;
@@ -54,13 +59,12 @@ private:
 
     static std::optional<gl::TexImage> readImage(const std::filesystem::path& path,
                                                  const gl::TexImageInfo& load_info,
-                                                 MaterialImageUploadResultStb& result);
+                                                 ResultStb& result);
 
-    static bool validateInfo(const gl::TexImageInfo& info,
-                             MaterialImageUploadResultStb& result);
+    static bool validateInfo(const gl::TexImageInfo& info, ResultStb& result);
     static gl::TexImageInfo prepareInfo(const gl::TexImageInfo& info,
                                         const StbInfo& stb_info,
-                                        MaterialImageUploadResultStb& result);
+                                        ResultStb& result);
 
     static unsigned int getComponents(const gl::TexImageInfo& info);
     static std::size_t getBufferSize(const gl::TexImageInfo& info);

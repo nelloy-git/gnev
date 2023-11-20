@@ -17,6 +17,9 @@ public:
     BufStorageIterator<T> operator[](GLuint index);
     const BufStorageIterator<T> operator[](GLuint index) const;
 
+    BufStorageIterator<T> at(GLuint index);
+    const BufStorageIterator<T> at(GLuint index) const;
+
     std::optional<GLuint> initUnusedIndex();
     void freeIndex(GLuint index);
     bool containsIndex(const GLuint& index) const;
@@ -42,6 +45,16 @@ BufStorageIndexMap<T>::~BufStorageIndexMap() {}
 
 template <IsTriviallyCopyable T>
 BufStorageIterator<T> BufStorageIndexMap<T>::operator[](GLuint index) {
+    return at(index);
+}
+
+template <IsTriviallyCopyable T>
+const BufStorageIterator<T> BufStorageIndexMap<T>::operator[](GLuint index) const {
+    return at(index);
+}
+
+template <IsTriviallyCopyable T>
+BufStorageIterator<T> BufStorageIndexMap<T>::at(GLuint index) {
     if (unused.contains(index)) {
         throw std::out_of_range("");
     }
@@ -49,7 +62,7 @@ BufStorageIterator<T> BufStorageIndexMap<T>::operator[](GLuint index) {
 }
 
 template <IsTriviallyCopyable T>
-const BufStorageIterator<T> BufStorageIndexMap<T>::operator[](GLuint index) const {
+const BufStorageIterator<T> BufStorageIndexMap<T>::at(GLuint index) const {
     if (unused.contains(index)) {
         throw std::out_of_range("");
     }

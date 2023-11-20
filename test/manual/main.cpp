@@ -1,5 +1,7 @@
 
 #include <optional>
+
+#include "material/pbr/MaterialDataPBR.hpp"
 #ifdef WIN32
 #include <vld.h>
 #endif
@@ -11,6 +13,7 @@
 #include "GlfwWindow.hpp"
 #include "gl/Ctx.hpp"
 #include "gl/Program.hpp"
+#include "material/image_loader/MaterialImageLoaderStb.hpp"
 #include "material/pbr/MaterialFactoryPBR.hpp"
 #include "shader/ProgramBuilder.hpp"
 
@@ -72,50 +75,54 @@ gnev::MaterialFactoryPBR buildMaterialFactory() {
         .width = 64,
         .height = 64,
         .internal_format = GL_RGBA8,
-        .clean_up = std::nullopt};
+        .clean_up = std::nullopt,
+        .loader = std::make_shared<gnev::MaterialImageLoaderStb>()};
 
-    gnev::MaterialFactoryPBR::TexStorageSettings normal_settings{
-        .tex_i = 1,
-        .capacity = CAP,
-        .levels = 1,
-        .width = 64,
-        .height = 64,
-        .internal_format = GL_RGBA8,
-        .clean_up = std::nullopt};
+    // gnev::MaterialFactoryPBR::TexStorageSettings normal_settings{
+    //     .tex_i = 1,
+    //     .capacity = CAP,
+    //     .levels = 1,
+    //     .width = 64,
+    //     .height = 64,
+    //     .internal_format = GL_RGBA8,
+    //     .clean_up = std::nullopt};
 
-    gnev::MaterialFactoryPBR::TexStorageSettings metallic_settings{
-        .tex_i = 2,
-        .capacity = CAP,
-        .levels = 1,
-        .width = 64,
-        .height = 64,
-        .internal_format = GL_RGBA8,
-        .clean_up = std::nullopt};
+    // gnev::MaterialFactoryPBR::TexStorageSettings metallic_settings{
+    //     .tex_i = 2,
+    //     .capacity = CAP,
+    //     .levels = 1,
+    //     .width = 64,
+    //     .height = 64,
+    //     .internal_format = GL_RGBA8,
+    //     .clean_up = std::nullopt};
 
-    gnev::MaterialFactoryPBR::TexStorageSettings roughness_settings{
-        .tex_i = 3,
-        .capacity = CAP,
-        .levels = 1,
-        .width = 64,
-        .height = 64,
-        .internal_format = GL_RGBA8,
-        .clean_up = std::nullopt};
+    // gnev::MaterialFactoryPBR::TexStorageSettings roughness_settings{
+    //     .tex_i = 3,
+    //     .capacity = CAP,
+    //     .levels = 1,
+    //     .width = 64,
+    //     .height = 64,
+    //     .internal_format = GL_RGBA8,
+    //     .clean_up = std::nullopt};
 
-    gnev::MaterialFactoryPBR::TexStorageSettings ambient_occlusion_settings{
-        .tex_i = 4,
-        .capacity = CAP,
-        .levels = 1,
-        .width = 64,
-        .height = 64,
-        .internal_format = GL_RGBA8,
-        .clean_up = std::nullopt};
+    // gnev::MaterialFactoryPBR::TexStorageSettings ambient_occlusion_settings{
+    //     .tex_i = 4,
+    //     .capacity = CAP,
+    //     .levels = 1,
+    //     .width = 64,
+    //     .height = 64,
+    //     .internal_format = GL_RGBA8,
+    //     .clean_up = std::nullopt};
 
-    return gnev::MaterialFactoryPBR(data_settings,
-                                    {albedo_settings,
-                                     normal_settings,
-                                     metallic_settings,
-                                     roughness_settings,
-                                     ambient_occlusion_settings});
+    auto factory = gnev::MaterialFactoryPBR(data_settings,
+                                            {
+                                                albedo_settings,
+                                                //  normal_settings,
+                                                //  metallic_settings,
+                                                //  roughness_settings,
+                                                //  ambient_occlusion_settings
+                                            });
+    return factory;
 }
 
 int main(int argc, const char** argv) {
@@ -135,8 +142,12 @@ int main(int argc, const char** argv) {
 
     auto program = buildProgram();
     auto material_factory = buildMaterialFactory();
-
     auto material = material_factory.create();
+
+    auto current_dir = std::filesystem::current_path();
+    material.uploadTexture(gnev::ParamPBR::Albedo,
+                           current_dir / "3rdparty" / "minecraft_textures" / "gravel.png",
+                           0);
 
     while (not close_window) {
         wnd.pollEvents();

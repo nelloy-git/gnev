@@ -1,6 +1,7 @@
 #pragma once
 
 #include <initializer_list>
+#include <memory>
 
 #include "material/base/Material.hpp"
 #include "material/base/MaterialStorage.hpp"
@@ -17,7 +18,7 @@ public:
     struct DataStorageSettings {
         GLuint capacity;
         GLbitfield storage_flags;
-        const Storage::DataStorageCleanup& clean_up;
+        const MaterialDataStorage<Data>::CleanUp& clean_up;
     };
 
     struct TexStorageSettings {
@@ -27,7 +28,8 @@ public:
         GLuint width;
         GLuint height;
         GLenum internal_format;
-        const Storage::TexStorageCleanup& clean_up;
+        const MaterialTexRefStorage::CleanUp& clean_up;
+        const std::shared_ptr<MaterialImageLoader>& loader;
     };
 
     MaterialFactory(const DataStorageSettings& data_settings,
@@ -62,6 +64,7 @@ MaterialFactory<M>::MaterialFactory(const DataStorageSettings& data_settings,
                                 cur.height,
                                 cur.internal_format,
                                 cur.clean_up);
+        storage->setImageLoader(cur.tex_i, cur.loader);
     }
 }
 

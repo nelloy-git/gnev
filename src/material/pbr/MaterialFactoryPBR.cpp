@@ -20,7 +20,7 @@ MaterialFactoryPBR::~MaterialFactoryPBR() {}
 
 MaterialPBR MaterialFactoryPBR::create() {
     auto store = getStorage();
-    auto data_index = store->getDataStorage().initUnusedIndex();
+    auto data_index = store->getDataStorage()->initUnusedIndex();
     if (not data_index.has_value()) {
         throw std::out_of_range("");
     }
