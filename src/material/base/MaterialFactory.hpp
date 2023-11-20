@@ -11,75 +11,24 @@ namespace gnev::base {
 template <IsMaterial M>
 class EXPORT MaterialFactory {
 public:
-    using Material = M;
     using Data = M::Data;
-    using Storage = MaterialStorage<Data>;
+    static constexpr MaterialTexIndex TexSize = M::TexSize;
 
-    struct DataStorageSettings {
-        GLuint capacity;
-        GLbitfield storage_flags;
-        const MaterialDataStorage<Data>::CleanUp& clean_up;
-    };
-
-    struct TexStorageSettings {
-        GLuint tex_i;
-        GLuint capacity;
-        GLuint levels;
-        GLuint width;
-        GLuint height;
-        GLenum internal_format;
-        const MaterialTexRefStorage::CleanUp& clean_up;
-        const std::shared_ptr<MaterialImageLoader>& loader;
-    };
-
-    MaterialFactory(const DataStorageSettings& data_settings,
-                    std::initializer_list<
-                        std::reference_wrapper<const TexStorageSettings>> tex_settings);
+    MaterialFactory(const std::shared_ptr<MaterialStorage<Data>>& storage);
     virtual ~MaterialFactory();
 
-    std::shared_ptr<Storage> getStorage();
-    std::shared_ptr<const Storage> getStorage() const;
+    const std::shared_ptr<MaterialStorage<Data>> storage;
 
-    virtual Material create() = 0;
+    virtual M create() = 0;
 
 private:
-    std::shared_ptr<Storage> storage;
 };
 
 template <IsMaterial M>
-MaterialFactory<M>::MaterialFactory(const DataStorageSettings& data_settings,
-                                    std::initializer_list<
-                                        std::reference_wrapper<const TexStorageSettings>>
-                                        tex_settings)
-    : storage(std::make_shared<Storage>()) {
-    storage->initDataStorage(data_settings.capacity,
-                             data_settings.storage_flags,
-                             data_settings.clean_up);
-    for (auto ref : tex_settings) {
-        const TexStorageSettings& cur = ref;
-        storage->initTexStorage(cur.tex_i,
-                                cur.capacity,
-                                cur.levels,
-                                cur.width,
-                                cur.height,
-                                cur.internal_format,
-                                cur.clean_up);
-        storage->setImageLoader(cur.tex_i, cur.loader);
-    }
-}
+MaterialFactory<M>::MaterialFactory(const std::shared_ptr<MaterialStorage<Data>>& storage)
+    : storage(storage) {}
 
 template <IsMaterial M>
 MaterialFactory<M>::~MaterialFactory() {}
-
-template <IsMaterial M>
-std::shared_ptr<typename MaterialFactory<M>::Storage> MaterialFactory<M>::getStorage() {
-    return storage;
-}
-
-template <IsMaterial M>
-std::shared_ptr<const typename MaterialFactory<M>::Storage> MaterialFactory<
-    M>::getStorage() const {
-    return storage;
-}
 
 } // namespace gnev::base

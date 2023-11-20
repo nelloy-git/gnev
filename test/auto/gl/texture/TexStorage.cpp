@@ -17,13 +17,13 @@ public:
     std::size_t init_capacity = 4;
     static constexpr auto init_value = [](GLuint level, GLuint pos) { return 0; };
 
-    TexStorage initStorage(std::function<GLubyte(GLuint level, GLuint pos)>
-                                     initial = init_value) const {
+    TexStorage initStorage(std::function<GLubyte(GLuint level, GLuint pos)> initial =
+                               init_value) const {
         TexStorage storage(init_levels,
-                                 init_width,
-                                 init_height,
-                                 init_capacity,
-                                 init_internal_format);
+                           init_width,
+                           init_height,
+                           init_capacity,
+                           init_internal_format);
 
         EXPECT_EQ(init_levels, storage.getLevels());
         EXPECT_EQ(init_capacity, storage.getCapacity());

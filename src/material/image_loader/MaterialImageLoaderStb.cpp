@@ -8,6 +8,8 @@
 
 #include "gl/texture/TexImage.hpp"
 #include "material/base/MaterialImageLoader.hpp"
+#include "material/base/MaterialTexStorage.hpp"
+#include "material/pbr/MaterialGL_PBR.hpp"
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
@@ -24,47 +26,38 @@ MaterialImageLoaderStb::MaterialImageLoaderStb() {}
 
 MaterialImageLoaderStb::~MaterialImageLoaderStb() {}
 
-std::shared_ptr<Result> MaterialImageLoaderStb::
-    upload(std::shared_ptr<base::MaterialTexRefStorage> p_tex_storage,
-           GLuint tex_index,
-           const std::filesystem::path& path,
-           const gl::TexImageInfo& info) {
-
-    if (not p_tex_storage) {
-        throw std::logic_error("");
-    }
+std::shared_ptr<Result>
+MaterialImageLoaderStb::upload(std::weak_ptr<base::MaterialTexStorage> weak_tex_storage,
+                               const std::filesystem::path& path,
+                               const gl::TexImageInfo& info) {
 
     if (cache.contains(path)) {
         return cache[path];
     }
 
-    auto& storage = *p_tex_storage;
-    std::promise<bool> promise_read_img;
-    std::promise<bool> promise_upload_done;
+    auto p_tex_storage = weak_tex_storage.lock();
+    if (not p_tex_storage) {
+        throw std::runtime_error("");
+    }
 
-    auto result = std::make_shared<ResultStb>(promise_read_img.get_future(),
-                                              promise_upload_done.get_future());
+    std::promise<bool> done;
+    base::MaterialTexRef tex_ref(weak_tex_storage);
+    auto result = std::make_shared<ResultStb>(done.get_future(), tex_ref);
     cache.emplace(path, result);
 
+    auto& storage = *p_tex_storage;
     std::optional<gl::TexImage> img_opt;
     try {
         img_opt = readImage(path, info, *result);
-        promise_read_img.set_value(img_opt.has_value());
+        if (not img_opt.has_value()) {
+            throw std::runtime_error("");
+        }
+        storage.at(*tex_ref.getIndex()).setImage(img_opt.value());
     } catch (...) {
-        promise_read_img.set_exception(std::current_exception());
-        return result;
+        done.set_exception(std::current_exception());
     }
 
-    if (not img_opt.has_value()) {
-        return result;
-    }
-
-    try {
-        storage[tex_index].setImage(img_opt.value());
-    } catch (...) {
-        promise_upload_done.set_exception(std::current_exception());
-    }
-
+    done.set_value(true);
     return result;
 }
 
@@ -148,13 +141,13 @@ gl::TexImageInfo MaterialImageLoaderStb::prepareInfo(const gl::TexImageInfo& inf
 
 unsigned int MaterialImageLoaderStb::getComponents(const gl::TexImageInfo& info) {
     switch (info.format) {
-    case GL_R8:
+    case GL_RED:
         return 1;
-    case GL_RG8:
+    case GL_RG:
         return 2;
-    case GL_RGB8:
+    case GL_RGB:
         return 3;
-    case GL_RGBA8:
+    case GL_RGBA:
         return 4;
     default:
         return 0;
@@ -165,8 +158,10 @@ std::size_t MaterialImageLoaderStb::getBufferSize(const gl::TexImageInfo& info) 
     return info.width * info.height * getComponents(info) * sizeof(unsigned int);
 }
 
-MaterialImageLoaderStb::Buffer MaterialImageLoaderStb::
-    stbiLoad(const std::filesystem::path& path, StbInfo& stb_info, int req_comp) {
+MaterialImageLoaderStb::Buffer
+MaterialImageLoaderStb::stbiLoad(const std::filesystem::path& path,
+                                 StbInfo& stb_info,
+                                 int req_comp) {
     stbi_set_flip_vertically_on_load(true);
     return {stbi_load(path.string().c_str(),
                       &stb_info.width,
@@ -176,10 +171,10 @@ MaterialImageLoaderStb::Buffer MaterialImageLoaderStb::
             &stbi_image_free};
 }
 
-MaterialImageLoaderStb::Buffer MaterialImageLoaderStb::stbiResize(const Buffer& img,
-                                                                  const StbInfo& src_info,
-                                                                  const gl::TexImageInfo&
-                                                                      dst_info) {
+MaterialImageLoaderStb::Buffer
+MaterialImageLoaderStb::stbiResize(const Buffer& img,
+                                   const StbInfo& src_info,
+                                   const gl::TexImageInfo& dst_info) {
     if (dst_info.width != src_info.width || dst_info.height != src_info.height) {
         Buffer resized(new GLubyte[getBufferSize(dst_info)]);
         stbir_resize_uint8(img.get(),

@@ -36,7 +36,7 @@ BufStorageIndexMap<T>::BufStorageIndexMap(GLbitfield storage_flags,
     : BufStorage<T>(storage_flags, capacity, {}, T{})
     , clean_up(clean_up) {
     for (GLuint i = 0; i < capacity; ++i) {
-        unused.insert(unused.end(), i);
+        unused.insert(unused.end(), capacity - i - 1);
     }
 }
 

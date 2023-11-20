@@ -17,8 +17,8 @@ public:
 
     virtual T getData() const = 0;
     virtual void setData(const T&) = 0;
-    virtual void copyFrom(void* dst, std::size_t data_offset, std::size_t n) const = 0;
-    virtual void copyTo(const void* src, std::size_t data_offset, std::size_t n) = 0;
+    virtual void copyTo(void* dst, std::size_t data_offset, std::size_t n) const = 0;
+    virtual void copyFrom(const void* src, std::size_t data_offset, std::size_t n) = 0;
 
     virtual T& operator*() = 0;
     virtual const T& operator*() const = 0;

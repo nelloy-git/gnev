@@ -3,6 +3,7 @@
 #include <memory>
 #include <stdexcept>
 
+#include "gl/buffer/BufStorageIterator.hpp"
 #include "material/base/MaterialDataStorage.hpp"
 
 namespace gnev::base {
@@ -13,12 +14,17 @@ public:
     MaterialDataRef(const std::weak_ptr<MaterialDataStorage<T>>& weak_storage);
     virtual ~MaterialDataRef();
 
-    const std::weak_ptr<MaterialDataStorage<T>> weak_storage;
-    const std::shared_ptr<const MaterialDataIndex> index;
+    std::weak_ptr<MaterialDataStorage<T>> getWeakStorage() const;
+    std::shared_ptr<MaterialDataStorage<T>> lockStorage() const;
+    std::shared_ptr<const MaterialTexIndex> getIndex() const;
 
-    auto lockStorage() const;
+    std::pair<std::shared_ptr<MaterialDataStorage<T>>, gl::BufStorageIterator<T>>
+    lockIter() const;
 
 private:
+    std::weak_ptr<MaterialDataStorage<T>> weak_storage;
+    std::shared_ptr<const MaterialDataIndex> index;
+
     static std::shared_ptr<const MaterialDataIndex>
     init(const std::weak_ptr<MaterialDataStorage<T>>& weak_storage);
 };
@@ -33,12 +39,25 @@ template <IsMaterialGL T>
 MaterialDataRef<T>::~MaterialDataRef() {}
 
 template <IsMaterialGL T>
-auto MaterialDataRef<T>::lockStorage() const {
-    auto store = weak_storage.lock();
-    if (not store){
-        throw std::runtime_error("");
-    }
-    return store;
+std::weak_ptr<MaterialDataStorage<T>> MaterialDataRef<T>::getWeakStorage() const {
+    return weak_storage;
+}
+
+template <IsMaterialGL T>
+std::shared_ptr<MaterialDataStorage<T>> MaterialDataRef<T>::lockStorage() const {
+    return std::shared_ptr<MaterialDataStorage<T>>(weak_storage);
+}
+
+template <IsMaterialGL T>
+std::shared_ptr<const MaterialTexIndex> MaterialDataRef<T>::getIndex() const {
+    return index;
+}
+
+template <IsMaterialGL T>
+std::pair<std::shared_ptr<MaterialDataStorage<T>>, gl::BufStorageIterator<T>>
+MaterialDataRef<T>::lockIter() const {
+    auto storage = lockStorage();
+    return {storage, storage->at(*index)};
 }
 
 template <IsMaterialGL T>

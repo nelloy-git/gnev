@@ -1,25 +1,30 @@
+#include "material/base/MaterialTexStorage.hpp"
+
+#include "gl/texture/TexStorageIterator.hpp"
 #include "material/base/Define.hpp"
-#include "material/base/MaterialTexRefStorage.hpp"
 
 namespace gnev::base {
 
-MaterialTexRefStorage::MaterialTexRefStorage(GLuint capacity,
-                                             GLuint levels,
-                                             GLuint width,
-                                             GLuint height,
-                                             GLenum internal_format,
-                                             const gl::TexStorageIndexMap::CleanUp&
-                                                 clean_up)
+MaterialTexStorage::MaterialTexStorage(GLuint capacity,
+                                       GLuint levels,
+                                       GLuint width,
+                                       GLuint height,
+                                       GLenum internal_format,
+                                       const gl::TexStorageIndexMap::CleanUp& clean_up)
     : storage(levels, width, height, capacity, internal_format, clean_up) {}
 
-MaterialTexRefStorage::~MaterialTexRefStorage() {}
+MaterialTexStorage::~MaterialTexStorage() {}
 
-std::optional<MaterialTexRefIndex> MaterialTexRefStorage::initIndex() {
+std::optional<MaterialTexIndex> MaterialTexStorage::initIndex() {
     return storage.initUnusedIndex();
 }
 
-void MaterialTexRefStorage::freeIndex(MaterialTexRefIndex index) {
-    storage.freeIndex(index);
+void MaterialTexStorage::freeIndex(MaterialTexIndex index) { storage.freeIndex(index); }
+
+gl::TexStorageIterator MaterialTexStorage::at(GLuint index) { return storage.at(index); }
+
+const gl::TexStorageIterator MaterialTexStorage::at(GLuint index) const {
+    return storage.at(index);
 }
 
 } // namespace gnev::base

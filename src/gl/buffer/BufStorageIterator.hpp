@@ -23,8 +23,8 @@ public:
 
     T getData() const override;
     void setData(const T&) override;
-    void copyFrom(void* dst, std::size_t offset, std::size_t n) const override;
-    void copyTo(const void* src, std::size_t offset, std::size_t n) override;
+    void copyTo(void* dst, std::size_t offset, std::size_t n) const override;
+    void copyFrom(const void* src, std::size_t offset, std::size_t n) override;
 
     T& operator*() override;
     const T& operator*() const override;
@@ -76,7 +76,7 @@ void BufStorageIterator<T>::setData(const T& value) {
 }
 
 template <IsTriviallyCopyable T>
-void BufStorageIterator<T>::copyFrom(void* dst, std::size_t offset, std::size_t n) const {
+void BufStorageIterator<T>::copyTo(void* dst, std::size_t offset, std::size_t n) const {
     if (offset >= sizeof(T)) {
         throw std::out_of_range("");
     }
@@ -91,7 +91,7 @@ void BufStorageIterator<T>::copyFrom(void* dst, std::size_t offset, std::size_t 
 }
 
 template <IsTriviallyCopyable T>
-void BufStorageIterator<T>::copyTo(const void* src, std::size_t offset, std::size_t n) {
+void BufStorageIterator<T>::copyFrom(const void* src, std::size_t offset, std::size_t n) {
     if (offset >= sizeof(T)) {
         throw std::out_of_range("");
     }

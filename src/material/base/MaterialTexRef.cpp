@@ -1,17 +1,29 @@
 #include "material/base/MaterialTexRef.hpp"
 
-#include "material/base/Define.hpp"
+#include <stdexcept>
+
+#include "material/base/MaterialTexStorage.hpp"
 
 namespace gnev::base {
 
-MaterialTexRef::MaterialTexRef(const std::weak_ptr<MaterialTexRefStorage>& weak_storage)
+MaterialTexRef::MaterialTexRef(const std::weak_ptr<MaterialTexStorage>& weak_storage)
     : weak_storage(weak_storage)
     , index(init(weak_storage)) {}
 
 MaterialTexRef::~MaterialTexRef() {}
 
+std::weak_ptr<MaterialTexStorage> MaterialTexRef::getWeakStorage() const {
+    return weak_storage;
+}
+
+std::shared_ptr<MaterialTexStorage> MaterialTexRef::lockStorage() const {
+    return std::shared_ptr<MaterialTexStorage>(weak_storage);
+}
+
+std::shared_ptr<const MaterialTexIndex> MaterialTexRef::getIndex() const { return index; }
+
 std::shared_ptr<const MaterialTexIndex>
-MaterialTexRef::init(const std::weak_ptr<MaterialTexRefStorage>& weak_storage) {
+MaterialTexRef::init(const std::weak_ptr<MaterialTexStorage>& weak_storage) {
     auto storage = weak_storage.lock();
     if (!storage) {
         throw std::runtime_error("");

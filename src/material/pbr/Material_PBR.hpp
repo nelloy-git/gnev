@@ -10,20 +10,30 @@ namespace gnev {
 
 class Material_PBR : public base::Material<MaterialGL_PBR> {
 public:
-    Material_PBR(MaterialStorage_PBR& storage);
+    Material_PBR(const std::weak_ptr<MaterialStorage_PBR>& weak_storage);
+    Material_PBR(const Material_PBR&) = delete;
+    Material_PBR(Material_PBR&&) = default;
     ~Material_PBR();
 
-    void setTextureIndex(MaterialTexRefType_PBR type, GLuint value);
-    GLuint getTextureIndex(MaterialTexRefType_PBR type) const;
+    std::weak_ptr<MaterialStorage_PBR> getWeakStorage() const;
+    std::shared_ptr<MaterialStorage_PBR> lockStorage() const;
 
-    void uploadTexture(MaterialTexRefType_PBR type,
-                       const std::filesystem::path& path,
-                       GLuint level);
+    std::optional<base::MaterialTexRef> getTexRef(MaterialTexType_PBR type) const;
+    void setTexRef(MaterialTexType_PBR type, std::optional<base::MaterialTexRef> tex_ref);
 
-    void setTextureOffset(MaterialTexRefType_PBR type, const glm::vec4& value);
-    glm::vec4 getTextureOffset(MaterialTexRefType_PBR type) const;
+    std::shared_ptr<base::MaterialImageLoader::Result>
+    loadTex(MaterialTexType_PBR type,
+            base::MaterialImageLoader& loader,
+            const std::filesystem::path& path,
+            const gl::TexImageInfo& info);
 
-    void setTextureMultiplier(MaterialTexRefType_PBR type, const glm::vec4& value);
-    glm::vec4 getTextureMultiplier(MaterialTexRefType_PBR type) const;
+    void setTexOffset(MaterialTexType_PBR type, const glm::vec4& value);
+    glm::vec4 getTexOffset(MaterialTexType_PBR type) const;
+
+    void setTexMultiplier(MaterialTexType_PBR type, const glm::vec4& value);
+    glm::vec4 getTexMultiplier(MaterialTexType_PBR type) const;
+
+private:
 };
+
 } // namespace gnev

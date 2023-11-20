@@ -1,7 +1,16 @@
 
+#include <memory>
 #include <optional>
+#include <stdexcept>
 
-#include "material/pbr/MaterialDataPBR.hpp"
+#include "gl/texture/TexImage.hpp"
+#include "material/image_loader/MaterialImageLoaderStb.hpp"
+#include "material/pbr/MaterialDataStorage_PBR.hpp"
+#include "material/pbr/MaterialGL_PBR.hpp"
+#include "material/pbr/MaterialStorage_PBR.hpp"
+#include "material/pbr/MaterialTexStorage_PBR.hpp"
+#include "material/pbr/Material_PBR.hpp"
+
 #ifdef WIN32
 #include <vld.h>
 #endif
@@ -13,8 +22,8 @@
 #include "GlfwWindow.hpp"
 #include "gl/Ctx.hpp"
 #include "gl/Program.hpp"
-#include "material/image_loader/MaterialImageLoaderStb.hpp"
-#include "material/pbr/MaterialFactoryPBR.hpp"
+// #include "material/image_loader/MaterialImageLoaderStb.hpp"
+#include "material/pbr/MaterialFactory_PBR.hpp"
 #include "shader/ProgramBuilder.hpp"
 
 #define GLFW_INCLUDE_NONE
@@ -60,69 +69,60 @@ gnev::gl::Program buildProgram() {
     return std::move(program.value());
 }
 
-gnev::MaterialFactoryPBR buildMaterialFactory() {
+gnev::MaterialFactory_PBR buildMaterialFactory() {
     static constexpr GLuint CAP = 10;
+    static constexpr GLuint WIDTH = 64;
+    static constexpr GLuint HEIGHT = 64;
 
-    gnev::MaterialFactoryPBR::DataStorageSettings data_settings{
-        .capacity = 10,
-        .storage_flags = GL_DYNAMIC_STORAGE_BIT,
-        .clean_up = std::nullopt};
+    auto data_storage =
+        std::make_shared<gnev::MaterialDataStorage_PBR>(GL_DYNAMIC_STORAGE_BIT,
+                                                        CAP,
+                                                        std::nullopt);
+    // clang-format off
+    std::array<const std::shared_ptr<gnev::MaterialTexStorage_PBR>, 5> tex_storages = {
+        std::make_shared<gnev::MaterialTexStorage_PBR>(CAP, 1, WIDTH, HEIGHT, GL_RGBA8, std::nullopt),
+        std::make_shared<gnev::MaterialTexStorage_PBR>(CAP, 1, WIDTH, HEIGHT, GL_RGBA8, std::nullopt),
+        std::make_shared<gnev::MaterialTexStorage_PBR>(CAP, 1, WIDTH, HEIGHT, GL_RGBA8, std::nullopt),
+        std::make_shared<gnev::MaterialTexStorage_PBR>(CAP, 1, WIDTH, HEIGHT, GL_RGBA8, std::nullopt),
+        std::make_shared<gnev::MaterialTexStorage_PBR>(CAP, 1, WIDTH, HEIGHT, GL_RGBA8, std::nullopt),
+    };
+    // clang-format on
+    auto storage =
+        std::make_shared<gnev::MaterialStorage_PBR>(data_storage, tex_storages);
+    return gnev::MaterialFactory_PBR(storage);
+}
 
-    gnev::MaterialFactoryPBR::TexStorageSettings albedo_settings{
-        .tex_i = 0,
-        .capacity = CAP,
-        .levels = 1,
-        .width = 64,
-        .height = 64,
-        .internal_format = GL_RGBA8,
-        .clean_up = std::nullopt,
-        .loader = std::make_shared<gnev::MaterialImageLoaderStb>()};
+gnev::Material_PBR createMaterial(gnev::MaterialFactory_PBR& factory) {
+    auto material = factory.create();
+    std::cout << "DataIndex: " << *material.getDataRef().getIndex() << std::endl;
 
-    // gnev::MaterialFactoryPBR::TexStorageSettings normal_settings{
-    //     .tex_i = 1,
-    //     .capacity = CAP,
-    //     .levels = 1,
-    //     .width = 64,
-    //     .height = 64,
-    //     .internal_format = GL_RGBA8,
-    //     .clean_up = std::nullopt};
+    gnev::MaterialImageLoaderStb loader;
+    auto current_dir = std::filesystem::current_path();
+    gnev::gl::TexImageInfo info{.level = 0,
+                                .x = 0,
+                                .y = 0,
+                                .width = 64,
+                                .height = 64,
+                                .format = GL_RGB,
+                                .type = GL_UNSIGNED_BYTE};
 
-    // gnev::MaterialFactoryPBR::TexStorageSettings metallic_settings{
-    //     .tex_i = 2,
-    //     .capacity = CAP,
-    //     .levels = 1,
-    //     .width = 64,
-    //     .height = 64,
-    //     .internal_format = GL_RGBA8,
-    //     .clean_up = std::nullopt};
+    auto result =
+        material.loadTex(gnev::MaterialTexType_PBR::Albedo,
+                         loader,
+                         current_dir / "3rdparty" / "minecraft_textures" / "gravel.png",
+                         info);
+    if (not result->done.get()) {
+        throw std::runtime_error("");
+    }
+    std::cout << "TexIndex: " << *result->tex_ref.getIndex() << std::endl;
 
-    // gnev::MaterialFactoryPBR::TexStorageSettings roughness_settings{
-    //     .tex_i = 3,
-    //     .capacity = CAP,
-    //     .levels = 1,
-    //     .width = 64,
-    //     .height = 64,
-    //     .internal_format = GL_RGBA8,
-    //     .clean_up = std::nullopt};
+    material.setTexOffset(gnev::MaterialTexType_PBR::Albedo, {0.2, 0.2, 0.2, 0.2});
+    material.setTexMultiplier(gnev::MaterialTexType_PBR::Albedo, {0.1, 0.1, 0.1, 0.1});
 
-    // gnev::MaterialFactoryPBR::TexStorageSettings ambient_occlusion_settings{
-    //     .tex_i = 4,
-    //     .capacity = CAP,
-    //     .levels = 1,
-    //     .width = 64,
-    //     .height = 64,
-    //     .internal_format = GL_RGBA8,
-    //     .clean_up = std::nullopt};
+    auto data_iter = material.lockStorage()->data_storage->at(0);
+    std::cout << *data_iter;
 
-    auto factory = gnev::MaterialFactoryPBR(data_settings,
-                                            {
-                                                albedo_settings,
-                                                //  normal_settings,
-                                                //  metallic_settings,
-                                                //  roughness_settings,
-                                                //  ambient_occlusion_settings
-                                            });
-    return factory;
+    return material;
 }
 
 int main(int argc, const char** argv) {
@@ -142,12 +142,11 @@ int main(int argc, const char** argv) {
 
     auto program = buildProgram();
     auto material_factory = buildMaterialFactory();
-    auto material = material_factory.create();
-
-    auto current_dir = std::filesystem::current_path();
-    material.uploadTexture(gnev::ParamPBR::Albedo,
-                           current_dir / "3rdparty" / "minecraft_textures" / "gravel.png",
-                           0);
+    std::array<std::unique_ptr<gnev::Material_PBR>, 10> materials;
+    for (int i = 0; i < 10; ++i) {
+        materials[i] =
+            std::make_unique<gnev::Material_PBR>(createMaterial(material_factory));
+    }
 
     while (not close_window) {
         wnd.pollEvents();

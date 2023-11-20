@@ -20,8 +20,8 @@ public:
     TexStorageIndexMap(TexStorageIndexMap&& other) = default;
     virtual ~TexStorageIndexMap();
 
-    TexStorageIterator operator[](GLuint index);
-    const TexStorageIterator operator[](GLuint index) const;
+    TexStorageIterator at(GLuint index);
+    const TexStorageIterator at(GLuint index) const;
 
     std::optional<GLuint> initUnusedIndex();
     void freeIndex(GLuint index);

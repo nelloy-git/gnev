@@ -15,9 +15,7 @@ public:
     MaterialImageLoaderStb();
     virtual ~MaterialImageLoaderStb();
 
-    std::shared_ptr<Result> upload(std::shared_ptr<base::MaterialTexRefStorage>
-                                       tex_storage,
-                                   GLuint tex_index,
+    std::shared_ptr<Result> upload(std::weak_ptr<base::MaterialTexStorage> tex_storage,
                                    const std::filesystem::path& path,
                                    const gl::TexImageInfo& info) override;
 
@@ -41,8 +39,8 @@ public:
             AutoHeight
         };
 
-        ResultStb(std::future<bool>&& read_done, std::future<bool>&& upload_done)
-            : Result(std::move(read_done), std::move(upload_done)) {}
+        ResultStb(std::future<bool> done, const base::MaterialTexRef& tex_ref)
+            : Result(std::move(done), tex_ref) {}
 
         std::vector<Message> messages;
     };
@@ -62,16 +60,14 @@ private:
                                                  ResultStb& result);
 
     static bool validateInfo(const gl::TexImageInfo& info, ResultStb& result);
-    static gl::TexImageInfo prepareInfo(const gl::TexImageInfo& info,
-                                        const StbInfo& stb_info,
-                                        ResultStb& result);
+    static gl::TexImageInfo
+    prepareInfo(const gl::TexImageInfo& info, const StbInfo& stb_info, ResultStb& result);
 
     static unsigned int getComponents(const gl::TexImageInfo& info);
     static std::size_t getBufferSize(const gl::TexImageInfo& info);
 
-    static Buffer stbiLoad(const std::filesystem::path& path,
-                           StbInfo& stb_info,
-                           int req_comp = 0);
+    static Buffer
+    stbiLoad(const std::filesystem::path& path, StbInfo& stb_info, int req_comp = 0);
     static Buffer stbiResize(const Buffer& img,
                              const StbInfo& src_info,
                              const gl::TexImageInfo& dst_info);

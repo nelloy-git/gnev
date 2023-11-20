@@ -11,20 +11,20 @@ TexStorageIndexMap::TexStorageIndexMap(GLuint levels,
     : TexStorage(levels, width, height, capacity, internal_format)
     , clean_up(clean_up) {
     for (GLuint i = 0; i < capacity; ++i) {
-        unused.insert(unused.end(), i);
+        unused.insert(unused.end(), capacity - i - 1);
     }
 }
 
 TexStorageIndexMap::~TexStorageIndexMap() {}
 
-TexStorageIterator TexStorageIndexMap::operator[](GLuint index) {
+TexStorageIterator TexStorageIndexMap::at(GLuint index) {
     if (unused.contains(index)) {
         throw std::out_of_range("");
     }
     return TexStorage::operator[](index);
 }
 
-const TexStorageIterator TexStorageIndexMap::operator[](GLuint index) const {
+const TexStorageIterator TexStorageIndexMap::at(GLuint index) const {
     if (unused.contains(index)) {
         throw std::out_of_range("");
     }

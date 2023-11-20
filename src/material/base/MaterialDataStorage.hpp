@@ -9,34 +9,40 @@ namespace gnev::base {
 
 template <IsMaterialGL T>
 class EXPORT MaterialDataStorage {
-    public:
-    MaterialDataStorage(GLuint capacity,
-                        GLbitfield storage_flags,
+public:
+    MaterialDataStorage(GLbitfield storage_flags,
+                        GLuint capacity,
                         const gl::BufStorageIndexMap<T>::CleanUp& cleanup = std::nullopt);
     ~MaterialDataStorage();
-
-    gl::BufStorageIterator<T> at(MaterialDataIndex index);
 
     std::optional<MaterialDataIndex> initIndex();
     void freeIndex(MaterialDataIndex index);
 
+    gl::BufStorageIterator<T> at(MaterialDataIndex index);
+    const gl::BufStorageIterator<T> at(MaterialDataIndex index) const;
 
 private:
     gl::BufStorageIndexMap<T> storage;
 };
 
 template <IsMaterialGL T>
-MaterialDataStorage<T>::MaterialDataStorage(GLuint capacity,
-                                            GLbitfield storage_flags,
+MaterialDataStorage<T>::MaterialDataStorage(GLbitfield storage_flags,
+                                            GLuint capacity,
                                             const gl::BufStorageIndexMap<T>::CleanUp&
                                                 cleanup)
-    : storage(capacity, storage_flags, cleanup) {}
+    : storage(storage_flags, capacity, cleanup) {}
 
 template <IsMaterialGL T>
 MaterialDataStorage<T>::~MaterialDataStorage() {}
 
 template <IsMaterialGL T>
-gl::BufStorageIterator<T> MaterialDataStorage<T>::at(MaterialDataIndex index){
+gl::BufStorageIterator<T> MaterialDataStorage<T>::at(MaterialDataIndex index) {
+    return storage.at(index);
+}
+
+template <IsMaterialGL T>
+const gl::BufStorageIterator<T>
+MaterialDataStorage<T>::at(MaterialDataIndex index) const {
     return storage.at(index);
 }
 
