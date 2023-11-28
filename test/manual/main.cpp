@@ -1,16 +1,9 @@
-
 #include <memory>
 #include <optional>
 #include <stdexcept>
 
-#include "gl/texture/TexImage.hpp"
 #include "magic_enum.hpp"
-#include "material/image_loader/MaterialImageLoaderStb.hpp"
-#include "material/pbr/MaterialDataStorage_PBR.hpp"
-#include "material/pbr/MaterialGL_PBR.hpp"
-#include "material/pbr/MaterialStorage_PBR.hpp"
-#include "material/pbr/MaterialTexStorage_PBR.hpp"
-#include "material/pbr/Material_PBR.hpp"
+#include "util/StrongRef.hpp"
 
 #ifdef WIN32
 #include <vld.h>
@@ -23,12 +16,14 @@
 #include "GlfwWindow.hpp"
 #include "gl/Ctx.hpp"
 #include "gl/Program.hpp"
-// #include "material/image_loader/MaterialImageLoaderStb.hpp"
-#include "material/pbr/MaterialFactory_PBR.hpp"
+#include "material/image_loader/MaterialImageLoaderStb.hpp"
+#include "material/pbr/Alias.hpp"
 #include "shader/ProgramBuilder.hpp"
 
 #define GLFW_INCLUDE_NONE
 #include "GLFW/glfw3.h"
+
+using namespace gnev;
 
 void readTextFile(std::string& dst, const std::filesystem::path& path) {
     std::cout << "Loading shader " << path.string().c_str() << std::endl;
@@ -44,8 +39,8 @@ void readTextFile(std::string& dst, const std::filesystem::path& path) {
     t.read(dst.data(), size);
 }
 
-gnev::gl::Program buildProgram() {
-    gnev::ProgramBuilder program_builder;
+gl::Program buildProgram() {
+    ProgramBuilder program_builder;
 
     auto current_dir = std::filesystem::current_path();
     std::string vertex_shader_src;
@@ -70,65 +65,83 @@ gnev::gl::Program buildProgram() {
     return std::move(program.value());
 }
 
-gnev::MaterialFactory_PBR buildMaterialFactory() {
+MaterialFactory_PBR buildMaterialFactory() {
     static constexpr GLuint CAP = 10;
     static constexpr GLuint WIDTH = 64;
     static constexpr GLuint HEIGHT = 64;
 
-    auto data_storage =
-        std::make_shared<gnev::MaterialDataStorage_PBR>(GL_DYNAMIC_STORAGE_BIT,
-                                                        CAP,
-                                                        std::nullopt);
-    // clang-format off
-    std::array<const std::shared_ptr<gnev::MaterialTexStorage_PBR>, 5> tex_storages = {
-        std::make_shared<gnev::MaterialTexStorage_PBR>(CAP, 1, WIDTH, HEIGHT, GL_RGBA8, std::nullopt),
-        std::make_shared<gnev::MaterialTexStorage_PBR>(CAP, 1, WIDTH, HEIGHT, GL_RGBA8, std::nullopt),
-        std::make_shared<gnev::MaterialTexStorage_PBR>(CAP, 1, WIDTH, HEIGHT, GL_RGBA8, std::nullopt),
-        std::make_shared<gnev::MaterialTexStorage_PBR>(CAP, 1, WIDTH, HEIGHT, GL_RGBA8, std::nullopt),
-        std::make_shared<gnev::MaterialTexStorage_PBR>(CAP, 1, WIDTH, HEIGHT, GL_RGBA8, std::nullopt),
+    auto data_storage = StrongRef<MaterialDataStorage_PBR>::Make(CAP);
+
+    std::array<StrongRef<MaterialTexStorage_PBR>, 5> tex_storages = {
+        StrongRef<MaterialTexStorage_PBR>::Make(1, GL_RGBA8, WIDTH, HEIGHT, CAP),
+        StrongRef<MaterialTexStorage_PBR>::Make(1, GL_RGBA8, WIDTH, HEIGHT, CAP),
+        StrongRef<MaterialTexStorage_PBR>::Make(1, GL_RGBA8, WIDTH, HEIGHT, CAP),
+        StrongRef<MaterialTexStorage_PBR>::Make(1, GL_RGBA8, WIDTH, HEIGHT, CAP),
+        StrongRef<MaterialTexStorage_PBR>::Make(1, GL_RGBA8, WIDTH, HEIGHT, CAP),
     };
-    // clang-format on
-    auto storage =
-        std::make_shared<gnev::MaterialStorage_PBR>(data_storage, tex_storages);
-    return gnev::MaterialFactory_PBR(storage);
+
+    auto storage = StrongRef<MaterialStorage_PBR>::Make(data_storage, tex_storages);
+    return MaterialFactory_PBR(storage);
 }
 
-gnev::Material_PBR createMaterial(gnev::MaterialFactory_PBR& factory) {
+Material_PBR
+createMaterial(MaterialFactory_PBR& factory, MaterialImageLoaderStbi& loader) {
+    //
+
     auto material = factory.create();
-    std::cout << "DataIndex: " << *material.getDataRef().getIndex() << std::endl;
-
-    gnev::MaterialImageLoaderStb loader;
     auto current_dir = std::filesystem::current_path();
-    gnev::gl::TexImageInfo info{.level = 0,
-                                .x = 0,
-                                .y = 0,
-                                .width = 32,
-                                .height = 32,
-                                .format = GL_RGBA,
-                                .type = GL_UNSIGNED_BYTE};
+    gl::TexImageInfo info{.level = 0,
+                          .x = 0,
+                          .y = 0,
+                          .width = 32,
+                          .height = 32,
+                          .format = GL_RGBA,
+                          .type = GL_UNSIGNED_BYTE};
 
+    auto tex_ref = StrongRef<MaterialTex_PBR>::Make(material.getWeakStorage()
+                                                        .lock()
+                                                        .value()
+                                                        ->textures.at(0));
     auto result =
-        material.loadTex(gnev::MaterialTexType_PBR::Albedo,
-                         loader,
-                         current_dir / "3rdparty" / "minecraft_textures" / "gravel.png",
-                         info);
-    if (not result->done.get()) {
+        loader.upload(tex_ref,
+                      current_dir / "3rdparty" / "minecraft_textures" / "gravel.png",
+                      info,
+                      info);
+
+    auto full_result_opt = result.dynamicCast<MaterialImageLoaderStbiResult>();
+    if (not full_result_opt.has_value()) {
         throw std::runtime_error("");
     }
-    std::cout << "TexIndex: " << *result->tex_ref.getIndex() << std::endl;
-    auto full_result =
-        std::dynamic_pointer_cast<gnev::MaterialImageLoaderStbResult>(result);
-    std::cout << "Msgs: [";
-    for (auto msg : full_result->messages) {
-        std::cout << magic_enum::enum_name(msg) << ", ";
+
+    auto& full_result = full_result_opt.value();
+    std::cout << "Stb msgs: [";
+    std::cout << magic_enum::enum_name(full_result->messages[0]);
+    for (int i = 1; i < full_result->messages.size(); ++i) {
+        std::cout << ", " << magic_enum::enum_name(full_result->messages[i]);
     }
     std::cout << "]" << std::endl;
 
-    material.setTexOffset(gnev::MaterialTexType_PBR::Albedo, {0.2, 0.2, 0.2, 0.2});
-    material.setTexMultiplier(gnev::MaterialTexType_PBR::Albedo, {0.1, 0.1, 0.1, 0.1});
+    result->done.wait();
+    if (not full_result->done.get()) {
+        throw std::runtime_error("");
+    }
 
-    auto data_iter = material.lockStorage()->data_storage->at(0);
-    std::cout << *data_iter << std::endl;
+    // sizeof(MaterialGL_PBR);
+    material.setTexRef(MaterialTexType_PBR::Albedo, tex_ref);
+    material.setTexOffset(MaterialTexType_PBR::Albedo,
+                          {material.getDataRef()->getIndex() * 0.2,
+                           material.getDataRef()->getIndex() * 0.2,
+                           material.getDataRef()->getIndex() * 0.2,
+                           material.getDataRef()->getIndex() * 0.2});
+    material.setTexMultiplier(MaterialTexType_PBR::Albedo,
+                              {material.getDataRef()->getIndex() * 0.1,
+                               material.getDataRef()->getIndex() * 0.1,
+                               material.getDataRef()->getIndex() * 0.1,
+                               material.getDataRef()->getIndex() * 0.1});
+
+    auto data = std::make_unique<MaterialGL_PBR>();
+    material.getDataRef()->template getData<MaterialGL_PBR>(data.get(), 0);
+    std::cout << *data << std::endl;
 
     return material;
 }
@@ -150,10 +163,11 @@ int main(int argc, const char** argv) {
 
     auto program = buildProgram();
     auto material_factory = buildMaterialFactory();
-    std::array<std::unique_ptr<gnev::Material_PBR>, 10> materials;
+    MaterialImageLoaderStbi loader;
+    std::array<std::unique_ptr<Material_PBR>, 10> materials;
     for (int i = 0; i < 10; ++i) {
         materials[i] =
-            std::make_unique<gnev::Material_PBR>(createMaterial(material_factory));
+            std::make_unique<Material_PBR>(createMaterial(material_factory, loader));
     }
 
     while (not close_window) {

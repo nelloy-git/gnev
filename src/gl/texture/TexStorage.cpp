@@ -8,10 +8,10 @@
 namespace gnev::gl {
 
 TexStorage::TexStorage(GLuint levels,
+                       GLenum internal_format,
                        GLuint width,
                        GLuint height,
-                       GLuint capacity,
-                       GLenum internal_format)
+                       GLuint capacity)
     : Texture(GL_TEXTURE_2D_ARRAY)
     , levels(levels)
     , capacity(capacity) {

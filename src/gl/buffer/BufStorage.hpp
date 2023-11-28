@@ -1,7 +1,8 @@
 #pragma once
 
 #include "gl/Buffer.hpp"
-#include "gl/buffer/BufStorageIterator.hpp"
+#include "gl/buffer/iterator/BufStorageIterator.hpp"
+#include "gl/buffer/iterator/ConstBufStorageIterator.hpp"
 
 namespace gnev::gl {
 
@@ -17,10 +18,10 @@ public:
     virtual ~BufStorage();
 
     BufStorageIterator<T> operator[](GLuint index);
-    const BufStorageIterator<T> operator[](GLuint index) const;
+    ConstBufStorageIterator<T> operator[](GLuint index) const;
 
     BufStorageIterator<T> at(GLuint index);
-    const BufStorageIterator<T> at(GLuint index) const;
+    ConstBufStorageIterator<T> at(GLuint index) const;
 
     T* map(GLenum access);
     T* mapRange(GLuint first, GLuint count, GLbitfield access);
@@ -54,12 +55,12 @@ BufStorage<T>::~BufStorage() {}
 
 template <IsTriviallyCopyable T>
 BufStorageIterator<T> BufStorage<T>::operator[](GLuint index) {
-    return at(index);
+    return BufStorageIterator<T>(*this, index);
 }
 
 template <IsTriviallyCopyable T>
-const BufStorageIterator<T> BufStorage<T>::operator[](GLuint index) const {
-    return at(index);
+ConstBufStorageIterator<T> BufStorage<T>::operator[](GLuint index) const {
+    return ConstBufStorageIterator<T>(*this, index);
 }
 
 template <IsTriviallyCopyable T>
@@ -71,7 +72,7 @@ BufStorageIterator<T> BufStorage<T>::at(GLuint index) {
 }
 
 template <IsTriviallyCopyable T>
-const BufStorageIterator<T> BufStorage<T>::at(GLuint index) const {
+ConstBufStorageIterator<T> BufStorage<T>::at(GLuint index) const {
     if (index >= capacity) {
         throw std::out_of_range("");
     }

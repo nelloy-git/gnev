@@ -1,29 +1,60 @@
 #pragma once
 
-#include "gl/texture/TexStorageIndexMap.hpp"
-#include "gl/texture/TexStorageIterator.hpp"
-#include "material/base/Define.hpp"
+#include "gl/Texture.hpp"
+#include "gl/texture/TexImage.hpp"
+#include "util/Export.hpp"
+#include "util/StrongRef.hpp"
 
 namespace gnev::base {
 
 class EXPORT MaterialTexStorage {
 public:
-    MaterialTexStorage(GLuint capacity,
-                       GLuint levels,
+    // clang-format off
+    using Setter =
+        std::function<bool(gl::Texture& texture, GLuint index, const gl::TexImage& src)>;
+    using Getter =
+        std::function<bool(const gl::Texture& texture, GLuint index, gl::TexImage& dst)>;
+    // clang-format on
+
+    MaterialTexStorage(StrongRef<gl::Texture> texture,
+                       GLuint capacity);
+    MaterialTexStorage(GLuint levels,
+                       GLenum internal_format,
                        GLuint width,
                        GLuint height,
-                       GLenum internal_format,
-                       const gl::TexStorageIndexMap::CleanUp& clean_up = std::nullopt);
+                       GLuint capacity);
     virtual ~MaterialTexStorage();
 
-    std::optional<MaterialTexIndex> initIndex();
-    void freeIndex(MaterialTexIndex);
+    StrongRef<gl::Texture> getTexture() const;
+    void setSetter(const Setter& setter);
+    void setGetter(const Getter& getter);
 
-    gl::TexStorageIterator at(GLuint index);
-    const gl::TexStorageIterator at(GLuint index) const;
+    GLuint initIndex();
+    void freeIndex(GLuint index);
+    bool hasIndex(GLuint index) const;
+    GLuint unusedCount() const;
+
+    bool setData(GLuint index, const gl::TexImage& src);
+    bool getData(GLuint index, gl::TexImage& src) const;
+
+    // Default setter
+    static bool setSubImage(gl::Texture& texture, GLuint index, const gl::TexImage& src);
+    // Default getter
+    static bool getSubImage(const gl::Texture& texture, GLuint index, gl::TexImage& dst);
 
 private:
-    gl::TexStorageIndexMap storage;
+    StrongRef<gl::Texture> texture;
+    Setter texture_setter;
+    Getter texture_getter;
+    GLuint capacity;
+
+    std::unordered_set<GLuint> unused;
+
+    static StrongRef<gl::Texture> initTexture(GLuint levels,
+                                              GLuint width,
+                                              GLuint height,
+                                              GLuint capacity,
+                                              GLenum internal_format);
 };
 
 } // namespace gnev::base

@@ -5,6 +5,7 @@
 
 #include "material/base/Material.hpp"
 #include "material/base/MaterialStorage.hpp"
+#include "util/StrongRef.hpp"
 
 namespace gnev::base {
 
@@ -12,23 +13,29 @@ template <IsMaterial M>
 class EXPORT MaterialFactory {
 public:
     using Data = M::Data;
-    static constexpr MaterialTexIndex TexSize = M::TexSize;
+    static constexpr GLuint TexSize = M::TexSize;
 
-    MaterialFactory(const std::shared_ptr<MaterialStorage<Data>>& storage);
+    MaterialFactory(StrongRef<MaterialStorage<Data>> storage);
     virtual ~MaterialFactory();
 
-    const std::shared_ptr<MaterialStorage<Data>> storage;
+    StrongRef<MaterialStorage<Data>> getStorage() const;
 
     virtual M create() = 0;
 
 private:
+    StrongRef<MaterialStorage<Data>> storage;
 };
 
 template <IsMaterial M>
-MaterialFactory<M>::MaterialFactory(const std::shared_ptr<MaterialStorage<Data>>& storage)
+MaterialFactory<M>::MaterialFactory(StrongRef<MaterialStorage<Data>> storage)
     : storage(storage) {}
 
 template <IsMaterial M>
 MaterialFactory<M>::~MaterialFactory() {}
+
+template <IsMaterial M>
+StrongRef<MaterialStorage<typename M::Data>> MaterialFactory<M>::getStorage() const {
+    return storage;
+}
 
 } // namespace gnev::base

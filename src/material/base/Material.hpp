@@ -6,12 +6,11 @@
 #include <memory>
 #include <stdexcept>
 
-#include "material/base/Define.hpp"
-#include "material/base/MaterialDataRef.hpp"
+#include "material/base/MaterialData.hpp"
 #include "material/base/MaterialGL.hpp"
-#include "material/base/MaterialImageLoader.hpp"
 #include "material/base/MaterialStorage.hpp"
-#include "material/base/MaterialTexRef.hpp"
+#include "material/base/MaterialTex.hpp"
+#include "util/WeakRef.hpp"
 
 namespace gnev::base {
 
@@ -19,30 +18,23 @@ template <IsMaterialGL T>
 class EXPORT Material {
 public:
     using Data = T;
-    static constexpr MaterialTexIndex TexSize = T::TexSize;
+    static constexpr GLuint TexSize = T::TexSize;
 
-    Material(const std::weak_ptr<MaterialStorage<T>>& weak_storage);
-    Material(const Material&) = delete;
-    Material(Material&&) = default;
+    Material(WeakRef<MaterialStorage<T>> weak_storage, const T& initial = T{});
     virtual ~Material();
 
-    std::weak_ptr<MaterialStorage<T>> getWeakStorage() const;
-    std::shared_ptr<MaterialStorage<T>> lockStorage() const;
-
-    MaterialDataRef<T> getDataRef() const;
-    std::optional<MaterialTexRef> getTexRef(MaterialDataIndex index) const;
-    void setTexRef(MaterialTexIndex index, std::optional<MaterialTexRef> tex_ref);
-
-    std::shared_ptr<MaterialImageLoaderResult> loadTex(MaterialTexIndex index,
-                                                       MaterialImageLoader& loader,
-                                                       const std::filesystem::path& path,
-                                                       const gl::TexImageInfo& info);
+    WeakRef<MaterialStorage<T>> getWeakStorage() const;
+    StrongRef<MaterialData<T>> getDataRef() const;
+    std::optional<StrongRef<MaterialTex>> getTexRef(GLuint type) const;
+    void setTexRef(GLuint type, std::optional<StrongRef<MaterialTex>> tex_ref);
 
 private:
-    std::weak_ptr<MaterialStorage<T>> weak_storage;
+    WeakRef<MaterialStorage<T>> weak_storage;
 
-    MaterialDataRef<T> data_ref;
-    std::array<std::optional<MaterialTexRef>, TexSize> tex_refs;
+    StrongRef<MaterialData<T>> data_ref;
+    std::array<std::optional<StrongRef<MaterialTex>>, TexSize> tex_refs;
+
+    static MaterialData<T> initData(WeakRef<MaterialStorage<T>> weak_storage);
 };
 
 namespace details {
@@ -61,58 +53,47 @@ template <typename T>
 concept IsMaterial = details::is_Material<T>::value;
 
 template <IsMaterialGL T>
-Material<T>::Material(const std::weak_ptr<MaterialStorage<T>>& weak_storage)
+Material<T>::Material(WeakRef<MaterialStorage<T>> weak_storage, const T& initial)
     : weak_storage(weak_storage)
-    , data_ref(weak_storage.lock()->data_storage) {}
+    , data_ref(StrongRef<MaterialData<T>>::Make(weak_storage.lock().value()->data,
+                                                initial)) {}
 
 template <IsMaterialGL T>
 Material<T>::~Material() {}
 
 template <IsMaterialGL T>
-std::weak_ptr<MaterialStorage<T>> Material<T>::getWeakStorage() const {
+WeakRef<MaterialStorage<T>> Material<T>::getWeakStorage() const {
     return weak_storage;
 }
 
 template <IsMaterialGL T>
-std::shared_ptr<MaterialStorage<T>> Material<T>::lockStorage() const {
-    return std::shared_ptr<MaterialStorage<T>>(weak_storage);
-}
-
-template <IsMaterialGL T>
-MaterialDataRef<T> Material<T>::getDataRef() const {
+StrongRef<MaterialData<T>> Material<T>::getDataRef() const {
     return data_ref;
 }
 
 template <IsMaterialGL T>
-std::optional<MaterialTexRef> Material<T>::getTexRef(MaterialTexIndex index) const {
+std::optional<StrongRef<MaterialTex>> Material<T>::getTexRef(GLuint index) const {
     return tex_refs[index];
 }
 
 template <IsMaterialGL T>
-void Material<T>::setTexRef(MaterialTexIndex index,
-                            std::optional<MaterialTexRef> tex_ref) {
-    auto [storage, iter] = getDataRef().lockIter();
-    iter.copyFrom(tex_ref->getIndex().get(),
-                  offsetof(T, tex_index) + index * sizeof(MaterialTexIndex),
-                  sizeof(MaterialTexIndex));
+void Material<T>::setTexRef(GLuint type, std::optional<StrongRef<MaterialTex>> tex_ref) {
+    GLuint index = tex_ref.has_value() ? tex_ref.value()->getIndex() : T::InvalidTexIndex;
+
     tex_refs[index] = tex_ref;
+    getDataRef()->template setData<GLuint>(&index,
+                                           offsetof(T, tex_index) +
+                                               index * sizeof(GLuint));
 }
 
 template <IsMaterialGL T>
-std::shared_ptr<MaterialImageLoaderResult>
-Material<T>::loadTex(MaterialTexIndex index,
-                     MaterialImageLoader& loader,
-                     const std::filesystem::path& path,
-                     const gl::TexImageInfo& info) {
-    auto p_storage = weak_storage.lock();
-    if (not p_storage) {
+MaterialData<T> Material<T>::initData(WeakRef<MaterialStorage<T>> weak_storage) {
+    auto storage_opt = weak_storage.lock();
+    if (not storage_opt.has_value()) {
         throw std::runtime_error("");
     }
-
-    auto tex_storage = p_storage->tex_storages[index];
-    auto result = loader.upload(tex_storage, path, info);
-    setTexRef(index, result->tex_ref);
-    return result;
+    auto& storage = storage_opt.value();
+    return MaterialData<T>(storage.data);
 }
 
 } // namespace gnev::base

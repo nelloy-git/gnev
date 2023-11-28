@@ -10,69 +10,39 @@
 
 namespace gnev {
 
-using Base = base::Material<MaterialGL_PBR>;
-
-Material_PBR::Material_PBR(const std::weak_ptr<MaterialStorage_PBR>& weak_storage)
-    : Base(weak_storage) {}
+Material_PBR::Material_PBR(WeakRef<base::MaterialStorage<MaterialGL_PBR>> weak_storage,
+                           const MaterialGL_PBR& initial)
+    : base::Material<MaterialGL_PBR>(weak_storage, initial) {}
 
 Material_PBR::~Material_PBR() {}
 
-std::weak_ptr<MaterialStorage_PBR> Material_PBR::getWeakStorage() const {
-    return lockStorage();
-}
-
-std::shared_ptr<MaterialStorage_PBR> Material_PBR::lockStorage() const {
-    return std::dynamic_pointer_cast<MaterialStorage_PBR>(Base::lockStorage());
-}
-
-std::optional<base::MaterialTexRef>
-Material_PBR::getTexRef(MaterialTexType_PBR type) const {
-    return Base::getTexRef(toUint(type));
+std::optional<base::MaterialTex> Material_PBR::getTexRef(MaterialTexType_PBR type) const {
+    return base::Material<MaterialGL_PBR>::getTexRef(toUint(type));
 }
 
 void Material_PBR::setTexRef(MaterialTexType_PBR type,
-                             std::optional<base::MaterialTexRef> tex_ref) {
-    Base::setTexRef(toUint(type), tex_ref);
-}
-
-std::shared_ptr<base::MaterialImageLoaderResult>
-Material_PBR::loadTex(MaterialTexType_PBR type,
-                      base::MaterialImageLoader& loader,
-                      const std::filesystem::path& path,
-                      const gl::TexImageInfo& info) {
-    return Base::loadTex(toUint(type), loader, path, info);
+                             std::optional<StrongRef<base::MaterialTex>> tex_ref) {
+    base::Material<MaterialGL_PBR>::setTexRef(toUint(type), tex_ref);
 }
 
 void Material_PBR::setTexOffset(MaterialTexType_PBR type, const glm::vec4& value) {
-    auto [storage, iter] = getDataRef().lockIter();
-    iter.copyFrom(&value,
-                  MaterialGL_PBR::OffsetOfTexOffset(type),
-                  MaterialGL_PBR::SizeOfTexOffsetElem());
+    getDataRef()->setData<glm::vec4>(&value, MaterialGL_PBR::OffsetOfTexOffset(type));
 }
 
 glm::vec4 Material_PBR::getTexOffset(MaterialTexType_PBR type) const {
-    auto [storage, iter] = getDataRef().lockIter();
     glm::vec4 result;
-    iter.copyTo(&result,
-                MaterialGL_PBR::OffsetOfTexOffset(type),
-                MaterialGL_PBR::SizeOfTexOffsetElem());
+    getDataRef()->getData<glm::vec4>(&result, MaterialGL_PBR::OffsetOfTexOffset(type));
     return result;
 }
 
 void Material_PBR::setTexMultiplier(MaterialTexType_PBR type, const glm::vec4& value) {
-    auto [storage, iter] = getDataRef().lockIter();
-    iter.copyFrom(&value,
-                  MaterialGL_PBR::OffsetOfTexMultiplier(type),
-                  MaterialGL_PBR::SizeOfTexMultiplierElem());
+    getDataRef()->setData<glm::vec4>(&value, MaterialGL_PBR::OffsetOfTexMultiplier(type));
 }
 
 glm::vec4 Material_PBR::getTexMultiplier(MaterialTexType_PBR type) const {
-    auto [storage, iter] = getDataRef().lockIter();
-
     glm::vec4 result;
-    iter.copyTo(&result,
-                MaterialGL_PBR::OffsetOfTexMultiplier(type),
-                MaterialGL_PBR::SizeOfTexMultiplierElem());
+    getDataRef()->getData<glm::vec4>(&result,
+                                     MaterialGL_PBR::OffsetOfTexMultiplier(type));
     return result;
 }
 

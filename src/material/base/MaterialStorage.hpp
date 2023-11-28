@@ -1,35 +1,36 @@
 #pragma once
 
 #include <array>
-#include <memory>
 
+#include "gl/buffer/BufStorageIndexMap.hpp"
+#include "gl/texture/TexStorageIndexMap.hpp"
 #include "material/base/MaterialDataStorage.hpp"
 #include "material/base/MaterialGL.hpp"
 #include "material/base/MaterialTexStorage.hpp"
+#include "util/Export.hpp"
+#include "util/StrongRef.hpp"
 
 namespace gnev::base {
 
 template <IsMaterialGL T>
 class EXPORT MaterialStorage {
 public:
-    static constexpr MaterialTexIndex TexSize = T::TexSize;
+    static constexpr GLuint TexSize = T::TexSize;
 
-    MaterialStorage(const std::shared_ptr<MaterialDataStorage<T>>& data_storage,
-                    const std::array<const std::shared_ptr<MaterialTexStorage>, TexSize>&
-                        tex_storages);
+    MaterialStorage(StrongRef<MaterialDataStorage<T>> data,
+                    const std::array<StrongRef<MaterialTexStorage>, TexSize>& textures);
     virtual ~MaterialStorage();
 
-    const std::shared_ptr<MaterialDataStorage<T>> data_storage;
-    const std::array<const std::shared_ptr<MaterialTexStorage>, TexSize> tex_storages;
+    const StrongRef<MaterialDataStorage<T>> data;
+    const std::array<StrongRef<MaterialTexStorage>, TexSize> textures;
 };
 
 template <IsMaterialGL T>
-MaterialStorage<
-    T>::MaterialStorage(const std::shared_ptr<MaterialDataStorage<T>>& data_storage,
-                        const std::array<const std::shared_ptr<MaterialTexStorage>,
-                                         TexSize>& tex_storages)
-    : data_storage(data_storage)
-    , tex_storages(tex_storages) {}
+MaterialStorage<T>::MaterialStorage(StrongRef<MaterialDataStorage<T>> data,
+                                    const std::array<StrongRef<MaterialTexStorage>,
+                                                     TexSize>& tex_storages)
+    : data(data)
+    , textures(tex_storages) {}
 
 template <IsMaterialGL T>
 MaterialStorage<T>::~MaterialStorage() {}

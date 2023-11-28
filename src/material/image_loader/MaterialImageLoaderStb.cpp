@@ -2,13 +2,13 @@
 
 #include <exception>
 #include <future>
+#include <iostream>
 #include <memory>
 #include <optional>
 #include <stdexcept>
 
 #include "gl/texture/TexImage.hpp"
 #include "material/base/MaterialImageLoader.hpp"
-#include "material/base/MaterialTexStorage.hpp"
 #include "material/pbr/MaterialGL_PBR.hpp"
 
 #define STB_IMAGE_IMPLEMENTATION
@@ -18,42 +18,59 @@
 
 namespace gnev {
 
-using enum MaterialImageLoaderStbResult::Message;
-using Result = MaterialImageLoaderStbResult;
+using enum MaterialImageLoaderStbiResult::Message;
+using Result = MaterialImageLoaderStbiResult;
 using ImageOpt = std::optional<gl::TexImage>;
 
-MaterialImageLoaderStb::MaterialImageLoaderStb() {}
+MaterialImageLoaderStbi::MaterialImageLoaderStbi() {}
 
-MaterialImageLoaderStb::~MaterialImageLoaderStb() {}
+MaterialImageLoaderStbi::~MaterialImageLoaderStbi() {}
 
-std::shared_ptr<base::MaterialImageLoaderResult>
-MaterialImageLoaderStb::upload(std::weak_ptr<base::MaterialTexStorage> weak_tex_storage,
-                               const std::filesystem::path& path,
-                               const gl::TexImageInfo& info) {
-
+StrongRef<base::MaterialImageLoaderResult>
+MaterialImageLoaderStbi::upload(StrongRef<base::MaterialTex> tex_ref,
+                                const std::filesystem::path& path,
+                                const gl::TexImageInfo& read_info,
+                                const gl::TexImageInfo& write_info) {
     if (cache.contains(path)) {
-        return cache[path];
-    }
+        using enum std::future_status;
 
-    auto p_tex_storage = weak_tex_storage.lock();
-    if (not p_tex_storage) {
-        throw std::runtime_error("");
+        StrongRef<MaterialImageLoaderStbiResult>& result(cache.at(path));
+        auto status = result->done.wait_for(std::chrono::seconds(0));
+        if (status == timeout or (status == ready and result->done.get())) {
+            return result;
+        }
     }
 
     std::promise<bool> done;
-    base::MaterialTexRef tex_ref(weak_tex_storage);
     auto result =
-        std::make_shared<MaterialImageLoaderStbResult>(done.get_future(), tex_ref);
+        StrongRef<MaterialImageLoaderStbiResult>::Make(done.get_future(), tex_ref);
     cache.emplace(path, result);
 
-    auto& storage = *p_tex_storage;
+    auto storage_opt = tex_ref->getWeakStorage().lock();
+    if (not storage_opt.has_value()) {
+        result->messages.push_back(ReleasedStorage);
+        result->messages.push_back(Failed);
+        done.set_value(false);
+        return result;
+    }
+    auto& storage = storage_opt.value();
+
+    if (not validateInfos(read_info, write_info, result)) {
+        result->messages.push_back(Failed);
+        done.set_value(false);
+        return result;
+    }
+
     std::optional<gl::TexImage> img_opt;
+
     try {
-        img_opt = readImage(path, info, *result);
+        img_opt = readImage(path, read_info, write_info, result);
         if (not img_opt.has_value()) {
-            throw std::runtime_error("");
+            result->messages.push_back(Failed);
+            done.set_value(false);
+            return result;
         }
-        storage.at(*tex_ref.getIndex()).setImage(img_opt.value());
+        // storage->at(tex_ref->getIndex()).getImage(img_opt.value());
     } catch (...) {
         done.set_exception(std::current_exception());
     }
@@ -62,86 +79,91 @@ MaterialImageLoaderStb::upload(std::weak_ptr<base::MaterialTexStorage> weak_tex_
     return result;
 }
 
-ImageOpt MaterialImageLoaderStb::readImage(const std::filesystem::path& path,
-                                           const gl::TexImageInfo& load_info,
-                                           MaterialImageLoaderStbResult& result) {
-    if (not validateInfo(load_info, result)) {
-        result.messages.push_back(UnsupportedInfo);
-        return std::nullopt;
-    }
-
+ImageOpt MaterialImageLoaderStbi::readImage(const std::filesystem::path& path,
+                                            const gl::TexImageInfo& read_info,
+                                            const gl::TexImageInfo& write_info,
+                                            MaterialImageLoaderStbiResult& result) {
     if (not std::filesystem::exists(path)) {
         result.messages.push_back(FileDoNotExist);
-        result.messages.push_back(Failed);
         return std::nullopt;
     }
 
     StbInfo stb_info;
-    Buffer raw_img = stbiLoad(path, stb_info, getComponents(load_info));
+    Buffer raw_img = stbiLoad(path, stb_info, getComponents(read_info));
+    if (getComponents(read_info) != stb_info.comp) {
+        result.messages.push_back(OriginalImageHasDifferentNumberOfComponents);
+    }
 
-    gl::TexImageInfo result_info = prepareInfo(load_info, stb_info, result);
-    raw_img = stbiResize(raw_img, stb_info, result_info, result);
-    gl::TexImageData data(getBufferSize(result_info), raw_img);
+    raw_img = stbiResize(raw_img, stb_info, write_info, result);
+    gl::TexImageData data(getBufferSize(write_info), raw_img);
 
     result.messages.push_back(Done);
-    return gl::TexImage(result_info, data);
+    return gl::TexImage(write_info, data);
 }
 
-bool MaterialImageLoaderStb::validateInfo(const gl::TexImageInfo& info,
-                                          MaterialImageLoaderStbResult& result) {
-    bool valid = true;
+bool MaterialImageLoaderStbi::validateInfos(const gl::TexImageInfo& read_info,
+                                            const gl::TexImageInfo& write_info,
+                                            MaterialImageLoaderStbiResult& result) {
+    bool valid_read = true;
+    bool valid_write = true;
 
-    if (info.x != 0) {
-        result.messages.push_back(UnsupportedX);
-        valid = false;
+    if (read_info.level != 0) {
+        result.messages.push_back(UnsupportedReadLevel);
+        valid_read = false;
     }
 
-    if (info.y != 0) {
-        result.messages.push_back(UnsupportedY);
-        valid = false;
+    if (read_info.x != 0) {
+        result.messages.push_back(UnsupportedReadX);
+        valid_read = false;
     }
 
-    if (info.type != GL_UNSIGNED_BYTE) {
-        result.messages.push_back(UnsupportedFormat);
-        valid = false;
+    if (read_info.y != 0) {
+        result.messages.push_back(UnsupportedReadY);
+        valid_read = false;
     }
 
-    if (getComponents(info) == 0) {
-        result.messages.push_back(UnsupportedType);
-        valid = false;
+    if (read_info.type != GL_UNSIGNED_BYTE) {
+        result.messages.push_back(UnsupportedReadType);
+        valid_read = false;
     }
 
-    if (!valid) {
-        result.messages.push_back(UnsupportedInfo);
+    if (getComponents(read_info) == 0) {
+        result.messages.push_back(UnsupportedReadFormat);
+        valid_read = false;
     }
 
-    return valid;
+    if (!valid_read) {
+        result.messages.push_back(UnsupportedReadInfo);
+    }
+
+    if (write_info.x != 0) {
+        result.messages.push_back(UnsupportedWriteX);
+        valid_write = false;
+    }
+
+    if (write_info.y != 0) {
+        result.messages.push_back(UnsupportedWriteY);
+        valid_write = false;
+    }
+
+    if (write_info.type != GL_UNSIGNED_BYTE) {
+        result.messages.push_back(UnsupportedWriteType);
+        valid_write = false;
+    }
+
+    if (getComponents(write_info) != getComponents(read_info)) {
+        result.messages.push_back(UnsupportedWriteFormat);
+        valid_write = false;
+    }
+
+    if (!valid_write) {
+        result.messages.push_back(UnsupportedWriteInfo);
+    }
+
+    return valid_read and valid_write;
 }
 
-gl::TexImageInfo
-MaterialImageLoaderStb::prepareInfo(const gl::TexImageInfo& info,
-                                    const StbInfo& stb_info,
-                                    MaterialImageLoaderStbResult& result) {
-    gl::TexImageInfo dst_info = info;
-
-    if (getComponents(info) != stb_info.comp) {
-        result.messages.push_back(OriginalImageHasDifferentFormat);
-    }
-
-    if (dst_info.width == 0) {
-        result.messages.push_back(AutoWidth);
-        dst_info.width = stb_info.width;
-    }
-
-    if (dst_info.height == 0) {
-        result.messages.push_back(AutoHeight);
-        dst_info.height = stb_info.height;
-    }
-
-    return dst_info;
-}
-
-unsigned int MaterialImageLoaderStb::getComponents(const gl::TexImageInfo& info) {
+unsigned int MaterialImageLoaderStbi::getComponents(const gl::TexImageInfo& info) {
     switch (info.format) {
     case GL_RED:
         return 1;
@@ -156,14 +178,14 @@ unsigned int MaterialImageLoaderStb::getComponents(const gl::TexImageInfo& info)
     }
 }
 
-std::size_t MaterialImageLoaderStb::getBufferSize(const gl::TexImageInfo& info) {
+std::size_t MaterialImageLoaderStbi::getBufferSize(const gl::TexImageInfo& info) {
     return info.width * info.height * getComponents(info) * sizeof(unsigned int);
 }
 
-MaterialImageLoaderStb::Buffer
-MaterialImageLoaderStb::stbiLoad(const std::filesystem::path& path,
-                                 StbInfo& stb_info,
-                                 int req_comp) {
+MaterialImageLoaderStbi::Buffer
+MaterialImageLoaderStbi::stbiLoad(const std::filesystem::path& path,
+                                  StbInfo& stb_info,
+                                  int req_comp) {
     stbi_set_flip_vertically_on_load(true);
     return {stbi_load(path.string().c_str(),
                       &stb_info.width,
@@ -173,11 +195,11 @@ MaterialImageLoaderStb::stbiLoad(const std::filesystem::path& path,
             &stbi_image_free};
 }
 
-MaterialImageLoaderStb::Buffer
-MaterialImageLoaderStb::stbiResize(const Buffer& img,
-                                   const StbInfo& src_info,
-                                   const gl::TexImageInfo& dst_info,
-                                   MaterialImageLoaderStbResult& result) {
+MaterialImageLoaderStbi::Buffer
+MaterialImageLoaderStbi::stbiResize(const Buffer& img,
+                                    const StbInfo& src_info,
+                                    const gl::TexImageInfo& dst_info,
+                                    MaterialImageLoaderStbiResult& result) {
     if (dst_info.width != src_info.width || dst_info.height != src_info.height) {
         Buffer resized(new GLubyte[getBufferSize(dst_info)]);
         stbir_resize_uint8(img.get(),

@@ -7,51 +7,63 @@
 
 #include "gl/texture/TexImage.hpp"
 #include "material/base/MaterialImageLoader.hpp"
+#include "util/StrongRef.hpp"
 
 namespace gnev {
-struct MaterialImageLoaderStbResult : public base::MaterialImageLoaderResult {
+struct MaterialImageLoaderStbiResult : public base::MaterialImageLoaderResult {
     enum class Message {
         Done,
         Failed,
-        UnsupportedLevel,
-        UnsupportedX,
-        UnsupportedY,
-        UnsupportedWidth,
-        UnsupportedHeight,
-        UnsupportedFormat,
-        UnsupportedType,
-        UnsupportedInfo,
+
+        UnsupportedReadLevel,
+        UnsupportedReadX,
+        UnsupportedReadY,
+        UnsupportedReadWidth,
+        UnsupportedReadHeight,
+        UnsupportedReadFormat,
+        UnsupportedReadType,
+        UnsupportedReadInfo,
+
+        UnsupportedWriteLevel,
+        UnsupportedWriteX,
+        UnsupportedWriteY,
+        UnsupportedWriteWidth,
+        UnsupportedWriteHeight,
+        UnsupportedWriteFormat,
+        UnsupportedWriteType,
+        UnsupportedWriteInfo,
+
+        ReleasedStorage,
         FileDoNotExist,
-        OriginalImageHasDifferentFormat,
+        OriginalImageHasDifferentNumberOfComponents,
         ImageResized,
-        AutoFormat,
         AutoWidth,
         AutoHeight
     };
 
-    MaterialImageLoaderStbResult(std::future<bool> done,
-                                 const base::MaterialTexRef& tex_ref)
-        : MaterialImageLoaderResult(std::move(done), tex_ref) {}
+    MaterialImageLoaderStbiResult(std::shared_future<bool>&& done,
+                                  WeakRef<base::MaterialTex> tex_ref)
+        : MaterialImageLoaderResult(std::forward<decltype(done)>(done), tex_ref) {}
 
-    ~MaterialImageLoaderStbResult(){};
+    ~MaterialImageLoaderStbiResult(){};
 
     std::vector<Message> messages;
 };
 
-class EXPORT MaterialImageLoaderStb : public base::MaterialImageLoader {
+class EXPORT MaterialImageLoaderStbi : public base::MaterialImageLoader {
 public:
-    MaterialImageLoaderStb();
-    virtual ~MaterialImageLoaderStb();
+    MaterialImageLoaderStbi();
+    virtual ~MaterialImageLoaderStbi();
 
-    std::shared_ptr<base::MaterialImageLoaderResult>
-    upload(std::weak_ptr<base::MaterialTexStorage> tex_storage,
+    StrongRef<base::MaterialImageLoaderResult>
+    upload(StrongRef<base::MaterialTex> tex_ref,
            const std::filesystem::path& path,
-           const gl::TexImageInfo& info) override;
+           const gl::TexImageInfo& read_info,
+           const gl::TexImageInfo& write_info) override;
 
 private:
     using Buffer = std::shared_ptr<GLubyte[]>;
-    std::unordered_map<std::filesystem::path,
-                       std::shared_ptr<MaterialImageLoaderStbResult>>
+    std::unordered_map<std::filesystem::path, StrongRef<MaterialImageLoaderStbiResult>>
         cache;
 
     struct StbInfo {
@@ -61,14 +73,13 @@ private:
     };
 
     static std::optional<gl::TexImage> readImage(const std::filesystem::path& path,
-                                                 const gl::TexImageInfo& load_info,
-                                                 MaterialImageLoaderStbResult& result);
+                                                 const gl::TexImageInfo& read_info,
+                                                 const gl::TexImageInfo& write_info,
+                                                 MaterialImageLoaderStbiResult& result);
 
-    static bool
-    validateInfo(const gl::TexImageInfo& info, MaterialImageLoaderStbResult& result);
-    static gl::TexImageInfo prepareInfo(const gl::TexImageInfo& info,
-                                        const StbInfo& stb_info,
-                                        MaterialImageLoaderStbResult& result);
+    static bool validateInfos(const gl::TexImageInfo& read_info,
+                              const gl::TexImageInfo& write_info,
+                              MaterialImageLoaderStbiResult& result);
 
     static unsigned int getComponents(const gl::TexImageInfo& info);
     static std::size_t getBufferSize(const gl::TexImageInfo& info);
@@ -78,7 +89,7 @@ private:
     static Buffer stbiResize(const Buffer& img,
                              const StbInfo& src_info,
                              const gl::TexImageInfo& dst_info,
-                             MaterialImageLoaderStbResult& result);
+                             MaterialImageLoaderStbiResult& result);
 };
 
 } // namespace gnev
