@@ -5,7 +5,7 @@
 #include "material/base/MaterialDataStorage.hpp"
 #include "material/base/MaterialGL.hpp"
 #include "util/Export.hpp"
-#include "util/StrongRef.hpp"
+#include "util/Ref.hpp"
 #include "util/WeakRef.hpp"
 
 namespace gnev::base {
@@ -17,7 +17,7 @@ public:
     virtual ~MaterialData();
 
     WeakRef<MaterialDataStorage<T>> getWeakStorage() const;
-    StrongRef<GLuint> getIndex() const;
+    Ref<GLuint> getIndex() const;
 
     template <typename V>
     bool setData(const V* src, GLuint offset, GLuint size = sizeof(V));
@@ -26,9 +26,9 @@ public:
 
 private:
     WeakRef<MaterialDataStorage<T>> weak_storage;
-    StrongRef<GLuint> index_keeper;
+    Ref<GLuint> index_keeper;
 
-    static StrongRef<GLuint>
+    static Ref<GLuint>
     initIndexKeeper(const WeakRef<MaterialDataStorage<T>>& weak_storage,
                     const T& initial);
 };
@@ -50,7 +50,7 @@ WeakRef<MaterialDataStorage<T>> MaterialData<T>::getWeakStorage() const {
 }
 
 template <IsMaterialGL T>
-StrongRef<GLuint> MaterialData<T>::getIndex() const {
+Ref<GLuint> MaterialData<T>::getIndex() const {
     return index_keeper;
 }
 
@@ -75,7 +75,7 @@ bool MaterialData<T>::getData(V* dst, GLuint offset, GLuint size) const {
 }
 
 template <IsMaterialGL T>
-StrongRef<GLuint>
+Ref<GLuint>
 MaterialData<T>::initIndexKeeper(const WeakRef<MaterialDataStorage<T>>& weak_storage,
                                  const T& initial) {
     auto storage_opt = weak_storage.lock();
@@ -93,7 +93,7 @@ MaterialData<T>::initIndexKeeper(const WeakRef<MaterialDataStorage<T>>& weak_sto
     };
 
     auto shared_index = std::shared_ptr<GLuint>(new GLuint(index), del);
-    return StrongRef<GLuint>(shared_index);
+    return Ref<GLuint>(shared_index);
 }
 
 } // namespace gnev::base

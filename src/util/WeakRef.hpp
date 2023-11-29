@@ -3,19 +3,22 @@
 #include <memory>
 #include <optional>
 
-#include "util/StrongRef.hpp"
+#include "util/Ref.hpp"
 
 namespace gnev {
 
 template <typename T>
 class WeakRef {
 public:
-    WeakRef(const StrongRef<T>& ref)
+    WeakRef(const Ref<T>& ref)
         : ptr(ref.ptr) {}
 
-    std::optional<StrongRef<T>> lock() const {
+    WeakRef(Ref<T>&& ref)
+        : ptr(std::move(ref.ptr)) {}
+
+    std::optional<Ref<T>> lock() const {
         auto shared_ptr = ptr.lock();
-        return shared_ptr ? std::optional<StrongRef<T>>(shared_ptr) : std::nullopt;
+        return shared_ptr ? std::optional<Ref<T>>(shared_ptr) : std::nullopt;
     };
 
 private:

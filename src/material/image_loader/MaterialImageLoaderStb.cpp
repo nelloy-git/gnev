@@ -26,15 +26,15 @@ MaterialImageLoaderStbi::MaterialImageLoaderStbi() {}
 
 MaterialImageLoaderStbi::~MaterialImageLoaderStbi() {}
 
-StrongRef<base::MaterialImageLoaderResult>
-MaterialImageLoaderStbi::upload(StrongRef<base::MaterialTex> tex_ref,
+Ref<base::MaterialImageLoaderResult>
+MaterialImageLoaderStbi::upload(Ref<base::MaterialTex> tex_ref,
                                 const std::filesystem::path& path,
                                 const gl::TexImageInfo& read_info,
                                 const gl::TexImageInfo& write_info) {
     if (cache.contains(path)) {
         using enum std::future_status;
 
-        StrongRef<MaterialImageLoaderStbiResult>& result(cache.at(path));
+        Ref<MaterialImageLoaderStbiResult>& result(cache.at(path));
         auto status = result->done.wait_for(std::chrono::seconds(0));
         if (status == timeout or (status == ready and result->done.get())) {
             return result;
@@ -42,40 +42,39 @@ MaterialImageLoaderStbi::upload(StrongRef<base::MaterialTex> tex_ref,
     }
 
     std::promise<bool> done;
-    auto result =
-        StrongRef<MaterialImageLoaderStbiResult>::Make(done.get_future(), tex_ref);
+    auto result = Ref<MaterialImageLoaderStbiResult>::Make(done.get_future(), tex_ref);
     cache.emplace(path, result);
 
-    auto storage_opt = tex_ref->getWeakStorage().lock();
-    if (not storage_opt.has_value()) {
-        result->messages.push_back(ReleasedStorage);
-        result->messages.push_back(Failed);
-        done.set_value(false);
-        return result;
-    }
-    auto& storage = storage_opt.value();
-
-    if (not validateInfos(read_info, write_info, result)) {
-        result->messages.push_back(Failed);
-        done.set_value(false);
-        return result;
-    }
-
-    std::optional<gl::TexImage> img_opt;
-
-    try {
-        img_opt = readImage(path, read_info, write_info, result);
-        if (not img_opt.has_value()) {
-            result->messages.push_back(Failed);
-            done.set_value(false);
-            return result;
-        }
-        // storage->at(tex_ref->getIndex()).getImage(img_opt.value());
-    } catch (...) {
-        done.set_exception(std::current_exception());
-    }
-
+    // auto storage_opt = tex_ref->getWeakStorage().lock();
+    // if (not storage_opt.has_value()) {
+    //     result->messages.push_back(ReleasedStorage);
+    //     result->messages.push_back(Failed);
     done.set_value(true);
+    //     return result;
+    // }
+    // auto& storage = storage_opt.value();
+
+    // if (not validateInfos(read_info, write_info, result)) {
+    //     result->messages.push_back(Failed);
+    //     done.set_value(false);
+    //     return result;
+    // }
+
+    // std::optional<gl::TexImage> img_opt;
+
+    // try {
+    //     img_opt = readImage(path, read_info, write_info, result);
+    //     if (not img_opt.has_value()) {
+    //         result->messages.push_back(Failed);
+    //         done.set_value(false);
+    //         return result;
+    //     }
+    //     // storage->at(tex_ref->getIndex()).getImage(img_opt.value());
+    // } catch (...) {
+    //     done.set_exception(std::current_exception());
+    // }
+
+    // done.set_value(true);
     return result;
 }
 

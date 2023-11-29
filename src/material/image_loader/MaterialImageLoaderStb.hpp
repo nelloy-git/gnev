@@ -7,7 +7,7 @@
 
 #include "gl/texture/TexImage.hpp"
 #include "material/base/MaterialImageLoader.hpp"
-#include "util/StrongRef.hpp"
+#include "util/Ref.hpp"
 
 namespace gnev {
 struct MaterialImageLoaderStbiResult : public base::MaterialImageLoaderResult {
@@ -55,16 +55,15 @@ public:
     MaterialImageLoaderStbi();
     virtual ~MaterialImageLoaderStbi();
 
-    StrongRef<base::MaterialImageLoaderResult>
-    upload(StrongRef<base::MaterialTex> tex_ref,
+    Ref<base::MaterialImageLoaderResult>
+    upload(Ref<base::MaterialTex> tex_ref,
            const std::filesystem::path& path,
            const gl::TexImageInfo& read_info,
            const gl::TexImageInfo& write_info) override;
 
 private:
     using Buffer = std::shared_ptr<GLubyte[]>;
-    std::unordered_map<std::filesystem::path, StrongRef<MaterialImageLoaderStbiResult>>
-        cache;
+    std::unordered_map<std::filesystem::path, Ref<MaterialImageLoaderStbiResult>> cache;
 
     struct StbInfo {
         int width;

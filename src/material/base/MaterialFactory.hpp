@@ -5,7 +5,7 @@
 
 #include "material/base/Material.hpp"
 #include "material/base/MaterialStorage.hpp"
-#include "util/StrongRef.hpp"
+#include "util/Ref.hpp"
 
 namespace gnev::base {
 
@@ -15,26 +15,26 @@ public:
     using Data = M::Data;
     static constexpr GLuint TexSize = M::TexSize;
 
-    MaterialFactory(StrongRef<MaterialStorage<Data>> storage);
+    MaterialFactory(Ref<MaterialStorage<Data>> storage);
     virtual ~MaterialFactory();
 
-    StrongRef<MaterialStorage<Data>> getStorage() const;
+    Ref<MaterialStorage<Data>> getStorage() const;
 
     virtual M create() = 0;
 
 private:
-    StrongRef<MaterialStorage<Data>> storage;
+    Ref<MaterialStorage<Data>> storage;
 };
 
 template <IsMaterial M>
-MaterialFactory<M>::MaterialFactory(StrongRef<MaterialStorage<Data>> storage)
+MaterialFactory<M>::MaterialFactory(Ref<MaterialStorage<Data>> storage)
     : storage(storage) {}
 
 template <IsMaterial M>
 MaterialFactory<M>::~MaterialFactory() {}
 
 template <IsMaterial M>
-StrongRef<MaterialStorage<typename M::Data>> MaterialFactory<M>::getStorage() const {
+Ref<MaterialStorage<typename M::Data>> MaterialFactory<M>::getStorage() const {
     return storage;
 }
 

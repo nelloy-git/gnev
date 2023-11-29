@@ -3,7 +3,7 @@
 #include "gl/Texture.hpp"
 #include "gl/texture/TexImage.hpp"
 #include "util/Export.hpp"
-#include "util/StrongRef.hpp"
+#include "util/Ref.hpp"
 
 namespace gnev::base {
 
@@ -16,8 +16,7 @@ public:
         std::function<bool(const gl::Texture& texture, GLuint index, gl::TexImage& dst)>;
     // clang-format on
 
-    MaterialTexStorage(StrongRef<gl::Texture> texture,
-                       GLuint capacity);
+    MaterialTexStorage(Ref<gl::Texture> texture, GLuint capacity);
     MaterialTexStorage(GLuint levels,
                        GLenum internal_format,
                        GLuint width,
@@ -25,7 +24,7 @@ public:
                        GLuint capacity);
     virtual ~MaterialTexStorage();
 
-    StrongRef<gl::Texture> getTexture() const;
+    Ref<gl::Texture> getTexture() const;
     void setSetter(const Setter& setter);
     void setGetter(const Getter& getter);
 
@@ -43,18 +42,18 @@ public:
     static bool getSubImage(const gl::Texture& texture, GLuint index, gl::TexImage& dst);
 
 private:
-    StrongRef<gl::Texture> texture;
+    Ref<gl::Texture> texture;
     Setter texture_setter;
     Getter texture_getter;
     GLuint capacity;
 
     std::unordered_set<GLuint> unused;
 
-    static StrongRef<gl::Texture> initTexture(GLuint levels,
-                                              GLuint width,
-                                              GLuint height,
-                                              GLuint capacity,
-                                              GLenum internal_format);
+    static Ref<gl::Texture> initTexture(GLuint levels,
+                                        GLuint width,
+                                        GLuint height,
+                                        GLuint capacity,
+                                        GLenum internal_format);
 };
 
 } // namespace gnev::base

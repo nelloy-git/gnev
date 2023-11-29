@@ -84,11 +84,11 @@ MaterialFactory_PBR buildMaterialFactory() {
     return MaterialFactory_PBR(storage);
 }
 
-Material_PBR
+std::unique_ptr<Material_PBR>
 createMaterial(MaterialFactory_PBR& factory, MaterialImageLoaderStbi& loader) {
     //
 
-    auto material = factory.create();
+    auto material = std::make_unique<Material_PBR>(factory.create());
     auto current_dir = std::filesystem::current_path();
     gl::TexImageInfo info{.level = 0,
                           .x = 0,
@@ -98,10 +98,9 @@ createMaterial(MaterialFactory_PBR& factory, MaterialImageLoaderStbi& loader) {
                           .format = GL_RGBA,
                           .type = GL_UNSIGNED_BYTE};
 
-    auto tex_ref = StrongRef<MaterialTex_PBR>::Make(material.getWeakStorage()
-                                                        .lock()
-                                                        .value()
-                                                        ->textures.at(0));
+    StrongRef<MaterialTex_PBR>
+        tex_ref(material->getWeakStorage().lock().value()->textures.at(0));
+        
     auto result =
         loader.upload(tex_ref,
                       current_dir / "3rdparty" / "minecraft_textures" / "gravel.png",
@@ -115,9 +114,11 @@ createMaterial(MaterialFactory_PBR& factory, MaterialImageLoaderStbi& loader) {
 
     auto& full_result = full_result_opt.value();
     std::cout << "Stb msgs: [";
-    std::cout << magic_enum::enum_name(full_result->messages[0]);
-    for (int i = 1; i < full_result->messages.size(); ++i) {
-        std::cout << ", " << magic_enum::enum_name(full_result->messages[i]);
+    if (full_result->messages.size() > 0) {
+        std::cout << magic_enum::enum_name(full_result->messages[0]);
+        for (int i = 1; i < full_result->messages.size(); ++i) {
+            std::cout << ", " << magic_enum::enum_name(full_result->messages[i]);
+        }
     }
     std::cout << "]" << std::endl;
 
@@ -127,20 +128,20 @@ createMaterial(MaterialFactory_PBR& factory, MaterialImageLoaderStbi& loader) {
     }
 
     // sizeof(MaterialGL_PBR);
-    material.setTexRef(MaterialTexType_PBR::Albedo, tex_ref);
-    material.setTexOffset(MaterialTexType_PBR::Albedo,
-                          {material.getDataRef()->getIndex() * 0.2,
-                           material.getDataRef()->getIndex() * 0.2,
-                           material.getDataRef()->getIndex() * 0.2,
-                           material.getDataRef()->getIndex() * 0.2});
-    material.setTexMultiplier(MaterialTexType_PBR::Albedo,
-                              {material.getDataRef()->getIndex() * 0.1,
-                               material.getDataRef()->getIndex() * 0.1,
-                               material.getDataRef()->getIndex() * 0.1,
-                               material.getDataRef()->getIndex() * 0.1});
+    material->setTexRef(MaterialTexType_PBR::Albedo, tex_ref);
+    material->setTexOffset(MaterialTexType_PBR::Albedo,
+                           {material->getDataRef()->getIndex() * 0.2,
+                            material->getDataRef()->getIndex() * 0.2,
+                            material->getDataRef()->getIndex() * 0.2,
+                            material->getDataRef()->getIndex() * 0.2});
+    material->setTexMultiplier(MaterialTexType_PBR::Albedo,
+                               {material->getDataRef()->getIndex() * 0.1,
+                                material->getDataRef()->getIndex() * 0.1,
+                                material->getDataRef()->getIndex() * 0.1,
+                                material->getDataRef()->getIndex() * 0.1});
 
     auto data = std::make_unique<MaterialGL_PBR>();
-    material.getDataRef()->template getData<MaterialGL_PBR>(data.get(), 0);
+    material->getDataRef()->template getData<MaterialGL_PBR>(data.get(), 0);
     std::cout << *data << std::endl;
 
     return material;
@@ -166,8 +167,7 @@ int main(int argc, const char** argv) {
     MaterialImageLoaderStbi loader;
     std::array<std::unique_ptr<Material_PBR>, 10> materials;
     for (int i = 0; i < 10; ++i) {
-        materials[i] =
-            std::make_unique<Material_PBR>(createMaterial(material_factory, loader));
+        materials[i] = createMaterial(material_factory, loader);
     }
 
     while (not close_window) {

@@ -7,7 +7,7 @@
 
 #include "gl/texture/TexImage.hpp"
 #include "material/base/MaterialTex.hpp"
-#include "util/StrongRef.hpp"
+#include "util/Ref.hpp"
 #include "util/WeakRef.hpp"
 
 namespace gnev::base {
@@ -15,7 +15,7 @@ namespace gnev::base {
 struct MaterialImageLoaderResult {
     MaterialImageLoaderResult(std::shared_future<bool>&& done,
                               WeakRef<MaterialTex> tex_ref)
-        : done(std::forward<decltype(done)>(done)){}
+        : done(std::forward<decltype(done)>(done)) {}
 
     virtual ~MaterialImageLoaderResult(){};
 
@@ -27,11 +27,10 @@ public:
     MaterialImageLoader(){};
     virtual ~MaterialImageLoader(){};
 
-    virtual StrongRef<MaterialImageLoaderResult>
-    upload(StrongRef<MaterialTex> tex_ref,
-           const std::filesystem::path& path,
-           const gl::TexImageInfo& read_info,
-           const gl::TexImageInfo& write_info) = 0;
+    virtual Ref<MaterialImageLoaderResult> upload(Ref<MaterialTex> tex_ref,
+                                                  const std::filesystem::path& path,
+                                                  const gl::TexImageInfo& read_info,
+                                                  const gl::TexImageInfo& write_info) = 0;
 };
 
 } // namespace gnev::base

@@ -21,7 +21,7 @@ std::optional<base::MaterialTex> Material_PBR::getTexRef(MaterialTexType_PBR typ
 }
 
 void Material_PBR::setTexRef(MaterialTexType_PBR type,
-                             std::optional<StrongRef<base::MaterialTex>> tex_ref) {
+                             std::optional<Ref<base::MaterialTex>> tex_ref) {
     base::Material<MaterialGL_PBR>::setTexRef(toUint(type), tex_ref);
 }
 

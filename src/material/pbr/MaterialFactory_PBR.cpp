@@ -4,11 +4,11 @@
 #include "material/base/MaterialStorage.hpp"
 #include "material/pbr/MaterialGL_PBR.hpp"
 #include "material/pbr/Material_PBR.hpp"
-#include "util/StrongRef.hpp"
+#include "util/Ref.hpp"
 
 namespace gnev {
 
-MaterialFactory_PBR::MaterialFactory_PBR(StrongRef<base::MaterialStorage<MaterialGL_PBR>>
+MaterialFactory_PBR::MaterialFactory_PBR(Ref<base::MaterialStorage<MaterialGL_PBR>>
                                              storage)
     : base::MaterialFactory<Material_PBR>(storage) {}
 

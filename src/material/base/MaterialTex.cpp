@@ -12,7 +12,7 @@ MaterialTex::~MaterialTex() {}
 
 WeakRef<MaterialTexStorage> MaterialTex::getWeakStorage() const { return weak_storage; }
 
-StrongRef<GLuint> MaterialTex::getIndex() const { return index_keeper; }
+Ref<GLuint> MaterialTex::getIndex() const { return index_keeper; }
 
 GLuint MaterialTex::getTexType() const { return tex_type; }
 
@@ -32,13 +32,13 @@ bool MaterialTex::getData(gl::TexImage& src) const {
     return storage_opt.value()->getData(index_keeper, src);
 }
 
-StrongRef<GLuint>
+Ref<GLuint>
 MaterialTex::initIndexKeeper(const WeakRef<MaterialTexStorage>& weak_storage) {
     auto storage_opt = weak_storage.lock();
     if (not storage_opt.has_value()) {
         throw std::runtime_error("");
     }
-    
+
     GLuint index = storage_opt.value()->initIndex();
 
     auto del = [weak_storage](GLuint* p_index) {
@@ -49,7 +49,7 @@ MaterialTex::initIndexKeeper(const WeakRef<MaterialTexStorage>& weak_storage) {
         delete p_index;
     };
     auto shared_index = std::shared_ptr<GLuint>(new GLuint(index), del);
-    return StrongRef<GLuint>(shared_index);
+    return Ref<GLuint>(shared_index);
 }
 
 } // namespace gnev::base

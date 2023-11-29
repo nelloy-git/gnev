@@ -5,7 +5,7 @@
 #include "gl/Buffer.hpp"
 #include "material/base/MaterialGL.hpp"
 #include "util/Export.hpp"
-#include "util/StrongRef.hpp"
+#include "util/Ref.hpp"
 
 namespace gnev::base {
 
@@ -19,12 +19,12 @@ public:
         std::function<bool(const gl::Buffer& buffer, GLuint offset, GLuint size, void* dst)>;
     // clang-format on
 
-    MaterialDataStorage(StrongRef<gl::Buffer> buffer,
+    MaterialDataStorage(Ref<gl::Buffer> buffer,
                         std::initializer_list<GLuint> contains_indices = {});
     MaterialDataStorage(GLuint capacity);
     virtual ~MaterialDataStorage();
 
-    StrongRef<gl::Buffer> getBuffer() const;
+    Ref<gl::Buffer> getBuffer() const;
     void setSetter(const Setter& setter);
     void setGetter(const Getter& getter);
 
@@ -46,18 +46,18 @@ public:
     getSubData(const gl::Buffer& buffer, GLuint offset, GLuint size, void* dst);
 
 private:
-    StrongRef<gl::Buffer> buffer;
+    Ref<gl::Buffer> buffer;
     Setter buffer_setter;
     Getter buffer_getter;
     GLuint capacity;
     std::unordered_set<GLuint> unused;
 
-    static StrongRef<gl::Buffer> initBuffer(GLuint capacity);
+    static Ref<gl::Buffer> initBuffer(GLuint capacity);
     static GLuint calcCapacity(gl::Buffer& buffer);
 };
 
 template <IsMaterialGL T>
-MaterialDataStorage<T>::MaterialDataStorage(StrongRef<gl::Buffer> buffer,
+MaterialDataStorage<T>::MaterialDataStorage(Ref<gl::Buffer> buffer,
                                             std::initializer_list<GLuint>
                                                 contains_indices)
     : buffer(buffer)
@@ -80,7 +80,7 @@ template <IsMaterialGL T>
 MaterialDataStorage<T>::~MaterialDataStorage() {}
 
 template <IsMaterialGL T>
-StrongRef<gl::Buffer> MaterialDataStorage<T>::getBuffer() const {
+Ref<gl::Buffer> MaterialDataStorage<T>::getBuffer() const {
     return buffer;
 }
 
@@ -166,8 +166,8 @@ bool MaterialDataStorage<T>::getSubData(const gl::Buffer& buffer,
 };
 
 template <IsMaterialGL T>
-StrongRef<gl::Buffer> MaterialDataStorage<T>::initBuffer(GLuint capacity) {
-    auto buffer = StrongRef<gl::Buffer>::Make();
+Ref<gl::Buffer> MaterialDataStorage<T>::initBuffer(GLuint capacity) {
+    auto buffer = Ref<gl::Buffer>::Make();
     buffer->initStorage(capacity * sizeof(T),
                         nullptr,
                         GL_DYNAMIC_STORAGE_BIT | GL_MAP_WRITE_BIT | GL_MAP_READ_BIT);

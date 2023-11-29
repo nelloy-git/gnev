@@ -7,13 +7,13 @@ using Setter =
 using Getter =
     std::function<bool(const gl::Texture& buffer, GLuint offset, GLuint size, void* dst)>;
 
-MaterialTexStorage::MaterialTexStorage(StrongRef<gl::Texture> texture, GLuint capacity)
+MaterialTexStorage::MaterialTexStorage(Ref<gl::Texture> texture, GLuint capacity)
     : texture(texture)
     , texture_setter(&setSubImage)
     , texture_getter(&getSubImage)
     , capacity(capacity) {
     for (GLuint i = 0; i < capacity; ++i) {
-        unused.emplace(i);
+        unused.emplace(capacity - i - 1);
     }
 }
 
@@ -27,7 +27,7 @@ MaterialTexStorage::MaterialTexStorage(GLuint levels,
 
 MaterialTexStorage::~MaterialTexStorage() {}
 
-StrongRef<gl::Texture> MaterialTexStorage::getTexture() const { return texture; }
+Ref<gl::Texture> MaterialTexStorage::getTexture() const { return texture; }
 
 void MaterialTexStorage::setSetter(const Setter& setter) { texture_setter = setter; }
 
@@ -94,12 +94,12 @@ bool MaterialTexStorage::getSubImage(const gl::Texture& texture,
     return true;
 }
 
-StrongRef<gl::Texture> MaterialTexStorage::initTexture(GLuint levels,
-                                                       GLenum internal_format,
-                                                       GLuint width,
-                                                       GLuint height,
-                                                       GLuint capacity) {
-    auto texture = StrongRef<gl::Texture>::Make(GL_TEXTURE_2D_ARRAY);
+Ref<gl::Texture> MaterialTexStorage::initTexture(GLuint levels,
+                                                 GLenum internal_format,
+                                                 GLuint width,
+                                                 GLuint height,
+                                                 GLuint capacity) {
+    auto texture = Ref<gl::Texture>::Make(GL_TEXTURE_2D_ARRAY);
     texture->initStorage3D(levels, internal_format, width, height, capacity);
     return texture;
 }

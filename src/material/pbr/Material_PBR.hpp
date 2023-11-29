@@ -15,8 +15,8 @@ public:
     ~Material_PBR();
 
     std::optional<base::MaterialTex> getTexRef(MaterialTexType_PBR type) const;
-    void setTexRef(MaterialTexType_PBR type,
-                   std::optional<StrongRef<base::MaterialTex>> tex_ref);
+    void
+    setTexRef(MaterialTexType_PBR type, std::optional<Ref<base::MaterialTex>> tex_ref);
 
     void setTexOffset(MaterialTexType_PBR type, const glm::vec4& value);
     glm::vec4 getTexOffset(MaterialTexType_PBR type) const;
