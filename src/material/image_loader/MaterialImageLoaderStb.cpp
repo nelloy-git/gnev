@@ -42,39 +42,38 @@ MaterialImageLoaderStbi::upload(Ref<base::MaterialTex> tex_ref,
     }
 
     std::promise<bool> done;
-    auto result = Ref<MaterialImageLoaderStbiResult>::Make(done.get_future(), tex_ref);
+    auto result = MakeSharable<MaterialImageLoaderStbiResult>(done.get_future(), tex_ref);
     cache.emplace(path, result);
 
-    // auto storage_opt = tex_ref->getWeakStorage().lock();
-    // if (not storage_opt.has_value()) {
-    //     result->messages.push_back(ReleasedStorage);
-    //     result->messages.push_back(Failed);
+    auto storage_opt = tex_ref->getWeakStorage().lock();
+    if (not storage_opt.has_value()) {
+        result->messages.push_back(ReleasedStorage);
+        result->messages.push_back(Failed);
+        done.set_value(false);
+        return result;
+    }
+    auto& storage = storage_opt.value();
+
+    if (not validateInfos(read_info, write_info, result)) {
+        result->messages.push_back(Failed);
+        done.set_value(false);
+        return result;
+    }
+
+    std::optional<gl::TexImage> img_opt;
+    try {
+        img_opt = readImage(path, read_info, write_info, result);
+        if (not img_opt.has_value()) {
+            result->messages.push_back(Failed);
+            done.set_value(false);
+            return result;
+        }
+        storage->setData(tex_ref->getIndex(), img_opt.value());
+    } catch (...) {
+        done.set_exception(std::current_exception());
+    }
+
     done.set_value(true);
-    //     return result;
-    // }
-    // auto& storage = storage_opt.value();
-
-    // if (not validateInfos(read_info, write_info, result)) {
-    //     result->messages.push_back(Failed);
-    //     done.set_value(false);
-    //     return result;
-    // }
-
-    // std::optional<gl::TexImage> img_opt;
-
-    // try {
-    //     img_opt = readImage(path, read_info, write_info, result);
-    //     if (not img_opt.has_value()) {
-    //         result->messages.push_back(Failed);
-    //         done.set_value(false);
-    //         return result;
-    //     }
-    //     // storage->at(tex_ref->getIndex()).getImage(img_opt.value());
-    // } catch (...) {
-    //     done.set_exception(std::current_exception());
-    // }
-
-    // done.set_value(true);
     return result;
 }
 

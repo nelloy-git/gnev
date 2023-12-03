@@ -57,5 +57,16 @@
                 "MESA_GLSL_VERSION_OVERRIDE": "460"
             }
         },
+        {
+            "name": "ManualTestsValgrindUbuntu",
+            "type": "node-terminal",
+            "request": "launch",
+            "command": "valgrind --leak-check=full --show-reachable=yes --error-limit=no --suppressions=./valgrind.supp --gen-suppressions=all --log-file=minimalraw.log --num-callers=50 ./build/manual_test",
+            "cwd": "${workspaceFolder}",
+            "env": {
+                "MESA_GL_VERSION_OVERRIDE": "4.6",
+                "MESA_GLSL_VERSION_OVERRIDE": "460"
+            }
+        },
     ]
 }

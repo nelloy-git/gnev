@@ -7,48 +7,10 @@
 
 #include "gl/texture/TexImage.hpp"
 #include "material/base/MaterialImageLoader.hpp"
+#include "material/image_loader/MaterialImageLoaderStbiResult.hpp"
 #include "util/Ref.hpp"
 
 namespace gnev {
-struct MaterialImageLoaderStbiResult : public base::MaterialImageLoaderResult {
-    enum class Message {
-        Done,
-        Failed,
-
-        UnsupportedReadLevel,
-        UnsupportedReadX,
-        UnsupportedReadY,
-        UnsupportedReadWidth,
-        UnsupportedReadHeight,
-        UnsupportedReadFormat,
-        UnsupportedReadType,
-        UnsupportedReadInfo,
-
-        UnsupportedWriteLevel,
-        UnsupportedWriteX,
-        UnsupportedWriteY,
-        UnsupportedWriteWidth,
-        UnsupportedWriteHeight,
-        UnsupportedWriteFormat,
-        UnsupportedWriteType,
-        UnsupportedWriteInfo,
-
-        ReleasedStorage,
-        FileDoNotExist,
-        OriginalImageHasDifferentNumberOfComponents,
-        ImageResized,
-        AutoWidth,
-        AutoHeight
-    };
-
-    MaterialImageLoaderStbiResult(std::shared_future<bool>&& done,
-                                  WeakRef<base::MaterialTex> tex_ref)
-        : MaterialImageLoaderResult(std::forward<decltype(done)>(done), tex_ref) {}
-
-    ~MaterialImageLoaderStbiResult(){};
-
-    std::vector<Message> messages;
-};
 
 class EXPORT MaterialImageLoaderStbi : public base::MaterialImageLoader {
 public:

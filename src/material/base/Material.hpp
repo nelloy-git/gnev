@@ -21,18 +21,23 @@ public:
     static constexpr GLuint TexSize = T::TexSize;
 
     Material(WeakRef<MaterialStorage<T>> weak_storage, const T& initial = T{});
-    virtual ~Material();
+    Material(const Material&) = delete;
+    Material(Material&&) = default;
+    virtual ~Material() = default;
 
     WeakRef<MaterialStorage<T>> getWeakStorage() const;
     Ref<MaterialData<T>> getDataRef() const;
     std::optional<Ref<MaterialTex>> getTexRef(GLuint type) const;
     void setTexRef(GLuint type, std::optional<Ref<MaterialTex>> tex_ref);
 
+    // Helpers
+    GLuint getIndex() const;
+
 private:
     WeakRef<MaterialStorage<T>> weak_storage;
 
     Ref<MaterialData<T>> data_ref;
-    std::array<std::optional<Ref<MaterialTex>>, TexSize> tex_refs;
+    std::array<std::shared_ptr<MaterialTex>, TexSize> tex_refs;
 
     static MaterialData<T> initData(WeakRef<MaterialStorage<T>> weak_storage);
 };
@@ -55,14 +60,17 @@ concept IsMaterial = details::is_Material<T>::value;
 template <IsMaterialGL T>
 Material<T>::Material(WeakRef<MaterialStorage<T>> weak_storage, const T& initial)
     : weak_storage(weak_storage)
-    , data_ref(Ref<MaterialData<T>>::Make(weak_storage.lock().value()->data, initial)) {}
-
-template <IsMaterialGL T>
-Material<T>::~Material() {}
+    , data_ref(MakeSharable<MaterialData<T>>(weak_storage.lock().value()->data,
+                                             initial)) {}
 
 template <IsMaterialGL T>
 WeakRef<MaterialStorage<T>> Material<T>::getWeakStorage() const {
     return weak_storage;
+}
+
+template <IsMaterialGL T>
+GLuint Material<T>::getIndex() const {
+    return data_ref->getIndex();
 }
 
 template <IsMaterialGL T>
@@ -72,14 +80,16 @@ Ref<MaterialData<T>> Material<T>::getDataRef() const {
 
 template <IsMaterialGL T>
 std::optional<Ref<MaterialTex>> Material<T>::getTexRef(GLuint index) const {
-    return tex_refs[index];
+    return tex_refs[index] ? std::optional<Ref<MaterialTex>>(tex_refs[index])
+                           : std::nullopt;
 }
 
 template <IsMaterialGL T>
 void Material<T>::setTexRef(GLuint type, std::optional<Ref<MaterialTex>> tex_ref) {
-    GLuint index = tex_ref.has_value() ? tex_ref.value()->getIndex() : T::InvalidTexIndex;
+    GLuint index =
+        tex_ref.has_value() ? *tex_ref.value()->getIndex() : T::InvalidTexIndex;
 
-    tex_refs[index] = tex_ref;
+    tex_refs.at(type) = tex_ref->getPtr();
     getDataRef()->template setData<GLuint>(&index,
                                            offsetof(T, tex_index) +
                                                type * sizeof(GLuint));

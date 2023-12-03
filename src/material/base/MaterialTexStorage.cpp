@@ -99,7 +99,7 @@ Ref<gl::Texture> MaterialTexStorage::initTexture(GLuint levels,
                                                  GLuint width,
                                                  GLuint height,
                                                  GLuint capacity) {
-    auto texture = Ref<gl::Texture>::Make(GL_TEXTURE_2D_ARRAY);
+    auto texture = MakeSharable<gl::Texture>(GL_TEXTURE_2D_ARRAY);
     texture->initStorage3D(levels, internal_format, width, height, capacity);
     return texture;
 }

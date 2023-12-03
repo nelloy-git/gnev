@@ -167,7 +167,7 @@ bool MaterialDataStorage<T>::getSubData(const gl::Buffer& buffer,
 
 template <IsMaterialGL T>
 Ref<gl::Buffer> MaterialDataStorage<T>::initBuffer(GLuint capacity) {
-    auto buffer = Ref<gl::Buffer>::Make();
+    auto buffer = MakeSharable<gl::Buffer>();
     buffer->initStorage(capacity * sizeof(T),
                         nullptr,
                         GL_DYNAMIC_STORAGE_BIT | GL_MAP_WRITE_BIT | GL_MAP_READ_BIT);

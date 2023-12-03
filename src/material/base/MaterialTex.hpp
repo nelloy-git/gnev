@@ -16,14 +16,12 @@ public:
 
     WeakRef<MaterialTexStorage> getWeakStorage() const;
     Ref<GLuint> getIndex() const;
-    GLuint getTexType() const;
     bool setData(const gl::TexImage& src);
     bool getData(gl::TexImage& src) const;
 
 private:
     WeakRef<MaterialTexStorage> weak_storage;
     Ref<GLuint> index_keeper;
-    GLuint tex_type;
 
     static Ref<GLuint> initIndexKeeper(const WeakRef<MaterialTexStorage>& weak_storage);
 };

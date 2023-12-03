@@ -14,8 +14,6 @@ WeakRef<MaterialTexStorage> MaterialTex::getWeakStorage() const { return weak_st
 
 Ref<GLuint> MaterialTex::getIndex() const { return index_keeper; }
 
-GLuint MaterialTex::getTexType() const { return tex_type; }
-
 bool MaterialTex::setData(const gl::TexImage& src) {
     auto storage_opt = weak_storage.lock();
     if (not storage_opt.has_value()) {

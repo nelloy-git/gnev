@@ -10,28 +10,33 @@ namespace gnev {
 template <typename T>
 class Ref {
     template <typename V>
+    friend class Ref;
+
+    template <typename V>
     friend class WeakRef;
 
 public:
-    template <typename... Args>
-    static Ref<T> Make(Args&&... args)
-        requires(std::constructible_from<T, Args...>);
+    template <typename V>
+    Ref<T>(const Ref<V>& other);
+
+    template <typename V>
+    Ref<T>(Ref<V>&& other);
 
     template <typename V>
     Ref(const std::shared_ptr<V>& ptr)
-        requires(std::constructible_from<std::shared_ptr<T>, std::shared_ptr<V>>);
+        requires(std::constructible_from<std::shared_ptr<T>, const std::shared_ptr<V>&>);
 
-    template <typename... Args>
-    Ref<T>(Args&&... args)
-        requires(std::constructible_from<T, Args...>);
+    template <typename V>
+    Ref(std::shared_ptr<V>&& ptr)
+        requires(std::constructible_from<std::shared_ptr<T>, std::shared_ptr<V> &&>);
 
     virtual ~Ref();
 
     T* operator->() const;
+    T& operator*() const;
     operator T&() const;
 
-    template <typename V>
-    operator Ref<V>() const;
+    std::shared_ptr<T> getPtr() const;
 
     template <typename V>
     Ref<V> staticCast() const;
@@ -43,9 +48,8 @@ private:
     std::shared_ptr<T> ptr;
 };
 
-template <typename T>
-template <typename... Args>
-Ref<T> Ref<T>::Make(Args&&... args)
+template <typename T, typename... Args>
+Ref<T> MakeSharable(Args&&... args)
     requires(std::constructible_from<T, Args...>)
 {
     auto ptr = std::make_shared<T>(std::forward<Args>(args)...);
@@ -54,8 +58,18 @@ Ref<T> Ref<T>::Make(Args&&... args)
 
 template <typename T>
 template <typename V>
+Ref<T>::Ref(const Ref<V>& other)
+    : ptr(other.ptr) {}
+
+template <typename T>
+template <typename V>
+Ref<T>::Ref(Ref<V>&& other)
+    : ptr(std::move(other.ptr)) {}
+
+template <typename T>
+template <typename V>
 Ref<T>::Ref(const std::shared_ptr<V>& ptr)
-    requires(std::constructible_from<std::shared_ptr<T>, std::shared_ptr<V>>)
+    requires(std::constructible_from<std::shared_ptr<T>, const std::shared_ptr<V>&>)
     : ptr(ptr) {
     if (not ptr) {
         throw std::logic_error("");
@@ -63,12 +77,13 @@ Ref<T>::Ref(const std::shared_ptr<V>& ptr)
 }
 
 template <typename T>
-template <typename... Args>
-Ref<T>::Ref(Args&&... args)
-    requires(std::constructible_from<T, Args...>)
-{
-    auto ptr = std::make_shared<T>(std::forward<Args>(args)...);
-    return Ref<T>(ptr);
+template <typename V>
+Ref<T>::Ref(std::shared_ptr<V>&& ptr)
+    requires(std::constructible_from<std::shared_ptr<T>, std::shared_ptr<V> &&>)
+    : ptr(std::move(ptr)) {
+    if (not ptr) {
+        throw std::logic_error("");
+    }
 }
 
 template <typename T>
@@ -76,7 +91,12 @@ Ref<T>::~Ref() {}
 
 template <typename T>
 T* Ref<T>::operator->() const {
-    return ptr.get();
+    return ptr.operator->();
+}
+
+template <typename T>
+T& Ref<T>::operator*() const {
+    return ptr.operator*();
 }
 
 template <typename T>
@@ -84,10 +104,9 @@ Ref<T>::operator T&() const {
     return *ptr;
 }
 
-template <typename T>
-template <typename V>
-Ref<T>::operator Ref<V>() const {
-    return Ref<V>(ptr);
+template<typename T>
+std::shared_ptr<T> Ref<T>::getPtr() const {
+    return ptr;
 }
 
 template <typename T>

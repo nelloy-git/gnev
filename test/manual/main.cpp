@@ -3,7 +3,7 @@
 #include <stdexcept>
 
 #include "magic_enum.hpp"
-#include "util/StrongRef.hpp"
+#include "util/Ref.hpp"
 
 #ifdef WIN32
 #include <vld.h>
@@ -17,7 +17,7 @@
 #include "gl/Ctx.hpp"
 #include "gl/Program.hpp"
 #include "material/image_loader/MaterialImageLoaderStb.hpp"
-#include "material/pbr/Alias.hpp"
+#include "material/pbr/MaterialFactory_PBR.hpp"
 #include "shader/ProgramBuilder.hpp"
 
 #define GLFW_INCLUDE_NONE
@@ -65,30 +65,13 @@ gl::Program buildProgram() {
     return std::move(program.value());
 }
 
-MaterialFactory_PBR buildMaterialFactory() {
-    static constexpr GLuint CAP = 10;
-    static constexpr GLuint WIDTH = 64;
-    static constexpr GLuint HEIGHT = 64;
-
-    auto data_storage = StrongRef<MaterialDataStorage_PBR>::Make(CAP);
-
-    std::array<StrongRef<MaterialTexStorage_PBR>, 5> tex_storages = {
-        StrongRef<MaterialTexStorage_PBR>::Make(1, GL_RGBA8, WIDTH, HEIGHT, CAP),
-        StrongRef<MaterialTexStorage_PBR>::Make(1, GL_RGBA8, WIDTH, HEIGHT, CAP),
-        StrongRef<MaterialTexStorage_PBR>::Make(1, GL_RGBA8, WIDTH, HEIGHT, CAP),
-        StrongRef<MaterialTexStorage_PBR>::Make(1, GL_RGBA8, WIDTH, HEIGHT, CAP),
-        StrongRef<MaterialTexStorage_PBR>::Make(1, GL_RGBA8, WIDTH, HEIGHT, CAP),
-    };
-
-    auto storage = StrongRef<MaterialStorage_PBR>::Make(data_storage, tex_storages);
-    return MaterialFactory_PBR(storage);
-}
-
-std::unique_ptr<Material_PBR>
+Ref<Material_PBR>
 createMaterial(MaterialFactory_PBR& factory, MaterialImageLoaderStbi& loader) {
     //
 
-    auto material = std::make_unique<Material_PBR>(factory.create());
+    auto material = factory.createMaterial();
+    auto albedo_tex = factory.createTex(MaterialTexType_PBR::Albedo);
+
     auto current_dir = std::filesystem::current_path();
     gl::TexImageInfo info{.level = 0,
                           .x = 0,
@@ -98,50 +81,25 @@ createMaterial(MaterialFactory_PBR& factory, MaterialImageLoaderStbi& loader) {
                           .format = GL_RGBA,
                           .type = GL_UNSIGNED_BYTE};
 
-    StrongRef<MaterialTex_PBR>
-        tex_ref(material->getWeakStorage().lock().value()->textures.at(0));
-        
     auto result =
-        loader.upload(tex_ref,
+        loader.upload(albedo_tex,
                       current_dir / "3rdparty" / "minecraft_textures" / "gravel.png",
                       info,
                       info);
 
-    auto full_result_opt = result.dynamicCast<MaterialImageLoaderStbiResult>();
-    if (not full_result_opt.has_value()) {
-        throw std::runtime_error("");
-    }
-
-    auto& full_result = full_result_opt.value();
-    std::cout << "Stb msgs: [";
-    if (full_result->messages.size() > 0) {
-        std::cout << magic_enum::enum_name(full_result->messages[0]);
-        for (int i = 1; i < full_result->messages.size(); ++i) {
-            std::cout << ", " << magic_enum::enum_name(full_result->messages[i]);
-        }
-    }
-    std::cout << "]" << std::endl;
-
     result->done.wait();
-    if (not full_result->done.get()) {
+    if (not result->done.get()) {
         throw std::runtime_error("");
     }
 
-    // sizeof(MaterialGL_PBR);
-    material->setTexRef(MaterialTexType_PBR::Albedo, tex_ref);
-    material->setTexOffset(MaterialTexType_PBR::Albedo,
-                           {material->getDataRef()->getIndex() * 0.2,
-                            material->getDataRef()->getIndex() * 0.2,
-                            material->getDataRef()->getIndex() * 0.2,
-                            material->getDataRef()->getIndex() * 0.2});
-    material->setTexMultiplier(MaterialTexType_PBR::Albedo,
-                               {material->getDataRef()->getIndex() * 0.1,
-                                material->getDataRef()->getIndex() * 0.1,
-                                material->getDataRef()->getIndex() * 0.1,
-                                material->getDataRef()->getIndex() * 0.1});
+    auto stbi_result_opt = result.dynamicCast<MaterialImageLoaderStbiResult>();
+    if (not stbi_result_opt.has_value()) {
+        throw std::runtime_error("");
+    }
+    std::cout << *stbi_result_opt.value() << std::endl;
 
     auto data = std::make_unique<MaterialGL_PBR>();
-    material->getDataRef()->template getData<MaterialGL_PBR>(data.get(), 0);
+    material->getDataRef()->getData<MaterialGL_PBR>(data.get(), 0);
     std::cout << *data << std::endl;
 
     return material;
@@ -163,11 +121,11 @@ int main(int argc, const char** argv) {
     });
 
     auto program = buildProgram();
-    auto material_factory = buildMaterialFactory();
+    MaterialFactory_PBR material_factory(1, 32, 32, 10);
     MaterialImageLoaderStbi loader;
-    std::array<std::unique_ptr<Material_PBR>, 10> materials;
-    for (int i = 0; i < 10; ++i) {
-        materials[i] = createMaterial(material_factory, loader);
+    std::vector<Ref<Material_PBR>> materials;
+    for (int i = 0; i < 12; ++i) {
+        materials.emplace_back(createMaterial(material_factory, loader));
     }
 
     while (not close_window) {

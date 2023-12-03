@@ -1,0 +1,203 @@
+{
+   <dl_open_worker>
+   Memcheck:Addr8
+   ...
+   fun:*dl_open*
+}
+{
+   <dlopen>
+   Memcheck:Leak
+   match-leak-kinds: definite
+   ...
+   fun:*dlopen*
+   ...
+}
+{
+   <dlopen>
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   ...
+   fun:*dlopen*
+   ...
+}
+{
+   <dl_open>
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   ...
+   fun:*dl_open*
+   ...
+}
+{
+   <dl_close>
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   ...
+   fun:*dl_close*
+   ...
+}
+{
+   <tls_get_addr>
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   ...
+   fun:*tls_get_addr*
+   ...
+}
+{
+   <libLLVM>
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   ...
+   obj:*libLLVM*
+   ...
+}
+{
+   <libd3d12core>
+   Memcheck:Addr32
+   ...
+   obj:/usr/lib/wsl/lib/libd3d12core.so
+}
+{
+   <libd3d12core>
+   Memcheck:Addr16
+   ...
+   obj:/usr/lib/wsl/lib/libd3d12core.so
+}
+{
+   <libd3d12core>
+   Memcheck:Addr8
+   ...
+   obj:/usr/lib/wsl/lib/libd3d12core.so
+}
+{
+   <libd3d12core>
+   Memcheck:Addr4
+   ...
+   obj:/usr/lib/wsl/lib/libd3d12core.so
+}
+{
+   <libd3d12core>
+   Memcheck:Addr2
+   ...
+   obj:/usr/lib/wsl/lib/libd3d12core.so
+}
+{
+   <libd3d12core>
+   Memcheck:Addr1
+   ...
+   obj:/usr/lib/wsl/lib/libd3d12core.so
+}
+{
+   <libd3d12core>
+   Memcheck:Param
+   ioctl(generic)
+   ...
+   obj:/usr/lib/wsl/lib/libd3d12core.so
+}
+{
+   <libd3d12core>
+   Memcheck:Free
+   ...
+   obj:/usr/lib/wsl/lib/libd3d12core.so
+}
+{
+   <wsl/drivers>
+   Memcheck:Cond
+   ...
+   obj:*wsl/drivers/**
+   ...
+}
+{
+   <wsl/drivers>
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   ...
+   obj:*wsl/drivers/**
+   ...
+}
+{
+   <wsl/drivers>
+   Memcheck:Leak
+   match-leak-kinds: indirect
+   ...
+   obj:*wsl/drivers/**
+   ...
+}
+{
+   <wsl/drivers>
+   Memcheck:Leak
+   match-leak-kinds: definite
+   ...
+   obj:*wsl/drivers/**
+   ...
+}
+{
+   <wsl/lib>
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   ...
+   obj:/usr/lib/wsl/lib/**
+   ...
+}
+{
+   <swrast_dri>
+   Memcheck:Addr8
+   ...
+   obj:*swrast_dri*
+   ...
+}
+{
+   <swrast_dri>
+   Memcheck:Addr2
+   ...
+   obj:*swrast_dri*
+   ...
+}
+{
+   <swrast_dri>
+   Memcheck:Addr1
+   ...
+   obj:*swrast_dri*
+   ...
+}
+{
+   <libX11>
+   Memcheck:Leak
+   match-leak-kinds: definite
+   ...
+   obj:*libX11*
+   ...
+}
+{
+   <libX11>
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   ...
+   obj:*libX11*
+   ...
+}
+{
+   <glfwCreateWindow>
+   Memcheck:Leak
+   match-leak-kinds: definite
+   ...
+   fun:*glfwCreateWindow*
+   ...
+}
+{
+   <glfwCreateWindow>
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   ...
+   fun:*glfwCreateWindow*
+   ...
+}
+{
+   <glfwCreateWindow>
+   Memcheck:Leak
+   match-leak-kinds: indirect
+   ...
+   fun:*glfwCreateWindow*
+   ...
+}
