@@ -2,8 +2,6 @@
 
 #include <array>
 
-#include "gl/buffer/BufStorageIndexMap.hpp"
-#include "gl/texture/TexStorageIndexMap.hpp"
 #include "material/base/MaterialDataStorage.hpp"
 #include "material/base/MaterialGL.hpp"
 #include "material/base/MaterialTexStorage.hpp"

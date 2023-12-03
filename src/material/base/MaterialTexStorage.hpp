@@ -1,7 +1,7 @@
 #pragma once
 
 #include "gl/Texture.hpp"
-#include "gl/texture/TexImage.hpp"
+#include "material/base/MaterialImage.hpp"
 #include "util/Export.hpp"
 #include "util/Ref.hpp"
 

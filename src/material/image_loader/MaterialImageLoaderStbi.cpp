@@ -7,7 +7,7 @@
 #include <optional>
 #include <stdexcept>
 
-#include "gl/texture/TexImage.hpp"
+#include "material/base/MaterialImage.hpp"
 #include "material/base/MaterialImageLoader.hpp"
 #include "material/pbr/MaterialGL_PBR.hpp"
 

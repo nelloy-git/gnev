@@ -5,7 +5,7 @@
 #include <memory>
 #include <utility>
 
-#include "gl/texture/TexImage.hpp"
+#include "material/base/MaterialImage.hpp"
 #include "material/base/MaterialTex.hpp"
 #include "util/Ref.hpp"
 #include "util/WeakRef.hpp"

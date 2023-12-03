@@ -5,7 +5,7 @@
 #include <optional>
 #include <unordered_map>
 
-#include "gl/texture/TexImage.hpp"
+#include "material/base/MaterialImage.hpp"
 #include "material/base/MaterialImageLoader.hpp"
 #include "material/image_loader/MaterialImageLoaderStbiResult.hpp"
 #include "util/Ref.hpp"
