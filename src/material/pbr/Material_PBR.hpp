@@ -6,7 +6,7 @@
 
 namespace gnev {
 
-class Material_PBR : public base::Material<MaterialGL_PBR> {
+class EXPORT Material_PBR : public base::Material<MaterialGL_PBR> {
 public:
     Material_PBR(WeakRef<base::MaterialStorage<MaterialGL_PBR>> weak_storage,
                  const MaterialGL_PBR& initial = MaterialGL_PBR{});

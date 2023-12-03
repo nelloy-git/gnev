@@ -1,4 +1,4 @@
-#include "material/image_loader/MaterialImageLoaderStb.hpp"
+#include "material/image_loader/MaterialImageLoaderStbi.hpp"
 
 #include <exception>
 #include <future>
@@ -34,7 +34,7 @@ MaterialImageLoaderStbi::upload(Ref<base::MaterialTex> tex_ref,
     if (cache.contains(path)) {
         using enum std::future_status;
 
-        Ref<MaterialImageLoaderStbiResult>& result(cache.at(path));
+        Ref<MaterialImageLoaderStbiResult>& result(cache.at(path.wstring()));
         auto status = result->done.wait_for(std::chrono::seconds(0));
         if (status == timeout or (status == ready and result->done.get())) {
             return result;

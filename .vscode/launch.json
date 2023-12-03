@@ -16,10 +16,21 @@
             "console": "externalTerminal"
         },
         {
-            "name": "TestsWin",
+            "name": "AutoTestsWin",
             "type": "cppvsdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/build/Debug/tests.exe",
+            "program": "${workspaceFolder}/build/Debug/auto_test.exe",
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "console": "externalTerminal"
+        },
+        {
+            "name": "ManualTestsWin",
+            "type": "cppvsdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/Debug/manual_test.exe",
             "args": [],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",

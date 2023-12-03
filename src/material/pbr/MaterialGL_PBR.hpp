@@ -6,6 +6,7 @@
 
 #include "glm/glm.hpp"
 #include "material/base/MaterialGL.hpp"
+#include "nlohmann/json_fwd.hpp"
 
 namespace gnev {
 
@@ -42,6 +43,21 @@ public:
     static std::size_t OffsetOfTexMultiplier(MaterialTexType_PBR type);
 };
 
-std::ostream& operator<<(std::ostream& out, const MaterialGL_PBR& val);
+EXPORT std::ostream& operator<<(std::ostream& out, const MaterialGL_PBR& val);
+// EXPORT void to_json(nlohmann::json& j, const gnev::MaterialGL_PBR& material);
 
 } // namespace gnev
+
+namespace nlohmann {
+
+template <>
+struct EXPORT adl_serializer<glm::vec4> {
+    static void to_json(json& j, const glm::vec4& vec);
+};
+
+template <>
+struct EXPORT adl_serializer<gnev::MaterialGL_PBR> {
+    static void to_json(json& j, const gnev::MaterialGL_PBR& material);
+};
+
+} // namespace nlohmann

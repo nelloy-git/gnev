@@ -2,9 +2,14 @@
 
 #include "material/base/MaterialStorage.hpp"
 #include "material/base/MaterialTex.hpp"
+#include "material/base/MaterialImageLoader.hpp"
 #include "material/pbr/MaterialGL_PBR.hpp"
 #include "material/pbr/Material_PBR.hpp"
 #include "util/Ref.hpp"
+
+namespace std::filesystem {
+class path;
+};
 
 namespace gnev {
 
@@ -18,7 +23,7 @@ using MaterialTexStorage_PBR = base::MaterialTexStorage;
 using MaterialData_PBR = base::MaterialData<MaterialGL_PBR>;
 using MaterialTex_PBR = base::MaterialTex;
 
-class MaterialFactory_PBR {
+class EXPORT MaterialFactory_PBR {
 public:
     MaterialFactory_PBR(Ref<MaterialStorage_PBR>);
     MaterialFactory_PBR(GLuint img_levels,

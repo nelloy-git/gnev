@@ -25,7 +25,7 @@ public:
 
 private:
     using Buffer = std::shared_ptr<GLubyte[]>;
-    std::unordered_map<std::filesystem::path, Ref<MaterialImageLoaderStbiResult>> cache;
+    std::unordered_map<std::wstring, Ref<MaterialImageLoaderStbiResult>> cache;
 
     struct StbInfo {
         int width;

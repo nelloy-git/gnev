@@ -1,6 +1,5 @@
 #pragma once
 
-#include <bits/utility.h>
 #include <functional>
 #include <initializer_list>
 #include <memory>

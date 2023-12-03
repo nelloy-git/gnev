@@ -43,6 +43,6 @@ struct MaterialImageLoaderStbiResult : public base::MaterialImageLoaderResult {
     std::vector<Message> messages;
 };
 
-std::ostream& operator<<(std::ostream& out, const MaterialImageLoaderStbiResult& result);
+EXPORT std::ostream& operator<<(std::ostream& out, const MaterialImageLoaderStbiResult& result);
 
 } // namespace gnev

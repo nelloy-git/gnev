@@ -4,9 +4,11 @@
 #include <mutex>
 #include <optional>
 
+#include "util/Export.hpp"
+
 namespace gnev {
 
-class IndexStorage {
+class EXPORT IndexStorage {
 public:
     using Index = unsigned int;
 

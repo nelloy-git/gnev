@@ -141,7 +141,6 @@ bool MaterialDataStorage<T>::getData(GLuint index,
     if (offset + size > sizeof(T)) {
         throw std::out_of_range("");
     }
-    std::cout << "read index: " << index << std::endl;
     return buffer_getter(buffer, index * sizeof(T) + offset, size, src);
 }
 
@@ -150,7 +149,6 @@ bool MaterialDataStorage<T>::setSubData(gl::Buffer& buffer,
                                         GLuint offset,
                                         GLuint size,
                                         const void* src) {
-    std::cout << "write: " << offset << " (" << size << ")" << std::endl;
     buffer.setSubData(offset, size, src);
     return true;
 };
@@ -160,7 +158,6 @@ bool MaterialDataStorage<T>::getSubData(const gl::Buffer& buffer,
                                         GLuint offset,
                                         GLuint size,
                                         void* dst) {
-    std::cout << "read: " << offset << " (" << size << ")" << std::endl;
     buffer.getSubData(offset, size, dst);
     return true;
 };

@@ -16,7 +16,7 @@
 #include "GlfwWindow.hpp"
 #include "gl/Ctx.hpp"
 #include "gl/Program.hpp"
-#include "material/image_loader/MaterialImageLoaderStb.hpp"
+#include "material/image_loader/MaterialImageLoaderStbi.hpp"
 #include "material/pbr/MaterialFactory_PBR.hpp"
 #include "shader/ProgramBuilder.hpp"
 
@@ -98,6 +98,8 @@ createMaterial(MaterialFactory_PBR& factory, MaterialImageLoaderStbi& loader) {
     }
     std::cout << *stbi_result_opt.value() << std::endl;
 
+    material->setTexRef(MaterialTexType_PBR::Albedo, albedo_tex);
+
     auto data = std::make_unique<MaterialGL_PBR>();
     material->getDataRef()->getData<MaterialGL_PBR>(data.get(), 0);
     std::cout << *data << std::endl;
@@ -124,7 +126,7 @@ int main(int argc, const char** argv) {
     MaterialFactory_PBR material_factory(1, 32, 32, 10);
     MaterialImageLoaderStbi loader;
     std::vector<Ref<Material_PBR>> materials;
-    for (int i = 0; i < 12; ++i) {
+    for (int i = 0; i < 10; ++i) {
         materials.emplace_back(createMaterial(material_factory, loader));
     }
 

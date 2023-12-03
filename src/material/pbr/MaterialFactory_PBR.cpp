@@ -1,9 +1,6 @@
 #include "material/pbr/MaterialFactory_PBR.hpp"
 
-#include "material/base/MaterialStorage.hpp"
-#include "material/pbr/MaterialGL_PBR.hpp"
-#include "material/pbr/Material_PBR.hpp"
-#include "util/Ref.hpp"
+#include <filesystem>
 
 namespace gnev {
 
@@ -18,15 +15,13 @@ MaterialFactory_PBR::MaterialFactory_PBR(GLuint img_levels,
 
 MaterialFactory_PBR::~MaterialFactory_PBR(){};
 
-Ref<MaterialStorage_PBR> MaterialFactory_PBR::getStorage() const {
-    return storage;
-}
+Ref<MaterialStorage_PBR> MaterialFactory_PBR::getStorage() const { return storage; }
 
 Ref<Material_PBR> MaterialFactory_PBR::createMaterial() {
     return MakeSharable<Material_PBR>(getStorage());
 }
 
-Ref<MaterialTex_PBR> MaterialFactory_PBR::createTex(MaterialTexType_PBR type){
+Ref<MaterialTex_PBR> MaterialFactory_PBR::createTex(MaterialTexType_PBR type) {
     return MakeSharable<MaterialTex_PBR>(storage->textures.at(toUint(type)));
 }
 
