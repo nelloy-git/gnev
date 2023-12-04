@@ -61,7 +61,7 @@ bool MaterialData<T>::setData(const V* src, GLuint offset, GLuint size) {
     if (not storage_opt.has_value()) {
         return false;
     }
-    return storage_opt.value()->template setData<V>(index_keeper, src, offset, size);
+    return storage_opt.value()->setData(src, index_keeper, offset, size);
 }
 
 template <IsMaterialGL T>
@@ -71,7 +71,7 @@ bool MaterialData<T>::getData(V* dst, GLuint offset, GLuint size) const {
     if (not storage_opt.has_value()) {
         return false;
     }
-    return storage_opt.value()->template getData<V>(index_keeper, dst, offset, size);
+    return storage_opt.value()->getData(dst, index_keeper, offset, size);
 }
 
 template <IsMaterialGL T>
@@ -83,7 +83,12 @@ MaterialData<T>::initIndexKeeper(const WeakRef<MaterialDataStorage<T>>& weak_sto
         throw std::runtime_error("");
     }
 
-    GLuint index = storage_opt.value()->initIndex();
+    auto index_opt = storage_opt.value()->useIndex();
+    if (not index_opt.has_value()) {
+        throw std::runtime_error("");
+    }
+    auto index = index_opt.value();
+
     auto del = [weak_storage](GLuint* p_index) {
         auto storage_opt = weak_storage.lock();
         if (storage_opt.has_value()) {

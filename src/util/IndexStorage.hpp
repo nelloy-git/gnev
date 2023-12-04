@@ -20,6 +20,7 @@ public:
     bool freeIndex(Index index);
     bool isUsed(Index index) const;
     unsigned int countFree() const;
+    unsigned int getCapacity() const;
 
 private:
     mutable std::mutex m;

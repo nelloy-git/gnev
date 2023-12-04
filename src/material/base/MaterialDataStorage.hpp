@@ -1,164 +1,88 @@
 #pragma once
 
-#include <iostream>
+#include <unordered_set>
 
 #include "gl/Buffer.hpp"
+#include "gl/BufferWrapper.hpp"
 #include "material/base/MaterialGL.hpp"
 #include "util/Export.hpp"
+#include "util/IndexStorage.hpp"
 #include "util/Ref.hpp"
 
 namespace gnev::base {
 
 template <IsMaterialGL T>
-class EXPORT MaterialDataStorage {
-public:
-    // clang-format off
-    using Setter =
-        std::function<bool(gl::Buffer& buffer, GLuint offset, GLuint size, const void* src)>;
-    using Getter =
-        std::function<bool(const gl::Buffer& buffer, GLuint offset, GLuint size, void* dst)>;
-    // clang-format on
+class MaterialDataStorage;
 
-    MaterialDataStorage(Ref<gl::Buffer> buffer,
-                        std::initializer_list<GLuint> contains_indices = {});
+template <IsMaterialGL T>
+using MaterialDataStorageSetter = std::function<
+    bool(MaterialDataStorage<T>&, const void*, unsigned int, GLuint, GLuint)>;
+
+template <IsMaterialGL T>
+using MaterialDataStorageGetter = std::function<
+    bool(const MaterialDataStorage<T>&, void*, unsigned int, GLuint, GLuint)>;
+
+template <IsMaterialGL T>
+class EXPORT MaterialDataStorage
+    : public BufferWrapper<MaterialDataStorage<T>,
+                           MaterialDataStorageSetter<T>,
+                           MaterialDataStorageGetter<T>>
+    , public IndexStorage {
+public:
+    // TODO
+    // MaterialDataStorage(Ref<gl::Buffer> buffer,
+    //                     Ref<Setter> setter,
+    //                     Ref<Getter> getter,
+    //                     std::initializer_list<GLuint> contains_indices = {});
     MaterialDataStorage(GLuint capacity);
     virtual ~MaterialDataStorage();
 
-    Ref<gl::Buffer> getBuffer() const;
-    void setSetter(const Setter& setter);
-    void setGetter(const Getter& getter);
-
-    GLuint initIndex();
-    void freeIndex(GLuint index);
-    bool hasIndex(GLuint index) const;
-    GLuint unusedCount() const;
-
-    template <typename V>
-    bool setData(GLuint index, const V* src, GLuint offset, GLuint size = sizeof(V));
-    template <typename V>
-    bool getData(GLuint index, V* dst, GLuint offset, GLuint size = sizeof(V)) const;
-
     // Default setter
-    static bool
-    setSubData(gl::Buffer& buffer, GLuint offset, GLuint size, const void* src);
+    static bool setSubData(MaterialDataStorage& buffer,
+                           const void* src,
+                           unsigned int index,
+                           GLuint offset,
+                           GLuint size);
     // Default getter
-    static bool
-    getSubData(const gl::Buffer& buffer, GLuint offset, GLuint size, void* dst);
+    static bool getSubData(const MaterialDataStorage& buffer,
+                           void* dst,
+                           unsigned int index,
+                           GLuint offset,
+                           GLuint size);
 
 private:
-    Ref<gl::Buffer> buffer;
-    Setter buffer_setter;
-    Getter buffer_getter;
-    GLuint capacity;
-    std::unordered_set<GLuint> unused;
-
     static Ref<gl::Buffer> initBuffer(GLuint capacity);
-    static GLuint calcCapacity(gl::Buffer& buffer);
 };
 
 template <IsMaterialGL T>
-MaterialDataStorage<T>::MaterialDataStorage(Ref<gl::Buffer> buffer,
-                                            std::initializer_list<GLuint>
-                                                contains_indices)
-    : buffer(buffer)
-    , capacity(calcCapacity(buffer))
-    , buffer_setter(&setSubData)
-    , buffer_getter(&getSubData) {
-    for (GLuint i = 0; i < capacity; ++i) {
-        unused.emplace(capacity - i - 1);
-    }
-    for (auto index : contains_indices) {
-        unused.extract(index);
-    }
-}
-
-template <IsMaterialGL T>
 MaterialDataStorage<T>::MaterialDataStorage(GLuint capacity)
-    : MaterialDataStorage(initBuffer(capacity)) {}
+    : BufferWrapper<MaterialDataStorage<T>,
+                    MaterialDataStorageSetter<T>,
+                    MaterialDataStorageGetter<T>>(initBuffer(capacity),
+                                                  &setSubData,
+                                                  &getSubData)
+    , IndexStorage(capacity) {}
 
 template <IsMaterialGL T>
 MaterialDataStorage<T>::~MaterialDataStorage() {}
 
 template <IsMaterialGL T>
-Ref<gl::Buffer> MaterialDataStorage<T>::getBuffer() const {
-    return buffer;
-}
-
-template <IsMaterialGL T>
-void MaterialDataStorage<T>::setSetter(const Setter& setter) {
-    buffer_setter = setter;
-}
-
-template <IsMaterialGL T>
-void MaterialDataStorage<T>::setGetter(const Getter& getter) {
-    buffer_getter = getter;
-}
-
-template <IsMaterialGL T>
-GLuint MaterialDataStorage<T>::initIndex() {
-    auto iter = unused.begin();
-    if (iter == unused.end()) {
-        throw std::out_of_range("");
-    }
-    GLuint index = *iter;
-    unused.erase(iter);
-    return index;
-}
-
-template <IsMaterialGL T>
-void MaterialDataStorage<T>::freeIndex(GLuint index) {
-    unused.insert(unused.end(), index);
-}
-
-template <IsMaterialGL T>
-bool MaterialDataStorage<T>::hasIndex(GLuint index) const {
-    return not unused.contains(index);
-}
-
-template <IsMaterialGL T>
-GLuint MaterialDataStorage<T>::unusedCount() const {
-    return unused.size();
-}
-
-template <IsMaterialGL T>
-template <typename V>
-bool MaterialDataStorage<T>::setData(GLuint index,
-                                     const V* src,
-                                     GLuint offset,
-                                     GLuint size) {
-    if (offset + size > sizeof(T)) {
-        throw std::out_of_range("");
-    }
-    return buffer_setter(buffer, index * sizeof(T) + offset, size, src);
-}
-
-template <IsMaterialGL T>
-template <typename V>
-bool MaterialDataStorage<T>::getData(GLuint index,
-                                     V* src,
-                                     GLuint offset,
-                                     GLuint size) const {
-    if (offset + size > sizeof(T)) {
-        throw std::out_of_range("");
-    }
-    return buffer_getter(buffer, index * sizeof(T) + offset, size, src);
-}
-
-template <IsMaterialGL T>
-bool MaterialDataStorage<T>::setSubData(gl::Buffer& buffer,
+bool MaterialDataStorage<T>::setSubData(MaterialDataStorage& storage,
+                                        const void* src,
+                                        unsigned int index,
                                         GLuint offset,
-                                        GLuint size,
-                                        const void* src) {
-    buffer.setSubData(offset, size, src);
+                                        GLuint size) {
+    storage.getBuffer()->setSubData(index * sizeof(T) + offset, size, src);
     return true;
 };
 
 template <IsMaterialGL T>
-bool MaterialDataStorage<T>::getSubData(const gl::Buffer& buffer,
+bool MaterialDataStorage<T>::getSubData(const MaterialDataStorage& storage,
+                                        void* dst,
+                                        unsigned int index,
                                         GLuint offset,
-                                        GLuint size,
-                                        void* dst) {
-    buffer.getSubData(offset, size, dst);
+                                        GLuint size) {
+    storage.getBuffer()->getSubData(index * sizeof(T) + offset, size, dst);
     return true;
 };
 
@@ -169,13 +93,6 @@ Ref<gl::Buffer> MaterialDataStorage<T>::initBuffer(GLuint capacity) {
                         nullptr,
                         GL_DYNAMIC_STORAGE_BIT | GL_MAP_WRITE_BIT | GL_MAP_READ_BIT);
     return buffer;
-}
-
-template <IsMaterialGL T>
-GLuint MaterialDataStorage<T>::calcCapacity(gl::Buffer& buffer) {
-    GLuint buf_size;
-    buffer.getParameteriv(GL_BUFFER_SIZE, (GLint*)&buf_size);
-    return buf_size / sizeof(T);
 }
 
 } // namespace gnev::base

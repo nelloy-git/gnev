@@ -5,7 +5,7 @@
 
 #include "BS_thread_pool_light.hpp"
 #include "glad/gl.h"
-#include "util/Util.hpp"
+#include "util/Export.hpp"
 
 struct GladGLContext;
 
@@ -17,14 +17,17 @@ public:
     using LoadFunc = ApiProc (*)(const char*);
 
     static void Init(LoadFunc load_func);
-    static void Init(LoadFunc load_func, std::unique_ptr<BS::thread_pool_light>&& gl_workers);
+    static void
+    Init(LoadFunc load_func, std::unique_ptr<BS::thread_pool_light>&& gl_workers);
     static bool IsInited();
     static Ctx& Get();
     virtual ~Ctx();
 
-    template <typename F, typename... A, typename R = std::invoke_result_t<std::decay_t<F>, std::decay_t<A>...>>
-    std::future<R> submit(F&& task, A&&... args){
-        if (workers){
+    template <typename F,
+              typename... A,
+              typename R = std::invoke_result_t<std::decay_t<F>, std::decay_t<A>...>>
+    std::future<R> submit(F&& task, A&&... args) {
+        if (workers) {
             return workers->submit(std::forward<F>(task), std::forward<A>(args)...);
         } else {
             std::promise<R> promise;
@@ -49,10 +52,8 @@ public:
 
     // Draw
 
-    void glDrawElements(GLenum mode,
-                        GLsizei count,
-                        GLenum type,
-                        const void* indices) const;
+    void
+    glDrawElements(GLenum mode, GLsizei count, GLenum type, const void* indices) const;
 
     // Buffer
 
@@ -235,9 +236,8 @@ public:
                                    GLenum type,
                                    GLboolean normalized,
                                    GLuint relativeoffset) const;
-    void glVertexArrayBindingDivisor(GLuint vaobj,
-                                     GLuint bindingindex,
-                                     GLuint divisor) const;
+    void
+    glVertexArrayBindingDivisor(GLuint vaobj, GLuint bindingindex, GLuint divisor) const;
     void glEnableVertexArrayAttrib(GLuint vaobj, GLuint index) const;
     void glDisableVertexArrayAttrib(GLuint vaobj, GLuint index) const;
 

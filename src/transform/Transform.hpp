@@ -5,7 +5,7 @@
 #include "glm/glm.hpp"
 #include "util/Util.hpp"
 
-namespace gnev::tool {
+namespace gnev {
 
 class EXPORT alignas(16) Transform final {
     friend class TransformMap;
@@ -42,12 +42,7 @@ public:
     const glm::vec3& getScale() const;
 
 private:
-    struct Node {
-        Index index = RESERVED_INDEX;
-        Index parent = RESERVED_INDEX;
-    };
-
-    Node node;
+    Index parent = RESERVED_INDEX;
     glm::mat4 mat = glm::mat4{1.f};
     glm::vec3 pos = glm::vec3{0, 0, 0};
     glm::vec3 angles = glm::vec3{0, 0, 0};

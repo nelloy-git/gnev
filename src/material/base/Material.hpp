@@ -85,8 +85,7 @@ std::optional<Ref<MaterialTex>> Material<T>::getTexRef(GLuint index) const {
 
 template <IsMaterialGL T>
 void Material<T>::setTexRef(GLuint type, std::optional<Ref<MaterialTex>> tex_ref) {
-    GLuint index =
-        tex_ref.has_value() ? *tex_ref.value()->getIndex() : T::InvalidTexIndex;
+    GLuint index = tex_ref.has_value() ? *tex_ref.value()->getIndex() : T::InvalidIndex;
 
     tex_refs.at(type) = tex_ref->getPtr();
     getDataRef()->template setData<GLuint>(&index,

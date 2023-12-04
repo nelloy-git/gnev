@@ -7,7 +7,7 @@ using json = nlohmann::json;
 namespace gnev {
 
 MaterialGL_PBR::MaterialGL_PBR() {
-    std::fill_n(tex_index.begin(), TexSize, InvalidTexIndex);
+    std::fill_n(tex_index.begin(), TexSize, InvalidIndex);
     std::fill_n(tex_offset.begin(), TexSize, glm::vec4{0, 0, 0, 0});
     std::fill_n(tex_multiplier.begin(), TexSize, glm::vec4{1, 1, 1, 1});
 }
@@ -40,7 +40,7 @@ void adl_serializer<gnev::MaterialGL_PBR>::to_json(json& j,
                                                    const gnev::MaterialGL_PBR& material) {
     json tex_index = {};
     for (auto index : material.tex_index) {
-        if (index == gnev::MaterialGL_PBR::InvalidTexIndex) {
+        if (index == gnev::MaterialGL_PBR::InvalidIndex) {
             tex_index.push_back(nullptr);
         } else {
             tex_index.push_back(index);

@@ -1,5 +1,7 @@
 #pragma once
 
+#include <unordered_set>
+
 #include "gl/Texture.hpp"
 #include "material/base/MaterialImage.hpp"
 #include "util/Export.hpp"

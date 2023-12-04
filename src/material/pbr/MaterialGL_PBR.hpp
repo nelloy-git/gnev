@@ -7,6 +7,7 @@
 #include "glm/glm.hpp"
 #include "material/base/MaterialGL.hpp"
 #include "nlohmann/json_fwd.hpp"
+#include "util/Export.hpp"
 
 namespace gnev {
 
@@ -25,8 +26,7 @@ inline constexpr unsigned int toUint(MaterialTexType_PBR type) {
 struct EXPORT alignas(16) MaterialGL_PBR {
 public:
     static constexpr unsigned int TexSize = 5;
-    static constexpr unsigned int InvalidTexIndex =
-        std::numeric_limits<unsigned int>::max();
+    static constexpr unsigned int InvalidIndex = std::numeric_limits<unsigned int>::max();
 
     MaterialGL_PBR();
 
