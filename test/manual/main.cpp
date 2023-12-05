@@ -87,8 +87,7 @@ createMaterial(MaterialFactory_PBR& factory, MaterialImageLoaderStbi& loader) {
                       info,
                       info);
 
-    result->done.wait();
-    if (not result->done.get()) {
+    if (result->getStatus() != OperationStatus::Done) {
         throw std::runtime_error("");
     }
 
@@ -99,10 +98,12 @@ createMaterial(MaterialFactory_PBR& factory, MaterialImageLoaderStbi& loader) {
     std::cout << *stbi_result_opt.value() << std::endl;
 
     material->setTexRef(MaterialTexType_PBR::Albedo, albedo_tex);
+    material->setTexOffset(MaterialTexType_PBR::Normal, glm::vec4(albedo_tex->getIndex()));
+    material->setTexMultiplier(MaterialTexType_PBR::Metallic, glm::vec4(1.0 - albedo_tex->getIndex()));
 
-    auto data = std::make_unique<MaterialGL_PBR>();
-    material->getDataRef()->getData<MaterialGL_PBR>(data.get(), 0);
-    std::cout << *data << std::endl;
+    MaterialGL_PBR data;
+    material->getDataRef()->get(data);
+    std::cout << data << std::endl;
 
     return material;
 }

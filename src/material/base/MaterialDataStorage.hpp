@@ -1,98 +1,36 @@
 #pragma once
 
-#include <unordered_set>
-
-#include "gl/Buffer.hpp"
-#include "gl/BufferWrapper.hpp"
+#include "gl/BufferIndexMapView.hpp"
 #include "material/base/MaterialGL.hpp"
-#include "util/Export.hpp"
-#include "util/IndexStorage.hpp"
-#include "util/Ref.hpp"
 
 namespace gnev::base {
 
 template <IsMaterialGL T>
-class MaterialDataStorage;
-
-template <IsMaterialGL T>
-using MaterialDataStorageSetter = std::function<
-    bool(MaterialDataStorage<T>&, const void*, unsigned int, GLuint, GLuint)>;
-
-template <IsMaterialGL T>
-using MaterialDataStorageGetter = std::function<
-    bool(const MaterialDataStorage<T>&, void*, unsigned int, GLuint, GLuint)>;
-
-template <IsMaterialGL T>
-class EXPORT MaterialDataStorage
-    : public BufferWrapper<MaterialDataStorage<T>,
-                           MaterialDataStorageSetter<T>,
-                           MaterialDataStorageGetter<T>>
-    , public IndexStorage {
+class EXPORT MaterialDataStorage : public gl::BufferIndexMapView<T> {
 public:
-    // TODO
-    // MaterialDataStorage(Ref<gl::Buffer> buffer,
-    //                     Ref<Setter> setter,
-    //                     Ref<Getter> getter,
-    //                     std::initializer_list<GLuint> contains_indices = {});
+    MaterialDataStorage(Ref<gl::BufferAccessor> accessor);
     MaterialDataStorage(GLuint capacity);
-    virtual ~MaterialDataStorage();
-
-    // Default setter
-    static bool setSubData(MaterialDataStorage& buffer,
-                           const void* src,
-                           unsigned int index,
-                           GLuint offset,
-                           GLuint size);
-    // Default getter
-    static bool getSubData(const MaterialDataStorage& buffer,
-                           void* dst,
-                           unsigned int index,
-                           GLuint offset,
-                           GLuint size);
+    virtual ~MaterialDataStorage() = default;
 
 private:
-    static Ref<gl::Buffer> initBuffer(GLuint capacity);
+    static Ref<gl::BufferAccessor> initAccessor(GLuint capacity);
 };
+
+template <IsMaterialGL T>
+MaterialDataStorage<T>::MaterialDataStorage(Ref<gl::BufferAccessor> accessor)
+    : gl::BufferIndexMapView<T>(accessor) {}
 
 template <IsMaterialGL T>
 MaterialDataStorage<T>::MaterialDataStorage(GLuint capacity)
-    : BufferWrapper<MaterialDataStorage<T>,
-                    MaterialDataStorageSetter<T>,
-                    MaterialDataStorageGetter<T>>(initBuffer(capacity),
-                                                  &setSubData,
-                                                  &getSubData)
-    , IndexStorage(capacity) {}
+    : gl::BufferIndexMapView<T>(initAccessor(capacity)) {}
 
 template <IsMaterialGL T>
-MaterialDataStorage<T>::~MaterialDataStorage() {}
-
-template <IsMaterialGL T>
-bool MaterialDataStorage<T>::setSubData(MaterialDataStorage& storage,
-                                        const void* src,
-                                        unsigned int index,
-                                        GLuint offset,
-                                        GLuint size) {
-    storage.getBuffer()->setSubData(index * sizeof(T) + offset, size, src);
-    return true;
-};
-
-template <IsMaterialGL T>
-bool MaterialDataStorage<T>::getSubData(const MaterialDataStorage& storage,
-                                        void* dst,
-                                        unsigned int index,
-                                        GLuint offset,
-                                        GLuint size) {
-    storage.getBuffer()->getSubData(index * sizeof(T) + offset, size, dst);
-    return true;
-};
-
-template <IsMaterialGL T>
-Ref<gl::Buffer> MaterialDataStorage<T>::initBuffer(GLuint capacity) {
+Ref<gl::BufferAccessor> MaterialDataStorage<T>::initAccessor(GLuint capacity) {
     auto buffer = MakeSharable<gl::Buffer>();
     buffer->initStorage(capacity * sizeof(T),
                         nullptr,
                         GL_DYNAMIC_STORAGE_BIT | GL_MAP_WRITE_BIT | GL_MAP_READ_BIT);
-    return buffer;
+    return MakeSharable<gl::BufferAccessorSubData>(buffer);
 }
 
 } // namespace gnev::base

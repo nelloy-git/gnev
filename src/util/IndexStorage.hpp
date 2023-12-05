@@ -13,7 +13,8 @@ public:
     using Index = unsigned int;
 
     // [first, first + capacity)
-    IndexStorage(unsigned int capacity, Index first = 0);
+    IndexStorage(unsigned int capacity,
+                 Index first = 0);
     virtual ~IndexStorage() = default;
 
     std::optional<Index> useIndex();

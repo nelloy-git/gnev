@@ -26,23 +26,22 @@ void Material_PBR::setTexRef(MaterialTexType_PBR type,
 }
 
 void Material_PBR::setTexOffset(MaterialTexType_PBR type, const glm::vec4& value) {
-    getDataRef()->setData<glm::vec4>(&value, MaterialGL_PBR::OffsetOfTexOffset(type));
+    getDataRef()->set(value, MaterialGL_PBR::OffsetOfTexOffset(type));
 }
 
 glm::vec4 Material_PBR::getTexOffset(MaterialTexType_PBR type) const {
     glm::vec4 result;
-    getDataRef()->getData<glm::vec4>(&result, MaterialGL_PBR::OffsetOfTexOffset(type));
+    getDataRef()->get(result, MaterialGL_PBR::OffsetOfTexOffset(type));
     return result;
 }
 
 void Material_PBR::setTexMultiplier(MaterialTexType_PBR type, const glm::vec4& value) {
-    getDataRef()->setData<glm::vec4>(&value, MaterialGL_PBR::OffsetOfTexMultiplier(type));
+    getDataRef()->set(value, MaterialGL_PBR::OffsetOfTexMultiplier(type));
 }
 
 glm::vec4 Material_PBR::getTexMultiplier(MaterialTexType_PBR type) const {
     glm::vec4 result;
-    getDataRef()->getData<glm::vec4>(&result,
-                                     MaterialGL_PBR::OffsetOfTexMultiplier(type));
+    getDataRef()->get(result, MaterialGL_PBR::OffsetOfTexMultiplier(type));
     return result;
 }
 

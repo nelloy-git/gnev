@@ -26,24 +26,24 @@ MaterialImageLoaderStbi::MaterialImageLoaderStbi() {}
 
 MaterialImageLoaderStbi::~MaterialImageLoaderStbi() {}
 
-Ref<base::MaterialImageLoaderResult>
-MaterialImageLoaderStbi::upload(Ref<base::MaterialTex> tex_ref,
-                                const std::filesystem::path& path,
-                                const gl::TexImageInfo& read_info,
-                                const gl::TexImageInfo& write_info) {
-    if (cache.contains(path)) {
+Ref<OperationResult> MaterialImageLoaderStbi::upload(Ref<base::MaterialTex> tex_ref,
+                                                     const std::filesystem::path& path,
+                                                     const gl::TexImageInfo& read_info,
+                                                     const gl::TexImageInfo& write_info) {
+    std::wstring wpath = path.wstring();
+    if (cache.contains(wpath)) {
         using enum std::future_status;
 
-        Ref<MaterialImageLoaderStbiResult>& result(cache.at(path.wstring()));
-        auto status = result->done.wait_for(std::chrono::seconds(0));
-        if (status == timeout or (status == ready and result->done.get())) {
+        Ref<MaterialImageLoaderStbiResult>& result(cache.at(wpath));
+        auto status = result->getStatus();
+        if (status != OperationStatus::Idle and status == OperationStatus::InProgress) {
             return result;
         }
     }
 
     std::promise<bool> done;
-    auto result = MakeSharable<MaterialImageLoaderStbiResult>(done.get_future(), tex_ref);
-    cache.emplace(path, result);
+    auto result = MakeSharable<MaterialImageLoaderStbiResult>(done.get_future());
+    cache.emplace(wpath, result);
 
     auto storage_opt = tex_ref->getWeakStorage().lock();
     if (not storage_opt.has_value()) {

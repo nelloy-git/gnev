@@ -44,7 +44,6 @@ public:
 };
 
 EXPORT std::ostream& operator<<(std::ostream& out, const MaterialGL_PBR& val);
-// EXPORT void to_json(nlohmann::json& j, const gnev::MaterialGL_PBR& material);
 
 } // namespace gnev
 

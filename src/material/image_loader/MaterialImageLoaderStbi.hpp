@@ -17,7 +17,7 @@ public:
     MaterialImageLoaderStbi();
     virtual ~MaterialImageLoaderStbi();
 
-    Ref<base::MaterialImageLoaderResult>
+    Ref<OperationResult>
     upload(Ref<base::MaterialTex> tex_ref,
            const std::filesystem::path& path,
            const gl::TexImageInfo& read_info,

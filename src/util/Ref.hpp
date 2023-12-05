@@ -35,6 +35,8 @@ public:
     T* operator->() const;
     T& operator*() const;
     operator T&() const;
+    Ref<T>& operator=(const Ref<T>& other);
+    bool operator==(const Ref<T>& other) const;
 
     std::shared_ptr<T> getPtr() const;
 
@@ -104,7 +106,18 @@ Ref<T>::operator T&() const {
     return *ptr;
 }
 
-template<typename T>
+template <typename T>
+Ref<T>& Ref<T>::operator=(const Ref<T>& other) {
+    *ptr = *other.ptr;
+    return *this;
+}
+
+template <typename T>
+bool Ref<T>::operator==(const Ref<T>& other) const {
+    return ptr == other.ptr;
+}
+
+template <typename T>
 std::shared_ptr<T> Ref<T>::getPtr() const {
     return ptr;
 }

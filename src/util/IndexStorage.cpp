@@ -6,7 +6,8 @@ namespace gnev {
 
 using Index = IndexStorage::Index;
 
-IndexStorage::IndexStorage(unsigned int capacity, Index first)
+IndexStorage::IndexStorage(unsigned int capacity,
+                           Index first)
     : first(first)
     , last(first + capacity)
     , current(first) {}
@@ -28,7 +29,7 @@ std::optional<Index> IndexStorage::useIndex() {
 
 bool IndexStorage::freeIndex(Index index) {
     std::lock_guard lg{m};
-    
+
     // out of range
     if (index < first or index >= last) {
         return false;

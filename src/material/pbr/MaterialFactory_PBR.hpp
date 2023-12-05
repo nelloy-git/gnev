@@ -1,15 +1,11 @@
 #pragma once
 
+#include "material/base/MaterialImageLoader.hpp"
 #include "material/base/MaterialStorage.hpp"
 #include "material/base/MaterialTex.hpp"
-#include "material/base/MaterialImageLoader.hpp"
 #include "material/pbr/MaterialGL_PBR.hpp"
 #include "material/pbr/Material_PBR.hpp"
 #include "util/Ref.hpp"
-
-namespace std::filesystem {
-class path;
-};
 
 namespace gnev {
 

@@ -21,8 +21,8 @@ std::size_t MaterialGL_PBR::OffsetOfTexMultiplier(MaterialTexType_PBR type) {
            toUint(type) * SizeOfTexMultiplierElem;
 }
 
-std::ostream& operator<<(std::ostream& out, const MaterialGL_PBR& val) {
-    out << json(val);
+std::ostream& operator<<(std::ostream& out, const MaterialGL_PBR& value) {
+    out << json(value);
     return out;
 }
 
@@ -30,16 +30,16 @@ std::ostream& operator<<(std::ostream& out, const MaterialGL_PBR& val) {
 
 namespace nlohmann {
 
-void adl_serializer<glm::vec4>::to_json(json& j, const glm::vec4& vec) {
+void adl_serializer<glm::vec4>::to_json(json& j, const glm::vec4& value) {
     for (int i = 0; i < 4; ++i) {
-        j[i] = vec[i];
+        j[i] = value[i];
     }
 };
 
 void adl_serializer<gnev::MaterialGL_PBR>::to_json(json& j,
-                                                   const gnev::MaterialGL_PBR& material) {
+                                                   const gnev::MaterialGL_PBR& value) {
     json tex_index = {};
-    for (auto index : material.tex_index) {
+    for (auto index : value.tex_index) {
         if (index == gnev::MaterialGL_PBR::InvalidIndex) {
             tex_index.push_back(nullptr);
         } else {
@@ -47,11 +47,10 @@ void adl_serializer<gnev::MaterialGL_PBR>::to_json(json& j,
         }
     }
 
-    j["Material_PBR"] = {
-        {"tex_index", tex_index},
-        {"tex_offset", material.tex_offset},
-        {"tex_multiplier", material.tex_multiplier},
-    };
+    j["__class__"] = "Material_PBR";
+    j["tex_index"] = tex_index;
+    j["tex_offset"] = value.tex_offset;
+    j["tex_multiplier"] = value.tex_multiplier;
 };
 
 } // namespace nlohmann

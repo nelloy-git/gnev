@@ -1,104 +1,29 @@
 #pragma once
 
-#include <stdexcept>
-
+#include "gl/BufferIndexMapViewElement.hpp"
 #include "material/base/MaterialDataStorage.hpp"
 #include "material/base/MaterialGL.hpp"
-#include "util/Export.hpp"
-#include "util/Ref.hpp"
-#include "util/WeakRef.hpp"
 
 namespace gnev::base {
 
 template <IsMaterialGL T>
-class EXPORT MaterialData {
+class EXPORT MaterialData : public gl::BufferIndexMapViewElement<T> {
 public:
     MaterialData(WeakRef<MaterialDataStorage<T>> weak_storage, const T& initial = T{});
-    virtual ~MaterialData();
+    virtual ~MaterialData() = default;
 
     WeakRef<MaterialDataStorage<T>> getWeakStorage() const;
-    Ref<GLuint> getIndex() const;
-
-    template <typename V>
-    bool setData(const V* src, GLuint offset, GLuint size = sizeof(V));
-    template <typename V>
-    bool getData(V* dst, GLuint offset, GLuint size = sizeof(V)) const;
-
-private:
-    WeakRef<MaterialDataStorage<T>> weak_storage;
-    Ref<GLuint> index_keeper;
-
-    static Ref<GLuint>
-    initIndexKeeper(const WeakRef<MaterialDataStorage<T>>& weak_storage,
-                    const T& initial);
 };
 
 template <IsMaterialGL T>
 MaterialData<T>::MaterialData(WeakRef<MaterialDataStorage<T>> weak_storage,
                               const T& initial)
-    : weak_storage(weak_storage)
-    , index_keeper(initIndexKeeper(weak_storage, initial)) {
-    setData<T>(&initial, 0);
-}
-
-template <IsMaterialGL T>
-MaterialData<T>::~MaterialData() {}
+    : gl::BufferIndexMapViewElement<T>(weak_storage, initial) {}
 
 template <IsMaterialGL T>
 WeakRef<MaterialDataStorage<T>> MaterialData<T>::getWeakStorage() const {
-    return weak_storage;
-}
-
-template <IsMaterialGL T>
-Ref<GLuint> MaterialData<T>::getIndex() const {
-    return index_keeper;
-}
-
-template <IsMaterialGL T>
-template <typename V>
-bool MaterialData<T>::setData(const V* src, GLuint offset, GLuint size) {
-    auto storage_opt = weak_storage.lock();
-    if (not storage_opt.has_value()) {
-        return false;
-    }
-    return storage_opt.value()->setData(src, index_keeper, offset, size);
-}
-
-template <IsMaterialGL T>
-template <typename V>
-bool MaterialData<T>::getData(V* dst, GLuint offset, GLuint size) const {
-    auto storage_opt = weak_storage.lock();
-    if (not storage_opt.has_value()) {
-        return false;
-    }
-    return storage_opt.value()->getData(dst, index_keeper, offset, size);
-}
-
-template <IsMaterialGL T>
-Ref<GLuint>
-MaterialData<T>::initIndexKeeper(const WeakRef<MaterialDataStorage<T>>& weak_storage,
-                                 const T& initial) {
-    auto storage_opt = weak_storage.lock();
-    if (not storage_opt.has_value()) {
-        throw std::runtime_error("");
-    }
-
-    auto index_opt = storage_opt.value()->useIndex();
-    if (not index_opt.has_value()) {
-        throw std::runtime_error("");
-    }
-    auto index = index_opt.value();
-
-    auto del = [weak_storage](GLuint* p_index) {
-        auto storage_opt = weak_storage.lock();
-        if (storage_opt.has_value()) {
-            storage_opt.value()->freeIndex(*p_index);
-        }
-        delete p_index;
-    };
-
-    auto shared_index = std::shared_ptr<GLuint>(new GLuint(index), del);
-    return Ref<GLuint>(shared_index);
+    return gl::BufferIndexMapViewElement<T>::getWeakStorage().lock().dynamicCast <
+           MaterialDataStorage<T>();
 }
 
 } // namespace gnev::base
