@@ -20,9 +20,13 @@ public:
 
     void setTexOffset(MaterialTexType_PBR type, const glm::vec4& value);
     glm::vec4 getTexOffset(MaterialTexType_PBR type) const;
+    void
+    changeTexOffset(MaterialTexType_PBR type, std::function<void(glm::vec4&)> changer);
 
     void setTexMultiplier(MaterialTexType_PBR type, const glm::vec4& value);
     glm::vec4 getTexMultiplier(MaterialTexType_PBR type) const;
+    void changeTexMultiplier(MaterialTexType_PBR type,
+                             std::function<void(glm::vec4&)> changer);
 };
 
 } // namespace gnev

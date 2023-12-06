@@ -27,24 +27,21 @@ BufferAccessorSubData::BufferAccessorSubData(Ref<gl::Buffer> buffer)
     }
 }
 
-bool BufferAccessorSubData::set(GLintptr offset, GLintptr size, const void* src) {
+void BufferAccessorSubData::set(GLintptr offset, GLintptr size, const void* src) {
     buffer->setSubData(offset, size, src);
-    return true;
 }
 
-bool BufferAccessorSubData::get(GLintptr offset, GLintptr size, void* dst) {
+void BufferAccessorSubData::get(GLintptr offset, GLintptr size, void* dst) {
     buffer->getSubData(offset, size, dst);
-    return true;
 }
 
-bool BufferAccessorSubData::change(GLintptr offset,
+void BufferAccessorSubData::change(GLintptr offset,
                                    GLintptr size,
                                    const Changer& changer) {
     void* data = std::malloc(size);
     get(offset, size, data);
     changer(buffer, data, size);
     set(offset, size, data);
-    return true;
 }
 
 BufferAccessorCoherent::BufferAccessorCoherent(Ref<gl::Buffer> buffer)
@@ -57,7 +54,7 @@ BufferAccessorCoherent::BufferAccessorCoherent(Ref<gl::Buffer> buffer)
 
     int storage_flags;
     buffer->getParameteriv(GL_BUFFER_STORAGE_FLAGS, &storage_flags);
-    if (not(storage_flags & GL_MAP_COHERENT_BIT) or
+    if (not(storage_flags & GL_MAP_COHERENT_BIT) and
         not(storage_flags & GL_CLIENT_STORAGE_BIT)) {
         throw std::logic_error("");
     }
@@ -69,25 +66,20 @@ BufferAccessorCoherent::BufferAccessorCoherent(Ref<gl::Buffer> buffer)
                                                     GL_MAP_COHERENT_BIT));
 }
 
-BufferAccessorCoherent::~BufferAccessorCoherent(){
-    buffer->unmap();
-}
+BufferAccessorCoherent::~BufferAccessorCoherent() { buffer->unmap(); }
 
-bool BufferAccessorCoherent::set(GLintptr offset, GLintptr size, const void* src) {
+void BufferAccessorCoherent::set(GLintptr offset, GLintptr size, const void* src) {
     std::memcpy(map + offset, src, size);
-    return true;
 }
 
-bool BufferAccessorCoherent::get(GLintptr offset, GLintptr size, void* dst) {
+void BufferAccessorCoherent::get(GLintptr offset, GLintptr size, void* dst) {
     std::memcpy(dst, map + offset, size);
-    return true;
 }
 
-bool BufferAccessorCoherent::change(GLintptr offset,
+void BufferAccessorCoherent::change(GLintptr offset,
                                     GLintptr size,
                                     const Changer& changer) {
     changer(buffer, map + offset, size);
-    return true;
 }
 
 } // namespace gnev::gl

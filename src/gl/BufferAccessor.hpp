@@ -7,16 +7,16 @@ namespace gnev::gl {
 
 class BufferAccessor {
 public:
-    using Changer = std::function<bool(gl::Buffer&, void*, GLintptr size)>;
+    using Changer = std::function<void(gl::Buffer&, void*, GLintptr size)>;
 
     BufferAccessor(Ref<gl::Buffer>);
     virtual ~BufferAccessor() = default;
 
     Ref<gl::Buffer> buffer;
 
-    virtual bool set(GLintptr offset, GLintptr size, const void* data) = 0;
-    virtual bool get(GLintptr offset, GLintptr size, void* data) = 0;
-    virtual bool change(GLintptr offset, GLintptr size, const Changer& changer) = 0;
+    virtual void set(GLintptr offset, GLintptr size, const void* data) = 0;
+    virtual void get(GLintptr offset, GLintptr size, void* data) = 0;
+    virtual void change(GLintptr offset, GLintptr size, const Changer& changer) = 0;
 
     GLuint getBufferSize() const;
 };
@@ -26,9 +26,9 @@ public:
     BufferAccessorSubData(Ref<gl::Buffer>);
     virtual ~BufferAccessorSubData() = default;
 
-    bool set(GLintptr offset, GLintptr size, const void* src) override;
-    bool get(GLintptr offset, GLintptr size, void* dst) override;
-    bool change(GLintptr offset, GLintptr size, const Changer& changer) override;
+    void set(GLintptr offset, GLintptr size, const void* src) override;
+    void get(GLintptr offset, GLintptr size, void* dst) override;
+    void change(GLintptr offset, GLintptr size, const Changer& changer) override;
 };
 
 class BufferAccessorCoherent : public BufferAccessor {
@@ -36,9 +36,9 @@ public:
     BufferAccessorCoherent(Ref<gl::Buffer>);
     virtual ~BufferAccessorCoherent();
 
-    bool set(GLintptr offset, GLintptr size, const void* src) override;
-    bool get(GLintptr offset, GLintptr size, void* dst) override;
-    bool change(GLintptr offset, GLintptr size, const Changer& changer) override;
+    void set(GLintptr offset, GLintptr size, const void* src) override;
+    void get(GLintptr offset, GLintptr size, void* dst) override;
+    void change(GLintptr offset, GLintptr size, const Changer& changer) override;
 
 private:
     GLbyte* map;

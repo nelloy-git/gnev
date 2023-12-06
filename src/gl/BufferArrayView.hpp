@@ -13,7 +13,7 @@ template <typename T>
 class EXPORT BufferArrayView {
 public:
     template <typename V>
-    using Changer = std::function<bool(gl::Buffer&, V&)>;
+    using Changer = std::function<void(V&)>;
 
     BufferArrayView(Ref<BufferAccessor> accessor);
     virtual ~BufferArrayView() = default;
@@ -21,25 +21,25 @@ public:
     Ref<Buffer> getBuffer() const;
     void setAccessor(Ref<BufferAccessor> accessor);
 
-    bool set(GLuint index, const T& src)
+    void set(GLuint index, const T& src)
         requires(not std::is_pointer_v<T>);
 
     template <typename V>
-    bool set(GLuint index, const V& src, GLintptr ptr_offset)
+    void set(GLuint index, const V& src, GLintptr ptr_offset)
         requires(not std::is_pointer_v<V>);
 
-    bool get(GLuint index, T& dst) const
+    void get(GLuint index, T& dst) const
         requires(not std::is_pointer_v<T>);
 
     template <typename V>
-    bool get(GLuint index, V& dst, GLintptr ptr_offset) const
+    void get(GLuint index, V& dst, GLintptr ptr_offset) const
         requires(not std::is_pointer_v<V>);
 
-    bool change(GLuint index, const Changer<T>& changer)
+    void change(GLuint index, const Changer<T>& changer)
         requires(not std::is_pointer_v<T>);
 
     template <typename V>
-    bool change(GLuint index, const Changer<V>& changer, GLintptr ptr_offset)
+    void change(GLuint index, const Changer<V>& changer, GLintptr ptr_offset)
         requires(not std::is_pointer_v<V>);
 
 private:
@@ -52,7 +52,7 @@ BufferArrayView<T>::BufferArrayView(Ref<BufferAccessor> accessor)
 
 template <typename T>
 Ref<Buffer> BufferArrayView<T>::getBuffer() const {
-    return accessor->buffer;
+    accessor->buffer;
 };
 
 template <typename T>
@@ -64,56 +64,56 @@ void BufferArrayView<T>::setAccessor(Ref<BufferAccessor> other) {
 };
 
 template <typename T>
-bool BufferArrayView<T>::set(GLuint index, const T& src)
+void BufferArrayView<T>::set(GLuint index, const T& src)
     requires(not std::is_pointer_v<T>)
 {
-    return accessor->set(index * sizeof(T), sizeof(T), &src);
+    accessor->set(index * sizeof(T), sizeof(T), &src);
 }
 
 template <typename T>
 template <typename V>
-bool BufferArrayView<T>::set(GLuint index, const V& src, GLintptr ptr_offset)
+void BufferArrayView<T>::set(GLuint index, const V& src, GLintptr ptr_offset)
     requires(not std::is_pointer_v<V>)
 {
-    return accessor->set(index * sizeof(T) + ptr_offset, sizeof(V), &src);
+    accessor->set(index * sizeof(T) + ptr_offset, sizeof(V), &src);
 }
 
 template <typename T>
-bool BufferArrayView<T>::get(GLuint index, T& dst) const
+void BufferArrayView<T>::get(GLuint index, T& dst) const
     requires(not std::is_pointer_v<T>)
 {
-    return accessor->get(index * sizeof(T), sizeof(T), &dst);
+    accessor->get(index * sizeof(T), sizeof(T), &dst);
 }
 
 template <typename T>
 template <typename V>
-bool BufferArrayView<T>::get(GLuint index, V& dst, GLintptr ptr_offset) const
+void BufferArrayView<T>::get(GLuint index, V& dst, GLintptr ptr_offset) const
     requires(not std::is_pointer_v<V>)
 {
-    return accessor->get(index * sizeof(T) + ptr_offset, sizeof(V), &dst);
+    accessor->get(index * sizeof(T) + ptr_offset, sizeof(V), &dst);
 }
 
 template <typename T>
-bool BufferArrayView<T>::change(GLuint index, const Changer<T>& changer)
+void BufferArrayView<T>::change(GLuint index, const Changer<T>& changer)
     requires(not std::is_pointer_v<T>)
 {
-    auto wrapper = [changer](gl::Buffer& buffer, void* data, GLintptr) -> bool {
-        changer(buffer, *static_cast<T*>(data));
+    auto wrapper = [changer](gl::Buffer&, void* data, GLintptr) -> void {
+        changer(*static_cast<T*>(data));
     };
-    return accessor->change(index * sizeof(T), sizeof(T), wrapper);
+    accessor->change(index * sizeof(T), sizeof(T), wrapper);
 }
 
 template <typename T>
 template <typename V>
-bool BufferArrayView<T>::change(GLuint index,
+void BufferArrayView<T>::change(GLuint index,
                                 const Changer<V>& changer,
                                 GLintptr ptr_offset)
     requires(not std::is_pointer_v<V>)
 {
-    auto wrapper = [changer](gl::Buffer& buffer, void* data, GLintptr) -> bool {
-        changer(buffer, *static_cast<V*>(data));
+    auto wrapper = [changer](gl::Buffer&, void* data, GLintptr) -> void {
+        changer(*static_cast<V*>(data));
     };
-    return accessor->change(index * sizeof(T) + ptr_offset, sizeof(V), changer);
+    accessor->change(index * sizeof(T) + ptr_offset, sizeof(V), wrapper);
 }
 
 } // namespace gnev::gl

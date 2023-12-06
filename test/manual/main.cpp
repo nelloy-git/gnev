@@ -16,9 +16,14 @@
 #include "GlfwWindow.hpp"
 #include "gl/Ctx.hpp"
 #include "gl/Program.hpp"
+#include "glm/ext/matrix_transform.hpp"
+#include "glm/gtx/euler_angles.hpp"
+#include "glm/gtx/transform.hpp"
 #include "material/image_loader/MaterialImageLoaderStbi.hpp"
 #include "material/pbr/MaterialFactory_PBR.hpp"
+#include "nlohmann/json.hpp"
 #include "shader/ProgramBuilder.hpp"
+#include "transform/3d/TransformFactory_3D.hpp"
 
 #define GLFW_INCLUDE_NONE
 #include "GLFW/glfw3.h"
@@ -98,8 +103,12 @@ createMaterial(MaterialFactory_PBR& factory, MaterialImageLoaderStbi& loader) {
     std::cout << *stbi_result_opt.value() << std::endl;
 
     material->setTexRef(MaterialTexType_PBR::Albedo, albedo_tex);
-    material->setTexOffset(MaterialTexType_PBR::Normal, glm::vec4(albedo_tex->getIndex()));
-    material->setTexMultiplier(MaterialTexType_PBR::Metallic, glm::vec4(1.0 - albedo_tex->getIndex()));
+    material->setTexOffset(MaterialTexType_PBR::Normal,
+                           glm::vec4(albedo_tex->getIndex()));
+    material->changeTexOffset(MaterialTexType_PBR::Normal,
+                              [](glm::vec4& val) { val /= 10; });
+    material->setTexMultiplier(MaterialTexType_PBR::Metallic,
+                               glm::vec4(1.0 - albedo_tex->getIndex()));
 
     MaterialGL_PBR data;
     material->getDataRef()->get(data);
@@ -124,11 +133,31 @@ int main(int argc, const char** argv) {
     });
 
     auto program = buildProgram();
+
+    // Materials
     MaterialFactory_PBR material_factory(1, 32, 32, 10);
     MaterialImageLoaderStbi loader;
     std::vector<Ref<Material_PBR>> materials;
     for (int i = 0; i < 10; ++i) {
         materials.emplace_back(createMaterial(material_factory, loader));
+    }
+
+    // Transforms
+    TransformFactory_3D transform_factory(10);
+    std::vector<Ref<Transform_3D>> transforms;
+    for (int i = 0; i < 10; ++i) {
+        auto tr = transform_factory.createTransform();
+
+        tr->setPosition({i, 0, 0});
+        if (transforms.size() > 0) {
+            tr->setParentRef(transforms.back());
+        }
+
+        TransformGL_3D tr_gl;
+        tr->get(tr_gl);
+        std::cout << tr_gl << std::endl;
+
+        transforms.emplace_back(tr);
     }
 
     while (not close_window) {

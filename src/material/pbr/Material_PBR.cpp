@@ -35,6 +35,11 @@ glm::vec4 Material_PBR::getTexOffset(MaterialTexType_PBR type) const {
     return result;
 }
 
+void Material_PBR::changeTexOffset(MaterialTexType_PBR type,
+                                   std::function<void(glm::vec4&)> changer) {
+    getDataRef()->change(changer, MaterialGL_PBR::OffsetOfTexOffset(type));
+}
+
 void Material_PBR::setTexMultiplier(MaterialTexType_PBR type, const glm::vec4& value) {
     getDataRef()->set(value, MaterialGL_PBR::OffsetOfTexMultiplier(type));
 }
@@ -43,6 +48,11 @@ glm::vec4 Material_PBR::getTexMultiplier(MaterialTexType_PBR type) const {
     glm::vec4 result;
     getDataRef()->get(result, MaterialGL_PBR::OffsetOfTexMultiplier(type));
     return result;
+}
+
+void Material_PBR::changeTexMultiplier(MaterialTexType_PBR type,
+                                       std::function<void(glm::vec4&)> changer) {
+    getDataRef()->change(changer, MaterialGL_PBR::OffsetOfTexMultiplier(type));
 }
 
 } // namespace gnev

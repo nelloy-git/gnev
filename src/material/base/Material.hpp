@@ -26,6 +26,7 @@ public:
 
     WeakRef<MaterialStorage<T>> getWeakStorage() const;
     Ref<MaterialData<T>> getDataRef() const;
+
     std::optional<Ref<MaterialTex>> getTexRef(GLuint type) const;
     void setTexRef(GLuint type, std::optional<Ref<MaterialTex>> tex_ref);
 
@@ -85,7 +86,8 @@ std::optional<Ref<MaterialTex>> Material<T>::getTexRef(GLuint index) const {
 
 template <IsMaterialGL T>
 void Material<T>::setTexRef(GLuint type, std::optional<Ref<MaterialTex>> tex_ref) {
-    GLuint tex_index = tex_ref.has_value() ? *tex_ref.value()->getIndex() : T::InvalidIndex;
+    GLuint tex_index =
+        tex_ref.has_value() ? *tex_ref.value()->getIndex() : T::InvalidIndex;
 
     tex_refs.at(type) = tex_ref->getPtr();
     getDataRef()->set(tex_index, offsetof(T, tex_index) + type * sizeof(GLuint));
