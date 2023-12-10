@@ -5,7 +5,7 @@
 #include <memory>
 #include <utility>
 
-#include "material/base/MaterialImage.hpp"
+#include "image/Image.hpp"
 #include "material/base/MaterialTex.hpp"
 #include "util/OperationResult.hpp"
 #include "util/Ref.hpp"
@@ -19,9 +19,7 @@ public:
     virtual ~MaterialImageLoader(){};
 
     virtual Ref<OperationResult> upload(Ref<MaterialTex> tex_ref,
-                                        const std::filesystem::path& path,
-                                        const gl::TexImageInfo& read_info,
-                                        const gl::TexImageInfo& write_info) = 0;
+                                        const Image& image) = 0;
 };
 
 } // namespace gnev::base
