@@ -8,6 +8,9 @@
 namespace gnev {
 
 template <typename T>
+using Ptr = std::shared_ptr<T>;
+
+template <typename T>
 class Ref {
     template <typename V>
     friend class Ref;
@@ -23,22 +26,26 @@ public:
     Ref<T>(Ref<V>&& other);
 
     template <typename V>
-    Ref(const std::shared_ptr<V>& ptr)
-        requires(std::constructible_from<std::shared_ptr<T>, const std::shared_ptr<V>&>);
+    Ref(const Ptr<V>& ptr)
+        requires(std::constructible_from<Ptr<T>, const Ptr<V>&>);
 
     template <typename V>
-    Ref(std::shared_ptr<V>&& ptr)
-        requires(std::constructible_from<std::shared_ptr<T>, std::shared_ptr<V> &&>);
+    Ref(Ptr<V>&& ptr)
+        requires(std::constructible_from<Ptr<T>, Ptr<V> &&>);
 
     virtual ~Ref();
 
     T* operator->() const;
     T& operator*() const;
     operator T&() const;
-    Ref<T>& operator=(const Ref<T>& other);
+    template <typename V>
+    operator Ptr<V>() const;
     bool operator==(const Ref<T>& other) const;
 
-    std::shared_ptr<T> getPtr() const;
+    Ptr<T> getPtr() const;
+
+    template <typename V>
+    Ptr<V> getPtr() const;
 
     template <typename V>
     Ref<V> staticCast() const;
@@ -47,7 +54,7 @@ public:
     std::optional<Ref<V>> dynamicCast() const;
 
 private:
-    std::shared_ptr<T> ptr;
+    Ptr<T> ptr;
 };
 
 template <typename T, typename... Args>
@@ -70,8 +77,8 @@ Ref<T>::Ref(Ref<V>&& other)
 
 template <typename T>
 template <typename V>
-Ref<T>::Ref(const std::shared_ptr<V>& ptr)
-    requires(std::constructible_from<std::shared_ptr<T>, const std::shared_ptr<V>&>)
+Ref<T>::Ref(const Ptr<V>& ptr)
+    requires(std::constructible_from<Ptr<T>, const Ptr<V>&>)
     : ptr(ptr) {
     if (not ptr) {
         throw std::logic_error("");
@@ -80,8 +87,8 @@ Ref<T>::Ref(const std::shared_ptr<V>& ptr)
 
 template <typename T>
 template <typename V>
-Ref<T>::Ref(std::shared_ptr<V>&& ptr)
-    requires(std::constructible_from<std::shared_ptr<T>, std::shared_ptr<V> &&>)
+Ref<T>::Ref(Ptr<V>&& ptr)
+    requires(std::constructible_from<Ptr<T>, Ptr<V> &&>)
     : ptr(std::move(ptr)) {
     if (not ptr) {
         throw std::logic_error("");
@@ -107,9 +114,9 @@ Ref<T>::operator T&() const {
 }
 
 template <typename T>
-Ref<T>& Ref<T>::operator=(const Ref<T>& other) {
-    *ptr = *other.ptr;
-    return *this;
+template <typename V>
+Ref<T>::operator Ptr<V>() const {
+    return ptr;
 }
 
 template <typename T>
@@ -118,7 +125,13 @@ bool Ref<T>::operator==(const Ref<T>& other) const {
 }
 
 template <typename T>
-std::shared_ptr<T> Ref<T>::getPtr() const {
+Ptr<T> Ref<T>::getPtr() const {
+    return ptr;
+}
+
+template <typename T>
+template <typename V>
+Ptr<V> Ref<T>::getPtr() const {
     return ptr;
 }
 

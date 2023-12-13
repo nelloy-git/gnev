@@ -1,32 +1,37 @@
 #pragma once
 
 #include "material/base/Material.hpp"
-#include "material/base/MaterialTex.hpp"
 #include "material/pbr/MaterialGL_PBR.hpp"
 
 namespace gnev {
 
 class EXPORT Material_PBR : public base::Material<MaterialGL_PBR> {
 public:
-    Material_PBR(WeakRef<base::MaterialStorage<MaterialGL_PBR>> weak_storage,
-                 const MaterialGL_PBR& initial = MaterialGL_PBR{});
-    Material_PBR(const Material_PBR&) = delete;
-    Material_PBR(Material_PBR&&) = default;
-    ~Material_PBR();
+    template <typename V>
+    using Changer = gl::buffer::IndexMapViewElem<MaterialGL_PBR>::Changer<V>;
 
-    std::optional<base::MaterialTex> getTexRef(MaterialTexType_PBR type) const;
-    void
-    setTexRef(MaterialTexType_PBR type, std::optional<Ref<base::MaterialTex>> tex_ref);
+    using DataView = base::Material<MaterialGL_PBR>::DataView;
+    using TexView = base::Material<MaterialGL_PBR>::TexView;
+
+    using DataElem = base::Material<MaterialGL_PBR>::DataElem;
+    using TexElem = base::Material<MaterialGL_PBR>::TexElem;
+
+    Material_PBR(WeakRef<DataView> weak_storage,
+                 const MaterialGL_PBR& initial = MaterialGL_PBR{});
+    virtual ~Material_PBR() = default;
+
+    MaterialGL_PBR get() const;
+
+    void setTex(MaterialTexType_PBR type, Ptr<TexElem> tex);
+    Ptr<TexElem> getTex(MaterialTexType_PBR type) const;
 
     void setTexOffset(MaterialTexType_PBR type, const glm::vec4& value);
     glm::vec4 getTexOffset(MaterialTexType_PBR type) const;
-    void
-    changeTexOffset(MaterialTexType_PBR type, std::function<void(glm::vec4&)> changer);
+    void changeTexOffset(MaterialTexType_PBR type, const Changer<glm::vec4>& changer);
 
     void setTexMultiplier(MaterialTexType_PBR type, const glm::vec4& value);
     glm::vec4 getTexMultiplier(MaterialTexType_PBR type) const;
-    void changeTexMultiplier(MaterialTexType_PBR type,
-                             std::function<void(glm::vec4&)> changer);
+    void changeTexMultiplier(MaterialTexType_PBR type, const Changer<glm::vec4>& changer);
 };
 
 } // namespace gnev

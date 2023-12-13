@@ -6,14 +6,17 @@
 namespace gnev {
 
 class EXPORT Transform_3D : public base::Transform<TransformGL_3D> {
-    friend class TransformMap;
-
 public:
-    Transform_3D(WeakRef<base::TransformStorage<TransformGL_3D>> weak_storage);
+    using DataView = base::Transform<TransformGL_3D>::DataView;
+    using DataElem = base::Transform<TransformGL_3D>::DataElem;
+
+    Transform_3D(WeakRef<DataView> weak_view);
     virtual ~Transform_3D() = default;
 
-    std::optional<Ref<Transform_3D>> getParentRef() const;
-    void setParentRef(const std::optional<Ref<Transform_3D>>& parent);
+    void setParent(const Ptr<Transform_3D>& parent);
+    Ptr<Transform_3D> getParent() const;
+
+    TransformGL_3D get() const;
 
     glm::mat4 getMat() const;
 

@@ -4,7 +4,7 @@
 
 namespace gnev {
 
-struct ImageLoaderStbResult : public base::ImageLoaderResult {
+struct EXPORT ImageLoaderStbResult : public base::ImageLoaderResult {
     enum class Message {
         Done,
         Failed,

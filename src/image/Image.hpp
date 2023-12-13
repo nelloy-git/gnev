@@ -51,12 +51,35 @@ struct EXPORT ImageInfo {
     ImageFormat format;
     ImageType type;
 
-    GLuint getTextureBufferSize() const;
+    GLuint calcTextureBufferSize() const;
+    GLuint getBytesPerPixel() const;
+    GLuint getComponents() const;
+};
+
+struct EXPORT ImageInfo3d {
+    ImageInfo3d(GLuint z, const ImageInfo& info);
+
+    GLuint level = 0;
+    GLuint x = 0;
+    GLuint y = 0;
+    GLuint z = 0;
+    GLuint width = 0;
+    GLuint height = 0;
+    GLuint depth = 0;
+    ImageFormat format;
+    ImageType type;
+
+    GLuint calcTextureBufferSize() const;
     GLuint getBytesPerPixel() const;
     GLuint getComponents() const;
 };
 
 struct ImageData {
+    ImageData(const ImageData& other) = default;
+    ImageData(ImageData&& other) = default;
+    ImageData& operator=(const ImageData& other) = default;
+    ImageData& operator=(ImageData&& other) = default;
+
     ImageData(std::size_t size)
         : buffer_size(size)
         , buffer(std::make_shared<GLubyte[]>(size)) {}
@@ -67,11 +90,11 @@ struct ImageData {
 
     template <typename T = void>
     T* get() const {
-        return buffer.getPtr().get();
+        return buffer.get();
     }
 
-    const std::size_t buffer_size;
-    const Ref<GLubyte[]> buffer;
+    std::size_t buffer_size;
+    std::shared_ptr<GLubyte[]> buffer;
 };
 
 struct Image {
@@ -83,8 +106,21 @@ struct Image {
         : info(info)
         , data(data) {}
 
-    const ImageInfo info;
-    const ImageData data;
+    ImageInfo info;
+    ImageData data;
+};
+
+struct Image3d {
+    Image3d(const ImageInfo3d& info, std::size_t size)
+        : info(info)
+        , data(size) {}
+
+    Image3d(const ImageInfo3d& info, const ImageData& data)
+        : info(info)
+        , data(data) {}
+
+    ImageInfo3d info;
+    ImageData data;
 };
 
 } // namespace gnev

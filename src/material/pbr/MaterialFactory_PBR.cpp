@@ -4,62 +4,59 @@
 
 namespace gnev {
 
-MaterialFactory_PBR::MaterialFactory_PBR(Ref<MaterialStorage_PBR> storage)
-    : storage(storage) {}
+using DataView = MaterialFactory_PBR::DataView;
+using TexView = MaterialFactory_PBR::TexView;
 
-MaterialFactory_PBR::MaterialFactory_PBR(GLuint img_levels,
-                                         GLuint img_width,
-                                         GLuint img_height,
-                                         GLuint capacity)
-    : storage(initStorage(img_levels, img_width, img_height, capacity)) {}
+using DataElem = MaterialFactory_PBR::DataElem;
+using TexElem = MaterialFactory_PBR::TexElem;
+
+MaterialFactory_PBR::MaterialFactory_PBR(const Ref<DataView>& data_view,
+                                         const std::array<Ref<TexView>, TexSize>&
+                                             tex_views)
+    : data_view(data_view)
+    , tex_views(tex_views) {}
+
+MaterialFactory_PBR::MaterialFactory_PBR(GLuint l, GLuint w, GLuint h, GLuint c)
+    : data_view(initDefaultData(c))
+    , tex_views({initDefaultTex(l, w, h, c),
+                 initDefaultTex(l, w, h, c),
+                 initDefaultTex(l, w, h, c),
+                 initDefaultTex(l, w, h, c),
+                 initDefaultTex(l, w, h, c)}) {}
 
 MaterialFactory_PBR::~MaterialFactory_PBR(){};
 
-Ref<MaterialStorage_PBR> MaterialFactory_PBR::getStorage() const { return storage; }
+Ref<DataView> MaterialFactory_PBR::getDataView() const { return data_view; }
+
+Ref<TexView> MaterialFactory_PBR::getTexView(MaterialTexType_PBR type) const {
+    return tex_views.at(toUint(type));
+}
 
 Ref<Material_PBR> MaterialFactory_PBR::createMaterial() {
-    return MakeSharable<Material_PBR>(getStorage());
+    return MakeSharable<Material_PBR>(data_view);
 }
 
-Ref<MaterialTex_PBR> MaterialFactory_PBR::createTex(MaterialTexType_PBR type) {
-    return MakeSharable<MaterialTex_PBR>(storage->textures.at(toUint(type)));
+Ref<TexElem> MaterialFactory_PBR::createTex(MaterialTexType_PBR type) {
+    return MakeSharable<TexElem>(tex_views.at(toUint(type)));
 }
 
-Ref<MaterialStorage_PBR> MaterialFactory_PBR::initStorage(GLuint img_levels,
-                                                          GLuint img_width,
-                                                          GLuint img_height,
-                                                          GLuint capacity) {
-    auto data_storage = MakeSharable<MaterialDataStorage_PBR>(capacity);
+Ref<DataView> MaterialFactory_PBR::initDefaultData(GLuint capacity) {
+    auto buffer = MakeSharable<gl::Buffer>();
+    buffer->initStorage(capacity * sizeof(MaterialGL_PBR),
+                        nullptr,
+                        GL_DYNAMIC_STORAGE_BIT | GL_MAP_READ_BIT | GL_MAP_WRITE_BIT);
+    auto accessor = MakeSharable<gl::buffer::AccessorSubData>(buffer);
+    return MakeSharable<DataView>(accessor);
+}
 
-    std::array<Ref<MaterialTexStorage_PBR>, 5> tex_storages = {
-        MakeSharable<MaterialTexStorage_PBR>(img_levels,
-                                             GL_RGBA8,
-                                             img_width,
-                                             img_height,
-                                             capacity),
-        MakeSharable<MaterialTexStorage_PBR>(img_levels,
-                                             GL_RGBA8,
-                                             img_width,
-                                             img_height,
-                                             capacity),
-        MakeSharable<MaterialTexStorage_PBR>(img_levels,
-                                             GL_RGBA8,
-                                             img_width,
-                                             img_height,
-                                             capacity),
-        MakeSharable<MaterialTexStorage_PBR>(img_levels,
-                                             GL_RGBA8,
-                                             img_width,
-                                             img_height,
-                                             capacity),
-        MakeSharable<MaterialTexStorage_PBR>(img_levels,
-                                             GL_RGBA8,
-                                             img_width,
-                                             img_height,
-                                             capacity),
-    };
-
-    return MakeSharable<MaterialStorage_PBR>(data_storage, tex_storages);
+Ref<TexView> MaterialFactory_PBR::initDefaultTex(GLuint img_levels,
+                                                 GLuint w,
+                                                 GLuint img_height,
+                                                 GLuint capacity) {
+    auto tex = MakeSharable<gl::Texture>(GL_TEXTURE_2D_ARRAY);
+    tex->initStorage3D(img_levels, GL_RGBA8, w, img_height, capacity);
+    auto accessor = MakeSharable<gl::texture::Accessor3dSubImage>(tex);
+    return MakeSharable<TexView>(accessor);
 }
 
 } // namespace gnev

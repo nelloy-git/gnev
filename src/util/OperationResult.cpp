@@ -1,6 +1,6 @@
 #include "util/OperationResult.hpp"
 
-#include "magic_enum.hpp"
+#include "magic_enum/magic_enum.hpp"
 #include "nlohmann/json.hpp"
 
 namespace nlohmann {

@@ -2,7 +2,7 @@
 #include <optional>
 #include <stdexcept>
 
-#include "magic_enum.hpp"
+#include "magic_enum/magic_enum.hpp"
 #include "util/Ref.hpp"
 
 #ifdef WIN32
@@ -19,9 +19,8 @@
 #include "glm/ext/matrix_transform.hpp"
 #include "glm/gtx/euler_angles.hpp"
 #include "glm/gtx/transform.hpp"
-#include "material/image_loader/MaterialImageLoaderStbi.hpp"
+#include "image/ImageLoaderStb.hpp"
 #include "material/pbr/MaterialFactory_PBR.hpp"
-#include "nlohmann/json.hpp"
 #include "shader/ProgramBuilder.hpp"
 #include "transform/3d/TransformFactory_3D.hpp"
 
@@ -70,39 +69,36 @@ gl::Program buildProgram() {
     return std::move(program.value());
 }
 
-Ref<Material_PBR>
-createMaterial(MaterialFactory_PBR& factory, MaterialImageLoaderStbi& loader) {
+Ref<Material_PBR> createMaterial(MaterialFactory_PBR& factory, ImageLoaderStb& loader) {
     //
 
     auto material = factory.createMaterial();
     auto albedo_tex = factory.createTex(MaterialTexType_PBR::Albedo);
 
     auto current_dir = std::filesystem::current_path();
-    gl::TexImageInfo info{.level = 0,
-                          .x = 0,
-                          .y = 0,
-                          .width = 32,
-                          .height = 32,
-                          .format = GL_RGBA,
-                          .type = GL_UNSIGNED_BYTE};
+    ImageInfo read_info{.format = ImageFormat::RGBA, .type = ImageType::UNSIGNED_BYTE};
+    ImageInfo store_info{.width = 32,
+                         .height = 32,
+                         .format = ImageFormat::RGBA,
+                         .type = ImageType::UNSIGNED_BYTE};
 
     auto result =
-        loader.upload(albedo_tex,
-                      current_dir / "3rdparty" / "minecraft_textures" / "gravel.png",
-                      info,
-                      info);
+        loader.load(current_dir / "3rdparty" / "minecraft_textures" / "gravel.png",
+                    read_info,
+                    store_info);
 
-    if (result->getStatus() != OperationStatus::Done) {
-        throw std::runtime_error("");
-    }
-
-    auto stbi_result_opt = result.dynamicCast<MaterialImageLoaderStbiResult>();
+    auto stbi_result_opt = result.dynamicCast<ImageLoaderStbResult>();
     if (not stbi_result_opt.has_value()) {
         throw std::runtime_error("");
     }
     std::cout << *stbi_result_opt.value() << std::endl;
 
-    material->setTexRef(MaterialTexType_PBR::Albedo, albedo_tex);
+    if (result->getStatus() != OperationStatus::Done) {
+        throw std::runtime_error("");
+    }
+
+    albedo_tex->set(result->image);
+    material->setTex(MaterialTexType_PBR::Albedo, albedo_tex);
     material->setTexOffset(MaterialTexType_PBR::Normal,
                            glm::vec4(albedo_tex->getIndex()));
     material->changeTexOffset(MaterialTexType_PBR::Normal,
@@ -110,9 +106,7 @@ createMaterial(MaterialFactory_PBR& factory, MaterialImageLoaderStbi& loader) {
     material->setTexMultiplier(MaterialTexType_PBR::Metallic,
                                glm::vec4(1.0 - albedo_tex->getIndex()));
 
-    MaterialGL_PBR data;
-    material->getDataRef()->get(data);
-    std::cout << data << std::endl;
+    std::cout << material->get() << std::endl;
 
     return material;
 }
@@ -136,7 +130,7 @@ int main(int argc, const char** argv) {
 
     // Materials
     MaterialFactory_PBR material_factory(1, 32, 32, 10);
-    MaterialImageLoaderStbi loader;
+    ImageLoaderStb loader;
     std::vector<Ref<Material_PBR>> materials;
     for (int i = 0; i < 10; ++i) {
         materials.emplace_back(createMaterial(material_factory, loader));
@@ -150,12 +144,10 @@ int main(int argc, const char** argv) {
 
         tr->setPosition({i, 0, 0});
         if (transforms.size() > 0) {
-            tr->setParentRef(transforms.back());
+            tr->setParent(transforms.back());
         }
 
-        TransformGL_3D tr_gl;
-        tr->get(tr_gl);
-        std::cout << tr_gl << std::endl;
+        std::cout << tr->get() << std::endl;
 
         transforms.emplace_back(tr);
     }

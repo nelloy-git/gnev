@@ -1,20 +1,17 @@
 #pragma once
 
 #include "image/ImageLoader.hpp"
+#include "image/ImageLoaderStbResult.hpp"
 
 namespace gnev {
 
-class ImageLoaderStbResult;
-
-class ImageLoaderStb : public base::ImageLoader {
+class EXPORT ImageLoaderStb : public base::ImageLoader {
 public:
     Ref<base::ImageLoaderResult> load(const std::filesystem::path& path,
                                       const ImageInfo& read_info,
                                       const ImageInfo& store_info) override;
 
 private:
-    std::unordered_map<std::wstring, Ref<ImageLoaderStbResult>> cache;
-
     bool validateReadInfo(const ImageInfo& read_info, ImageLoaderStbResult& result) const;
     bool validateStoreInfo(const ImageInfo& store_info,
                            ImageLoaderStbResult& result) const;

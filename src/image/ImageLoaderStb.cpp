@@ -5,7 +5,7 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 #define STB_IMAGE_RESIZE_IMPLEMENTATION
-#include "stb_image_resize.h"
+#include "stb_image_resize2.h"
 
 namespace gnev {
 
@@ -15,21 +15,9 @@ using enum Result::Message;
 Ref<base::ImageLoaderResult> ImageLoaderStb::load(const std::filesystem::path& path,
                                                   const ImageInfo& read_info,
                                                   const ImageInfo& store_info) {
-    std::wstring wpath = path.wstring();
-    if (cache.contains(wpath)) {
-        using enum std::future_status;
-
-        Ref<ImageLoaderStbResult>& result(cache.at(wpath));
-        auto status = result->getStatus();
-        if (status != OperationStatus::Failed) {
-            return result;
-        }
-    }
-
     std::promise<bool> done;
     auto result =
-        MakeSharable<ImageLoaderStbResult>(done.get_future(), Image{read_info, 0});
-    cache.emplace(wpath, result);
+        MakeSharable<ImageLoaderStbResult>(done.get_future(), Image{read_info, 1});
 
     if (not validateReadInfo(read_info, result)) {
         done.set_value(false);
@@ -146,12 +134,12 @@ std::optional<Image> ImageLoaderStb::stbLoad(const std::filesystem::path& path,
         stbi_load(path.string().c_str(), &w, &h, &c, getComponents(read_info)),
         &stbi_image_free};
 
-    if (w != read_info.width) {
+    if (read_info.width != 0 and w != read_info.width) {
         result.messages.push_back(UnsupportedReadWidth);
         return std::nullopt;
     }
 
-    if (h != read_info.height) {
+    if (read_info.height != 0 and h != read_info.height) {
         result.messages.push_back(UnsupportedReadHeight);
         return std::nullopt;
     }
@@ -167,15 +155,18 @@ Image ImageLoaderStb::stbResize(const Image& image,
     }
 
     Image resized{store_info, getBufferSize(store_info)};
-    stbir_resize_uint8(image.data.get<GLubyte>(),
-                       image.info.width,
-                       image.info.height,
-                       0,
-                       resized.data.get<GLubyte>(),
-                       resized.info.width,
-                       resized.info.height,
-                       0,
-                       getComponents(image.info));
+    stbir_resize(image.data.get<GLubyte>(),
+                 image.info.width,
+                 image.info.height,
+                 0,
+                 resized.data.get<GLubyte>(),
+                 resized.info.width,
+                 resized.info.height,
+                 0,
+                 stbir_pixel_layout::STBIR_RGBA,
+                 stbir_datatype::STBIR_TYPE_UINT8,
+                 stbir_edge::STBIR_EDGE_CLAMP,
+                 stbir_filter::STBIR_FILTER_DEFAULT);
     return resized;
 }
 

@@ -3,14 +3,14 @@
 #include "gl/Buffer.hpp"
 #include "util/Ref.hpp"
 
-namespace gnev::gl {
+namespace gnev::gl::buffer {
 
-class BufferAccessor {
+class Accessor {
 public:
-    using Changer = std::function<void(gl::Buffer&, void*, GLintptr size)>;
+    using Changer = std::function<void(void*, GLintptr size)>;
 
-    BufferAccessor(Ref<gl::Buffer>);
-    virtual ~BufferAccessor() = default;
+    Accessor(Ref<gl::Buffer>);
+    virtual ~Accessor() = default;
 
     Ref<gl::Buffer> buffer;
 
@@ -21,20 +21,20 @@ public:
     GLuint getBufferSize() const;
 };
 
-class BufferAccessorSubData : public BufferAccessor {
+class AccessorSubData : public Accessor {
 public:
-    BufferAccessorSubData(Ref<gl::Buffer>);
-    virtual ~BufferAccessorSubData() = default;
+    AccessorSubData(Ref<gl::Buffer>);
+    virtual ~AccessorSubData() = default;
 
     void set(GLintptr offset, GLintptr size, const void* src) override;
     void get(GLintptr offset, GLintptr size, void* dst) override;
     void change(GLintptr offset, GLintptr size, const Changer& changer) override;
 };
 
-class BufferAccessorCoherent : public BufferAccessor {
+class AccessorCoherent : public Accessor {
 public:
-    BufferAccessorCoherent(Ref<gl::Buffer>);
-    virtual ~BufferAccessorCoherent();
+    AccessorCoherent(Ref<gl::Buffer>);
+    virtual ~AccessorCoherent();
 
     void set(GLintptr offset, GLintptr size, const void* src) override;
     void get(GLintptr offset, GLintptr size, void* dst) override;

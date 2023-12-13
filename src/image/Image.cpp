@@ -2,13 +2,31 @@
 
 namespace gnev {
 
-GLuint ImageInfo::getTextureBufferSize() const {
-    using enum ImageFormat;
+namespace details {
+
+GLuint getComponents(ImageFormat format) {
     using enum ImageType;
-    return width * height * getTextureBufferSize();
+
+    GLuint bytes_per_pixel = 0;
+    switch (format) {
+    case RED:
+    case DEPTH_COMPONENT:
+    case STENCIL_INDEX:
+        return 1;
+    case RG:
+        return 2;
+    case RGB:
+        return 3;
+    case BGR:
+        return 3;
+    case RGBA:
+        return 4;
+    default:
+        throw std::out_of_range("");
+    }
 }
 
-GLuint ImageInfo::getBytesPerPixel() const {
+GLuint getBytesPerPixel(ImageType type, ImageFormat format) {
     using enum ImageFormat;
 
     switch (type) {
@@ -29,40 +47,55 @@ GLuint ImageInfo::getBytesPerPixel() const {
         return sizeof(GLuint);
 
     case UNSIGNED_BYTE:
-        return getComponents() * sizeof(GLubyte);
+        return getComponents(format) * sizeof(GLubyte);
     case BYTE:
-        return getComponents() * sizeof(GLbyte);
+        return getComponents(format) * sizeof(GLbyte);
     case UNSIGNED_SHORT:
-        return getComponents() * sizeof(GLushort);
+        return getComponents(format) * sizeof(GLushort);
     case SHORT:
-        return getComponents() * sizeof(GLshort);
+        return getComponents(format) * sizeof(GLshort);
     case UNSIGNED_INT:
-        return getComponents() * sizeof(GLuint);
+        return getComponents(format) * sizeof(GLuint);
     case INT:
-        return getComponents() * sizeof(GLint);
+        return getComponents(format) * sizeof(GLint);
     case FLOAT:
-        return getComponents() * sizeof(GLfloat);
+        return getComponents(format) * sizeof(GLfloat);
+    default:
+        throw std::out_of_range("");
     }
 }
 
-GLuint ImageInfo::getComponents() const {
-    using enum ImageType;
+} // namespace details
 
-    GLuint bytes_per_pixel = 0;
-    switch (format) {
-    case RED:
-    case DEPTH_COMPONENT:
-    case STENCIL_INDEX:
-        return 1;
-    case RG:
-        return 2;
-    case RGB:
-        return 3;
-    case BGR:
-        return 3;
-    case RGBA:
-        return 4;
-    }
+GLuint ImageInfo::calcTextureBufferSize() const {
+    return width * height * getBytesPerPixel();
 }
+
+GLuint ImageInfo::getBytesPerPixel() const {
+    return details::getBytesPerPixel(type, format);
+}
+
+GLuint ImageInfo::getComponents() const { return details::getComponents(format); }
+
+ImageInfo3d::ImageInfo3d(GLuint z, const ImageInfo& info)
+    : level(info.level)
+    , x(info.x)
+    , y(info.y)
+    , z(z)
+    , width(info.width)
+    , height(info.height)
+    , depth(1)
+    , format(info.format)
+    , type(info.type) {}
+
+GLuint ImageInfo3d::calcTextureBufferSize() const {
+    return depth * width * height * getBytesPerPixel();
+}
+
+GLuint ImageInfo3d::getBytesPerPixel() const {
+    return details::getBytesPerPixel(type, format);
+}
+
+GLuint ImageInfo3d::getComponents() const { return details::getComponents(format); }
 
 } // namespace gnev

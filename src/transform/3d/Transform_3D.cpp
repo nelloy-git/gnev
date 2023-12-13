@@ -8,15 +8,22 @@
 
 namespace gnev {
 
-Transform_3D::Transform_3D(WeakRef<base::TransformStorage<TransformGL_3D>> weak_storage)
-    : base::Transform<TransformGL_3D>(weak_storage) {}
+Transform_3D::Transform_3D(WeakRef<DataView> weak_view)
+    : base::Transform<TransformGL_3D>(weak_view) {}
 
-std::optional<Ref<Transform_3D>> Transform_3D::getParentRef() const {
-    return base::Transform<TransformGL_3D>::getParentRef()->dynamicCast<Transform_3D>();
+TransformGL_3D Transform_3D::get() const {
+    TransformGL_3D result;
+    data->get(result);
+    return result;
 }
 
-void Transform_3D::setParentRef(const std::optional<Ref<Transform_3D>>& parent) {
-    base::Transform<TransformGL_3D>::setParentRef(parent);
+void Transform_3D::setParent(const Ptr<Transform_3D>& parent) {
+    base::Transform<TransformGL_3D>::setParent(parent);
+}
+
+Ptr<Transform_3D> Transform_3D::getParent() const {
+    return std::dynamic_pointer_cast<
+        Transform_3D>(base::Transform<TransformGL_3D>::getParent());
 }
 
 glm::mat4 Transform_3D::getMat() const {
@@ -66,8 +73,6 @@ void Transform_3D::setScale(const glm::vec3& sc) {
     apply();
 }
 
-void Transform_3D::apply() {
-    set(getMat(), offsetof(TransformGL_3D, mat));
-}
+void Transform_3D::apply() { data->set(getMat(), offsetof(TransformGL_3D, mat)); }
 
 } // namespace gnev
