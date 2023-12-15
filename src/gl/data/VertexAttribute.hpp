@@ -2,7 +2,7 @@
 
 #include "gl/data/VertexAttributeInfo.hpp"
 
-namespace gnev::gl::data {
+namespace gnev::gl {
 
 template <VertexAttributeInfo T>
 struct VertexAttribute final {

@@ -4,7 +4,7 @@
 
 #include "gl/data/VertexAttributeType.hpp"
 
-namespace gnev::gl::data {
+namespace gnev::gl {
 
 struct VertexAttributeInfo {
     constexpr VertexAttributeInfo(GLuint elements, GLenum type, bool normalized)

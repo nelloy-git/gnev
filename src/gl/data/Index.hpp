@@ -5,7 +5,7 @@
 
 #include "glad/gl.h"
 
-namespace gnev::gl::data {
+namespace gnev::gl {
 
 namespace details {
 

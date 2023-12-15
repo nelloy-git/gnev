@@ -3,7 +3,7 @@
 #include "gl/data/VertexInfo.hpp"
 #include "util/Util.hpp"
 
-namespace gnev::gl::data {
+namespace gnev::gl {
 
 template <VertexAttributeInfo... A>
 struct EXPORT Vertex final {

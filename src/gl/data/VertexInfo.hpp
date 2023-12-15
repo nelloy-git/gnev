@@ -2,7 +2,7 @@
 
 #include "gl/data/VertexAttribute.hpp"
 
-namespace gnev::gl::data {
+namespace gnev::gl {
 
 struct VertexInfo {
     static constexpr unsigned int MAX_ATTRIBUTES = 16;
