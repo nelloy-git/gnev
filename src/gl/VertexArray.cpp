@@ -9,15 +9,19 @@ VertexArray::~VertexArray() {}
 
 void VertexArray::glBindVertexArray() const { Ctx::Get().glBindVertexArray(handle()); }
 
-void VertexArray::glVertexArrayElementBuffer(GLuint buffer) {
-    Ctx::Get().glVertexArrayElementBuffer(handle(), buffer);
+void VertexArray::setElementBuffer(const Buffer& buffer) {
+    Ctx::Get().glVertexArrayElementBuffer(handle(), buffer.handle());
 }
 
-void VertexArray::glVertexArrayVertexBuffer(GLuint bindingindex,
-                                            GLuint buffer,
-                                            GLintptr offset,
-                                            GLsizei stride) {
-    Ctx::Get().glVertexArrayVertexBuffer(handle(), bindingindex, buffer, offset, stride);
+void VertexArray::setVertexBuffer(GLuint bindingindex,
+                                  const Buffer& buffer,
+                                  GLintptr offset,
+                                  GLsizei stride) {
+    Ctx::Get().glVertexArrayVertexBuffer(handle(),
+                                         bindingindex,
+                                         buffer.handle(),
+                                         offset,
+                                         stride);
 }
 
 void VertexArray::glVertexArrayAttribBinding(GLuint attribindex, GLuint bindingindex) {
@@ -30,11 +34,11 @@ void VertexArray::glVertexArrayAttribFormat(GLuint attribindex,
                                             GLboolean normalized,
                                             GLuint relativeoffset) {
     Ctx::Get().glVertexArrayAttribFormat(handle(),
-                                    attribindex,
-                                    size,
-                                    type,
-                                    normalized,
-                                    relativeoffset);
+                                         attribindex,
+                                         size,
+                                         type,
+                                         normalized,
+                                         relativeoffset);
 }
 
 void VertexArray::glVertexArrayBindingDivisor(GLuint bindingindex, GLuint divisor) {

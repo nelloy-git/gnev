@@ -12,6 +12,9 @@ public:
     using Changer = IndexMapView<T>::template Changer<V>;
 
     IndexMapViewElem(WeakRef<IndexMapView<T>> weak_view, const T& initial = T{});
+    IndexMapViewElem(WeakRef<IndexMapView<T>> weak_view,
+                     const auto& cleanup,
+                     const T& initial = T{});
     virtual ~IndexMapViewElem() = default;
 
     WeakRef<IndexMapView<T>> getWeakView() const;
@@ -39,6 +42,10 @@ private:
 
     static Ref<GLuint> initIndexGuard(const WeakRef<IndexMapView<T>>& weak_view,
                                       const T& initial);
+
+    static Ref<GLuint> initIndexGuard(const WeakRef<IndexMapView<T>>& weak_view,
+                                      const T& initial,
+                                      const auto& cleanup);
 };
 
 template <typename T>
@@ -46,6 +53,15 @@ IndexMapViewElem<T>::IndexMapViewElem(WeakRef<IndexMapView<T>> weak_view,
                                       const T& initial)
     : weak_view(weak_view)
     , index_guard(initIndexGuard(weak_view, initial)) {
+    set(initial);
+}
+
+template <typename T>
+IndexMapViewElem<T>::IndexMapViewElem(WeakRef<IndexMapView<T>> weak_view,
+                                      const auto& cleanup,
+                                      const T& initial)
+    : weak_view(weak_view)
+    , index_guard(initIndexGuard(weak_view, initial, cleanup)) {
     set(initial);
 }
 
@@ -118,6 +134,34 @@ Ref<GLuint> IndexMapViewElem<T>::initIndexGuard(const WeakRef<IndexMapView<T>>& 
     auto del = [weak_view](GLuint* p_index) {
         auto view_opt = weak_view.lock();
         if (view_opt.has_value()) {
+            view_opt.value()->freeIndex(*p_index);
+        }
+        delete p_index;
+    };
+
+    auto shared_index = std::shared_ptr<GLuint>(new GLuint(index), del);
+    return Ref<GLuint>(shared_index);
+}
+
+template <typename T>
+Ref<GLuint> IndexMapViewElem<T>::initIndexGuard(const WeakRef<IndexMapView<T>>& weak_view,
+                                                const T& initial,
+                                                const auto& cleanup) {
+    auto view_opt = weak_view.lock();
+    if (not view_opt.has_value()) {
+        throw std::runtime_error("");
+    }
+
+    auto index_opt = view_opt.value()->useIndex();
+    if (not index_opt.has_value()) {
+        throw std::runtime_error("");
+    }
+    auto index = index_opt.value();
+
+    auto del = [weak_view, cleanup](GLuint* p_index) {
+        auto view_opt = weak_view.lock();
+        if (view_opt.has_value()) {
+            cleanup(view_opt.value(), *p_index);
             view_opt.value()->freeIndex(*p_index);
         }
         delete p_index;

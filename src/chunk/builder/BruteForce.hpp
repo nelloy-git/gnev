@@ -12,6 +12,7 @@ public:
 
     Ref<Mesh> getMesh() const override;
     void set(GLuint x, GLuint y, GLuint z, const Voxel& voxel) override;
+    void build() override;
 
 private:
     Ref<Mesh> active;

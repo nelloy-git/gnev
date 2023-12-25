@@ -42,7 +42,7 @@ Ref<TexElem> MaterialFactory_PBR::createTex(MaterialTexType_PBR type) {
 
 Ref<DataView> MaterialFactory_PBR::initDefaultData(GLuint capacity) {
     auto buffer = MakeSharable<gl::Buffer>();
-    buffer->initStorage(capacity * sizeof(MaterialGL_PBR),
+    buffer->initStorage(capacity * sizeof(MaterialGLdata_PBR),
                         nullptr,
                         GL_DYNAMIC_STORAGE_BIT | GL_MAP_READ_BIT | GL_MAP_WRITE_BIT);
     auto accessor = MakeSharable<gl::buffer::AccessorSubData>(buffer);

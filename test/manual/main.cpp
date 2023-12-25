@@ -21,8 +21,10 @@
 #include "glm/gtx/transform.hpp"
 #include "image/ImageLoaderStb.hpp"
 #include "material/pbr/MaterialFactory_PBR.hpp"
+#include "mesh/3d/QuadMesh_3D.hpp"
 #include "shader/ProgramBuilder.hpp"
 #include "transform/3d/TransformFactory_3D.hpp"
+#include "view/Camera.hpp"
 
 #define GLFW_INCLUDE_NONE
 #include "GLFW/glfw3.h"
@@ -43,7 +45,7 @@ void readTextFile(std::string& dst, const std::filesystem::path& path) {
     t.read(dst.data(), size);
 }
 
-gl::Program buildProgram() {
+Ref<gl::Program> buildProgram() {
     ProgramBuilder program_builder;
 
     auto current_dir = std::filesystem::current_path();
@@ -57,7 +59,7 @@ gl::Program buildProgram() {
         {GL_FRAGMENT_SHADER, fragment_shader_src},
     });
 
-    if (not program.has_value()) {
+    if (not program) {
         std::cout << "ProgramBuilder: " << program_builder.reason().c_str() << std::endl;
         throw std::runtime_error("Failed init program");
     }
@@ -66,26 +68,22 @@ gl::Program buildProgram() {
         std::cout << program_builder.help().c_str() << std::endl;
     }
 
-    return std::move(program.value());
+    return program;
 }
 
-Ref<Material_PBR> createMaterial(MaterialFactory_PBR& factory, ImageLoaderStb& loader) {
-    //
-
+Ref<Material_PBR> createMaterial(MaterialFactory_PBR& factory,
+                                 ImageLoaderStb& loader,
+                                 const std::filesystem::path& albedo) {
     auto material = factory.createMaterial();
     auto albedo_tex = factory.createTex(MaterialTexType_PBR::Albedo);
 
-    auto current_dir = std::filesystem::current_path();
     ImageInfo read_info{.format = ImageFormat::RGBA, .type = ImageType::UNSIGNED_BYTE};
     ImageInfo store_info{.width = 32,
                          .height = 32,
                          .format = ImageFormat::RGBA,
                          .type = ImageType::UNSIGNED_BYTE};
 
-    auto result =
-        loader.load(current_dir / "3rdparty" / "minecraft_textures" / "gravel.png",
-                    read_info,
-                    store_info);
+    auto result = loader.load(albedo, read_info, store_info);
 
     auto stbi_result_opt = result.dynamicCast<ImageLoaderStbResult>();
     if (not stbi_result_opt.has_value()) {
@@ -99,62 +97,94 @@ Ref<Material_PBR> createMaterial(MaterialFactory_PBR& factory, ImageLoaderStb& l
 
     albedo_tex->set(result->image);
     material->setTex(MaterialTexType_PBR::Albedo, albedo_tex);
-    material->setTexOffset(MaterialTexType_PBR::Normal,
-                           glm::vec4(albedo_tex->getIndex()));
-    material->changeTexOffset(MaterialTexType_PBR::Normal,
-                              [](glm::vec4& val) { val /= 10; });
-    material->setTexMultiplier(MaterialTexType_PBR::Metallic,
-                               glm::vec4(1.0 - albedo_tex->getIndex()));
 
-    std::cout << material->get() << std::endl;
+    std::cout << material->getGLdata() << std::endl;
 
     return material;
 }
 
+// Ref<Mesh> createMesh() {}
+
 int main(int argc, const char** argv) {
+    auto current_dir = std::filesystem::current_path();
+
     bool close_window = false;
     GlfwWindow wnd(1024, 768);
 
-    wnd.setKeyCB([&close_window](GlfwWindow& window,
-                                 int key,
-                                 int scancode,
-                                 int action,
-                                 int mods) {
-        std::cout << key << std::endl;
-        if (key == GLFW_KEY_ESCAPE) {
-            close_window = true;
-        }
-    });
-
-    auto program = buildProgram();
+    Ref<gl::Program> program = buildProgram();
+    program->use();
 
     // Materials
     MaterialFactory_PBR material_factory(1, 32, 32, 10);
     ImageLoaderStb loader;
-    std::vector<Ref<Material_PBR>> materials;
-    for (int i = 0; i < 10; ++i) {
-        materials.emplace_back(createMaterial(material_factory, loader));
-    }
+    auto material_gravel =
+        createMaterial(material_factory,
+                       loader,
+                       current_dir / "3rdparty" / "minecraft_textures" / "gravel.png");
 
-    // Transforms
-    TransformFactory_3D transform_factory(10);
-    std::vector<Ref<Transform_3D>> transforms;
-    for (int i = 0; i < 10; ++i) {
-        auto tr = transform_factory.createTransform();
+    auto mats = Mat4x4Storage::MakeCoherent(1000);
 
-        tr->setPosition({i, 0, 0});
-        if (transforms.size() > 0) {
-            tr->setParent(transforms.back());
+    Camera cam(mats);
+    program->bindShaderStorage("Camera", cam.getBuffer());
+    cam.setPosition({3, 3, 3});
+    cam.lookAt({0, 0, 0});
+
+    auto mesh = QuadMesh_3D::MakeDynamic(6);
+    mesh->bindAttribute(program->glGetAttribLocation("inPos"), 0);
+    // mesh->bindAttribute(program->glGetAttribLocation("inUV"), 1);
+    // mesh->bindAttribute(program->glGetAttribLocation("inIds"), 2);
+    std::array quads{
+        mesh->createQuad(),
+        mesh->createQuad(),
+        mesh->createQuad(),
+        // mesh->createQuad(),
+        // mesh->createQuad(),
+        // mesh->createQuad()
+    };
+    quads[0]->setQuad({VertGLdata_3D{{-1, -1, 0}, {0, 0}, {0, 0, 0, 0}},
+                       VertGLdata_3D{{-1, 1, 0}, {0, 1}, {0, 0, 0, 0}},
+                       VertGLdata_3D{{1, 1, 0}, {1, 1}, {0, 0, 0, 0}},
+                       VertGLdata_3D{{1, -1, 0}, {1, 0}, {0, 0, 0, 0}}});
+    quads[1]->setQuad({VertGLdata_3D{{0, -1, -1}, {0, 0}, {0, 0, 0, 0}},
+                       VertGLdata_3D{{0, -1, 1}, {0, 1}, {0, 0, 0, 0}},
+                       VertGLdata_3D{{0, 1, 1}, {1, 1}, {0, 0, 0, 0}},
+                       VertGLdata_3D{{0, 1, -1}, {1, 0}, {0, 0, 0, 0}}});
+    quads[2]->setQuad({VertGLdata_3D{{-1, 0, -1}, {0, 0}, {0, 0, 0, 0}},
+                       VertGLdata_3D{{-1, 0, 1}, {0, 1}, {0, 0, 0, 0}},
+                       VertGLdata_3D{{1, 0, 1}, {1, 1}, {0, 0, 0, 0}},
+                       VertGLdata_3D{{1, 0, -1}, {1, 0}, {0, 0, 0, 0}}});
+
+    wnd.setKeyCB([&close_window,
+                  &cam](GlfwWindow& window, int key, int scancode, int action, int mods) {
+        static constexpr float speed = 0.1;
+
+        std::cout << key << std::endl;
+        switch (key) {
+        case GLFW_KEY_ESCAPE:
+            close_window = true;
+            return;
+        case GLFW_KEY_W:
+            cam.setPosition(cam.getPosition() + speed * cam.getDirection());
+        case GLFW_KEY_S:
+            cam.setPosition(cam.getPosition() - speed * cam.getDirection());
+        case GLFW_KEY_A:
+            cam.setPosition(cam.getPosition() +
+                            speed * glm::cross(cam.getDirection(), cam.getPosition()));
+        case GLFW_KEY_D:
+            cam.setPosition(cam.getPosition() -
+                            speed * glm::cross(cam.getDirection(), cam.getPosition()));
+        default:
+            return;
         }
+    });
 
-        std::cout << tr->get() << std::endl;
-
-        transforms.emplace_back(tr);
-    }
-
+    gl::Ctx::Get().glClearColor(0, 0, 0.2f, 1.f);
     while (not close_window) {
         wnd.pollEvents();
         wnd.swapBuffers();
+
+        gl::Ctx::Get().glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        mesh->draw();
     }
 
     return 0;

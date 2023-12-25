@@ -53,6 +53,8 @@ public:
     template <typename V>
     std::optional<Ref<V>> dynamicCast() const;
 
+    void swap(Ref<T>& other);
+
 private:
     Ptr<T> ptr;
 };
@@ -80,7 +82,7 @@ template <typename V>
 Ref<T>::Ref(const Ptr<V>& ptr)
     requires(std::constructible_from<Ptr<T>, const Ptr<V>&>)
     : ptr(ptr) {
-    if (not ptr) {
+    if (not this->ptr) {
         throw std::logic_error("");
     }
 }
@@ -90,7 +92,7 @@ template <typename V>
 Ref<T>::Ref(Ptr<V>&& ptr)
     requires(std::constructible_from<Ptr<T>, Ptr<V> &&>)
     : ptr(std::move(ptr)) {
-    if (not ptr) {
+    if (not this->ptr) {
         throw std::logic_error("");
     }
 }
@@ -149,6 +151,11 @@ std::optional<Ref<V>> Ref<T>::dynamicCast() const {
         return std::nullopt;
     }
     return Ref<V>(casted_ptr);
+}
+
+template<typename T>
+void Ref<T>::swap(Ref<T>& other){
+    this->ptr.swap(other.ptr);
 }
 
 } // namespace gnev

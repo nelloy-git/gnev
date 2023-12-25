@@ -92,7 +92,11 @@ Ctx::Ctx(LoadFunc load_func)
     gladLoadGLContext(glad.get(), load_func);
 }
 
-Ctx::~Ctx() {}
+void Ctx::glClear(GLbitfield mask) const { glad->Clear(mask); }
+
+void Ctx::glClearColor(GLfloat red, GLfloat green, GLfloat blue, GLfloat alpha) const {
+    glad->ClearColor(red, green, blue, alpha);
+}
 
 void Ctx::glGetIntegerv(GLenum pname, GLint* params) const {
     glad->GetIntegerv(pname, params);

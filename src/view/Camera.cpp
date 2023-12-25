@@ -1,53 +1,66 @@
-// #include "view/Camera.hpp"
+#include "view/Camera.hpp"
 
-// #include "glm/gtc/matrix_transform.hpp"
-// #include "glm/gtc/type_ptr.hpp"
+#include "glm/gtc/matrix_transform.hpp"
+#include "glm/gtc/type_ptr.hpp"
 
-// using namespace gnev;
+namespace gnev {
 
-// Camera::Camera()
-//     : buffer(STORAGE_FLAGS, 1, CameraBuffer{})
-//     , _map(static_cast<CameraBuffer*>(buffer.mapRange(0,
-//                                                       sizeof(CameraBuffer),
-//                                                       STORAGE_FLAGS))) {}
+using DataView = Camera::DataView;
+using DataElem = Camera::DataElem;
 
-// Camera::~Camera() {}
+CameraGLdata::CameraGLdata(GLuint view_mat_index, GLuint proj_mat_index)
+    : mats{.view_mat_index = view_mat_index, .proj_mat_index = proj_mat_index} {}
 
-// void Camera::apply() {
-//     CameraBuffer data;
+Camera::Camera(const Ref<Mat4x4Storage>& mat_storage)
+    : view_mat(mat_storage->lockMat(glm::mat4(1.f)))
+    , proj_mat(mat_storage->lockMat(glm::mat4(1.f)))
+    , data_view(DataView::MakeCoherent(1))
+    , data_elem(MakeSharable<DataElem>(data_view,
+                                       CameraGLdata{view_mat->getIndex(),
+                                                    proj_mat->getIndex()})) {}
 
-//     _forward = glm::mat4_cast(glm::quat({pitch, yaw, roll})) * glm::vec4(1, 0, 0, 0);
+Ref<gl::Buffer> Camera::getBuffer() const { return data_view->accessor->buffer; }
 
-//     data.viewPos = pos;
-//     data.viewDir = _forward;
-//     data.mat = glm::lookAt(pos, pos + _forward, _up);
-//     if (use_perspective) {
-//         auto proj_mat = glm::perspectiveFov(fov,
-//                                             static_cast<float>(width),
-//                                             static_cast<float>(height),
-//                                             near_z,
-//                                             far_z);
-//         data.mat = proj_mat * data.mat;
-//     }
-//     _map[0] = data;
-// }
+void Camera::setPosition(const glm::vec3& position) {
+    data_elem->set(position, offsetof(CameraGLdata, position));
+    applyViewMat();
+}
 
-// // TODO angles
-// void Camera::applyLookAt(const glm::vec3& dst) {
-//     CameraBuffer data;
+glm::vec3 Camera::getPosition() const {
+    glm::vec3 dst;
+    data_elem->get(dst, offsetof(CameraGLdata, position));
+    return dst;
+}
 
-//     _forward = glm::normalize(dst - pos);
+void Camera::setDirection(const glm::vec3& direction) {
+    data_elem->set(direction, offsetof(CameraGLdata, direction));
+    applyViewMat();
+}
 
-//     data.viewPos = pos;
-//     data.viewDir = _forward;
-//     data.mat = glm::lookAt(pos, dst, _up);
-//     if (use_perspective) {
-//         auto proj_mat = glm::perspectiveFov(fov,
-//                                             static_cast<float>(width),
-//                                             static_cast<float>(height),
-//                                             near_z,
-//                                             far_z);
-//         data.mat = proj_mat * data.mat;
-//     }
-//     _map[0] = data;
-// }
+glm::vec3 Camera::getDirection() const {
+    glm::vec3 dst;
+    data_elem->get(dst, offsetof(CameraGLdata, direction));
+    return dst;
+}
+
+void Camera::lookAt(const glm::vec3& target) {
+    data_elem->set(glm::normalize(target - getPosition()),
+                   offsetof(CameraGLdata, direction));
+    applyViewMat();
+}
+
+void Camera::applyViewMat() {
+    CameraGLdata cam{INVALID_INDEX, INVALID_INDEX};
+    data_elem->get(cam);
+    glm::mat4 mat = glm::lookAt(cam.position, cam.position + cam.direction, cam.top);
+    view_mat->set(mat);
+}
+
+void Camera::applyProjMat() {
+    CameraGLdata cam{INVALID_INDEX, INVALID_INDEX};
+    data_elem->get(cam);
+    glm::mat4 mat = glm::perspectiveFov(fov, width, height, near_z, far_z);
+    proj_mat->set(mat);
+}
+
+} // namespace gnev

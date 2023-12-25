@@ -6,6 +6,7 @@
 
 #include "gl/Program.hpp"
 #include "gl/Shader.hpp"
+#include "util/Ref.hpp"
 
 namespace gnev {
 
@@ -16,7 +17,7 @@ public:
 
     const std::string& reason() const;
     const std::string& help() const;
-    std::optional<gl::Program> build(const std::unordered_map<GLenum, std::string>& sources);
+    Ptr<gl::Program> build(const std::unordered_map<GLenum, std::string>& sources);
 
 private:
     std::string _reason;

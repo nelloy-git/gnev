@@ -13,14 +13,13 @@ public:
     virtual ~Chunk() = default;
 
     const Ref<Mesh>& getMesh() const;
-
-    void set(GLuint x, GLuint y, GLuint z, const Voxel& voxel);
-    const Voxel& get(GLuint x, GLuint y, GLuint z) const;
+    virtual void set(GLuint x, GLuint y, GLuint z, const Ptr<Voxel>& voxel);
+    virtual void build();
 
 private:
-    // Array3d<std::optional<Voxel>> voxels;
-    // Ref<ChunkBuilder> builder;
-    // Ref<Mesh> mesh;
+    Array3d<Ptr<Voxel>> voxels;
+    Ref<Mesh> active;
+    Ref<Mesh> passive;
 };
 
 } // namespace gnev

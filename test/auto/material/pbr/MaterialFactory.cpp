@@ -15,19 +15,19 @@
 //     static constexpr GLuint width = 4;
 //     static constexpr GLuint height = 4;
 
-//     class Loader : public base::MaterialImageLoader {
+//     class Loader : public MaterialImageLoader {
 //     public:
 //         gl::TexImage to_write;
 
-//         std::shared_ptr<base::MaterialImageLoaderResult>
-//         upload(std::weak_ptr<base::MaterialTexStorage> weak_tex_storage,
+//         std::shared_ptr<MaterialImageLoaderResult>
+//         upload(std::weak_ptr<MaterialTexStorage> weak_tex_storage,
 //                const std::filesystem::path& path,
 //                const gl::TexImageInfo& info) override {
 
 //             std::promise<bool> done;
-//             base::MaterialTex tex_ref(weak_tex_storage);
+//             MaterialTex tex_ref(weak_tex_storage);
 //             auto result =
-//                 std::make_shared<base::MaterialImageLoaderResult>(done.get_future(),
+//                 std::make_shared<MaterialImageLoaderResult>(done.get_future(),
 //                                                                   tex_ref);
 //             weak_tex_storage.lock()->at(*tex_ref.getIndex()).setImage(to_write);
 //             done.set_value(true);
@@ -35,7 +35,7 @@
 //         }
 //     };
 
-//     bool upload(std::weak_ptr<base::MaterialTexStorage> weak_tex_storage,
+//     bool upload(std::weak_ptr<MaterialTexStorage> weak_tex_storage,
 //                 const gl::TexImage& to_write) {
 //         Loader loader;
 //         loader.to_write = to_write;

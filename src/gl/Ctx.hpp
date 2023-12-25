@@ -17,11 +17,11 @@ public:
     using LoadFunc = ApiProc (*)(const char*);
 
     static void Init(LoadFunc load_func);
-    static void
-    Init(LoadFunc load_func, std::unique_ptr<BS::thread_pool_light>&& gl_workers);
+    static void Init(LoadFunc load_func,
+                     std::unique_ptr<BS::thread_pool_light>&& gl_workers);
     static bool IsInited();
     static Ctx& Get();
-    virtual ~Ctx();
+    virtual ~Ctx() = default;
 
     template <typename F,
               typename... A,
@@ -40,6 +40,8 @@ public:
 public:
     // Global
 
+    void glClear(GLbitfield mask) const;
+    void glClearColor(GLfloat red, GLfloat green, GLfloat blue, GLfloat alpha) const;
     void glGetIntegerv(GLenum pname, GLint* params) const;
     void glEnable(GLenum pname) const;
     void glDebugMessageCallback(GLDEBUGPROC callback, const void* userParam) const;
@@ -236,8 +238,9 @@ public:
                                    GLenum type,
                                    GLboolean normalized,
                                    GLuint relativeoffset) const;
-    void
-    glVertexArrayBindingDivisor(GLuint vaobj, GLuint bindingindex, GLuint divisor) const;
+    void glVertexArrayBindingDivisor(GLuint vaobj,
+                                     GLuint bindingindex,
+                                     GLuint divisor) const;
     void glEnableVertexArrayAttrib(GLuint vaobj, GLuint index) const;
     void glDisableVertexArrayAttrib(GLuint vaobj, GLuint index) const;
 

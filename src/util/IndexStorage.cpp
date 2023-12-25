@@ -62,4 +62,18 @@ unsigned int IndexStorage::countFree() const {
     return last - current + unused.size();
 }
 
+unsigned int IndexStorage::countUsed() const {
+    std::lock_guard lg{m};
+    return current - (first + unused.size());
+}
+
+unsigned int IndexStorage::getCapacity() const {
+    return last - first;
+}
+
+unsigned int IndexStorage::getMaxUsed() const {
+    std::lock_guard lg{m};
+    return current;
+}
+
 } // namespace gnev

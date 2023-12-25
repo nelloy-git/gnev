@@ -10,7 +10,6 @@
 namespace gnev {
 
 struct EXPORT alignas(16) TransformGL_3D {
-public:
     static constexpr unsigned int InvalidIndex = std::numeric_limits<unsigned int>::max();
 
     unsigned int parent = InvalidIndex;

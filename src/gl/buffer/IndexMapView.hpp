@@ -12,8 +12,12 @@ concept UsableByIndexMapView = std::is_trivially_copyable_v<T>;
 template <UsableByIndexMapView T>
 class EXPORT IndexMapView : public IndexStorage {
 public:
+    using Data = T;
     template <UsableByIndexMapView V>
     using Changer = std::function<void(V&)>;
+
+    static Ref<IndexMapView> MakeDynamic(GLuint capacity);
+    static Ref<IndexMapView> MakeCoherent(GLuint capacity);
 
     IndexMapView(const Ref<gl::buffer::Accessor>& accessor);
     virtual ~IndexMapView() = default;
@@ -35,6 +39,25 @@ public:
     template <UsableByIndexMapView V>
     void change(GLuint index, const Changer<V>& changer, GLintptr ptr_offset);
 };
+
+template <UsableByIndexMapView T>
+Ref<IndexMapView<T>> IndexMapView<T>::MakeDynamic(GLuint capacity) {
+    auto buffer = MakeSharable<gl::Buffer>();
+    buffer->initStorage(capacity * sizeof(T), nullptr, GL_DYNAMIC_STORAGE_BIT);
+    auto accessor = MakeSharable<gl::buffer::AccessorSubData>(buffer);
+    return MakeSharable<IndexMapView<T>>(accessor);
+}
+
+template <UsableByIndexMapView T>
+Ref<IndexMapView<T>> IndexMapView<T>::MakeCoherent(GLuint capacity) {
+    auto buffer = MakeSharable<gl::Buffer>();
+    buffer->initStorage(capacity * sizeof(T),
+                        nullptr,
+                        GL_MAP_READ_BIT | GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT |
+                            GL_MAP_COHERENT_BIT);
+    auto accessor = MakeSharable<gl::buffer::AccessorCoherent>(buffer);
+    return MakeSharable<IndexMapView<T>>(accessor);
+}
 
 template <UsableByIndexMapView T>
 IndexMapView<T>::IndexMapView(const Ref<gl::buffer::Accessor>& accessor)

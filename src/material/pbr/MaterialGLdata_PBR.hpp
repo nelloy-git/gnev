@@ -5,7 +5,6 @@
 #include <limits>
 
 #include "glm/glm.hpp"
-#include "material/base/MaterialGL.hpp"
 #include "nlohmann/json_fwd.hpp"
 #include "util/Export.hpp"
 
@@ -23,27 +22,23 @@ inline constexpr unsigned int toUint(MaterialTexType_PBR type) {
     return static_cast<unsigned int>(type);
 }
 
-struct EXPORT alignas(16) MaterialGL_PBR {
+struct EXPORT alignas(16) MaterialGLdata_PBR final {
 public:
     static constexpr unsigned int TexSize = 5;
     static constexpr unsigned int InvalidIndex = std::numeric_limits<unsigned int>::max();
 
-    MaterialGL_PBR();
+    MaterialGLdata_PBR();
 
     std::array<unsigned int, TexSize> tex_index;
     std::array<glm::vec4, TexSize> tex_offset;
     std::array<glm::vec4, TexSize> tex_multiplier;
 
-    static constexpr std::size_t SizeOfTexOffsetElem =
-        sizeof(decltype(MaterialGL_PBR::tex_offset)::value_type);
-    static constexpr std::size_t SizeOfTexMultiplierElem =
-        sizeof(decltype(MaterialGL_PBR::tex_multiplier)::value_type);
-
+    static std::size_t OffsetOfTexIndex(MaterialTexType_PBR type);
     static std::size_t OffsetOfTexOffset(MaterialTexType_PBR type);
     static std::size_t OffsetOfTexMultiplier(MaterialTexType_PBR type);
 };
 
-EXPORT std::ostream& operator<<(std::ostream& out, const MaterialGL_PBR& val);
+EXPORT std::ostream& operator<<(std::ostream& out, const MaterialGLdata_PBR& val);
 
 } // namespace gnev
 
@@ -55,8 +50,8 @@ struct EXPORT adl_serializer<glm::vec4> {
 };
 
 template <>
-struct EXPORT adl_serializer<gnev::MaterialGL_PBR> {
-    static void to_json(json& j, const gnev::MaterialGL_PBR& material);
+struct EXPORT adl_serializer<gnev::MaterialGLdata_PBR> {
+    static void to_json(json& j, const gnev::MaterialGLdata_PBR& material);
 };
 
 } // namespace nlohmann

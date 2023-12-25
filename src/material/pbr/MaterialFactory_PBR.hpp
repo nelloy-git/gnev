@@ -1,6 +1,5 @@
 #pragma once
 
-#include "material/pbr/MaterialGL_PBR.hpp"
 #include "material/pbr/Material_PBR.hpp"
 #include "util/Ref.hpp"
 
@@ -14,7 +13,7 @@ public:
     using DataElem = Material_PBR::DataElem;
     using TexElem = Material_PBR::TexElem;
 
-    static constexpr GLuint TexSize = MaterialGL_PBR::TexSize;
+    static constexpr GLuint TexSize = MaterialGLdata_PBR::TexSize;
 
     MaterialFactory_PBR(const Ref<DataView>& data_view,
                         const std::array<Ref<TexView>, TexSize>& tex_views);
