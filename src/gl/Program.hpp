@@ -31,16 +31,29 @@ public:
     void glShaderStorageBlockBinding(GLuint storageBlockIndex,
                                      GLuint storageBlockBinding) const;
 
-    void bindShaderStorage(const std::string& shaderStorageBlockName, const Ref<Buffer>& buffer);
-    void bindShaderStorage(GLuint shaderStorageBlockIndex, const Ref<Buffer>& buffer);
+    void bindShaderStorageBlockBuffer(const std::string& storage_block_name,
+                                      const Ref<Buffer>& buffer);
+    void bindShaderStorageBlockBuffer(GLuint storage_block_index,
+                                      const Ref<Buffer>& buffer);
+
+
+    void bindShaderUniformBlockBuffer(const std::string& storage_block_name,
+                                      const Ref<Buffer>& buffer);
+    void bindShaderUniformBlockBuffer(GLuint uniform_block_index,
+                                      const Ref<Buffer>& buffer);
 
 private:
-    struct {
-        IndexStorage binds = {getMaxShaderStorageBufferBindings()};
+    struct Bindings {
+        Bindings(GLuint capacity);
+        IndexStorage binds;
         std::unordered_map<GLuint, std::pair<GLuint, Ptr<Buffer>>> map;
-    } shader_storages;
+    };
+
+    Bindings shader_storage_blocks;
+    Bindings shader_uniform_blocks;
 
     static GLuint getMaxShaderStorageBufferBindings();
+    static GLuint getMaxUniformBufferBindings();
 
     static GLuint* createHandle();
     static void deleteHandle(GLuint* handle);

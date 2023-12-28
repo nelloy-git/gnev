@@ -15,6 +15,7 @@ uniform sampler2DArray albedo;
 
 in vec4 vPos;
 in vec2 vUV;
+in vec4 vColor;
 flat in int vMaterialId;
 
 out vec4 fColor;
@@ -51,5 +52,5 @@ out vec4 fColor;
 void main(){
     // Material material = materials[vMaterialId];
     // fColor = vec4(CalcPointLight(lights[0], material, vPos.rgb, camera.direction.rgb), 1);
-    fColor = vec4(0, 1.0, 0, 1.0);
+    fColor = vColor;
 } 

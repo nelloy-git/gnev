@@ -8,18 +8,22 @@
 
 namespace gnev {
 
-struct EXPORT alignas(16) CameraGLdata final {
+struct EXPORT CameraGLdata final {
     CameraGLdata(GLuint view_mat_index, GLuint proj_mat_index);
 
-    glm::vec3 position = {0, 0, 0};
-    glm::vec3 direction = {1, 0, 0};
-    glm::vec3 top = {0, 1, 0};
-
-    struct {
+    alignas(16) glm::vec3 position = {0, 0, 0};
+    alignas(16) glm::vec3 direction = {1, 0, 0};
+    alignas(16) glm::vec3 top = {0, 1, 0};
+    alignas(16) struct {
         GLuint view_mat_index;
         GLuint proj_mat_index;
     } mats;
 };
+
+static_assert(offsetof(CameraGLdata, position) == 0, "offsetof(CameraGLdata, position) == 0");
+static_assert(offsetof(CameraGLdata, direction) == 16, "offsetof(CameraGLdata, direction) == 16");
+static_assert(offsetof(CameraGLdata, top) == 32, "offsetof(CameraGLdata, top) == 32");
+static_assert(offsetof(CameraGLdata, mats) == 48, "offsetof(CameraGLdata, mats) == 48");
 
 class EXPORT Camera {
 public:
@@ -32,6 +36,12 @@ public:
     virtual ~Camera() = default;
 
     Ref<gl::Buffer> getBuffer() const;
+    glm::mat4 getViewMat() const;
+    GLuint getViewMatIndex() const;
+    glm::mat4 getProjMat() const;
+    GLuint getProjMatIndex() const;
+    glm::vec3 getTop() const;
+
 
     void setPosition(const glm::vec3& position);
     glm::vec3 getPosition() const;
@@ -66,6 +76,9 @@ private:
     GLfloat height = 768;
     GLfloat near_z = 0.001;
     GLfloat far_z = 1000;
+
+    GLfloat min_pitch = -0.9 * glm::pi<float>() / 2;
+    GLfloat max_pitch =  0.9 * glm::pi<float>() / 2;
 
     void applyViewMat();
     void applyProjMat();

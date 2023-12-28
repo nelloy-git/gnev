@@ -18,6 +18,8 @@
 #include "gl/Program.hpp"
 #include "glm/ext/matrix_transform.hpp"
 #include "glm/gtx/euler_angles.hpp"
+#include "glm/gtx/rotate_vector.hpp"
+#include "glm/gtx/string_cast.hpp"
 #include "glm/gtx/transform.hpp"
 #include "image/ImageLoaderStb.hpp"
 #include "material/pbr/MaterialFactory_PBR.hpp"
@@ -123,56 +125,90 @@ int main(int argc, const char** argv) {
                        current_dir / "3rdparty" / "minecraft_textures" / "gravel.png");
 
     auto mats = Mat4x4Storage::MakeCoherent(1000);
+    program->bindShaderStorageBlockBuffer("Mat", mats->getBuffer());
 
     Camera cam(mats);
-    program->bindShaderStorage("Camera", cam.getBuffer());
+    program->bindShaderUniformBlockBuffer("Camera", cam.getBuffer());
     cam.setPosition({3, 3, 3});
     cam.lookAt({0, 0, 0});
 
-    auto mesh = QuadMesh_3D::MakeDynamic(6);
+    auto mesh = QuadMesh_3D::MakeDynamic(1);
     mesh->bindAttribute(program->glGetAttribLocation("inPos"), 0);
     // mesh->bindAttribute(program->glGetAttribLocation("inUV"), 1);
     // mesh->bindAttribute(program->glGetAttribLocation("inIds"), 2);
     std::array quads{
         mesh->createQuad(),
-        mesh->createQuad(),
-        mesh->createQuad(),
+        // mesh->createQuad(),
+        // mesh->createQuad(),
         // mesh->createQuad(),
         // mesh->createQuad(),
         // mesh->createQuad()
     };
-    quads[0]->setQuad({VertGLdata_3D{{-1, -1, 0}, {0, 0}, {0, 0, 0, 0}},
-                       VertGLdata_3D{{-1, 1, 0}, {0, 1}, {0, 0, 0, 0}},
-                       VertGLdata_3D{{1, 1, 0}, {1, 1}, {0, 0, 0, 0}},
-                       VertGLdata_3D{{1, -1, 0}, {1, 0}, {0, 0, 0, 0}}});
-    quads[1]->setQuad({VertGLdata_3D{{0, -1, -1}, {0, 0}, {0, 0, 0, 0}},
-                       VertGLdata_3D{{0, -1, 1}, {0, 1}, {0, 0, 0, 0}},
-                       VertGLdata_3D{{0, 1, 1}, {1, 1}, {0, 0, 0, 0}},
-                       VertGLdata_3D{{0, 1, -1}, {1, 0}, {0, 0, 0, 0}}});
-    quads[2]->setQuad({VertGLdata_3D{{-1, 0, -1}, {0, 0}, {0, 0, 0, 0}},
+    quads[0]->setQuad({VertGLdata_3D{{-1, 0, -1}, {0, 0}, {0, 0, 0, 0}},
                        VertGLdata_3D{{-1, 0, 1}, {0, 1}, {0, 0, 0, 0}},
-                       VertGLdata_3D{{1, 0, 1}, {1, 1}, {0, 0, 0, 0}},
-                       VertGLdata_3D{{1, 0, -1}, {1, 0}, {0, 0, 0, 0}}});
+                       VertGLdata_3D{{1, 0, -1}, {1, 0}, {0, 0, 0, 0}},
+                       VertGLdata_3D{{1, 0, 1}, {1, 1}, {0, 0, 0, 0}}});
+    // quads[1]->setQuad({VertGLdata_3D{{0, -1, -1}, {0, 0}, {0, 0, 0, 0}},
+    //                    VertGLdata_3D{{0, -1, 1}, {0, 1}, {0, 0, 0, 0}},
+    //                    VertGLdata_3D{{0, 1, -1}, {1, 0}, {0, 0, 0, 0}},
+    //                    VertGLdata_3D{{0, 1, 1}, {1, 1}, {0, 0, 0, 0}}});
+    // quads[2]->setQuad({VertGLdata_3D{{-1, 0, -1}, {0, 0}, {0, 0, 0, 0}},
+    //                    VertGLdata_3D{{-1, 0, 1}, {0, 1}, {0, 0, 0, 0}},
+    //                    VertGLdata_3D{{1, 0, -1}, {1, 0}, {0, 0, 0, 0}},
+    //                    VertGLdata_3D{{1, 0, 1}, {1, 1}, {0, 0, 0, 0}}});
 
     wnd.setKeyCB([&close_window,
                   &cam](GlfwWindow& window, int key, int scancode, int action, int mods) {
         static constexpr float speed = 0.1;
 
-        std::cout << key << std::endl;
+        // std::cout << key << std::endl;
+        std::cout << glm::to_string(cam.getPosition()) << std::endl;
+        std::cout << glm::to_string(cam.getDirection()) << std::endl;
+        std::cout << glm::to_string(cam.getViewMat()) << std::endl;
         switch (key) {
         case GLFW_KEY_ESCAPE:
             close_window = true;
             return;
         case GLFW_KEY_W:
             cam.setPosition(cam.getPosition() + speed * cam.getDirection());
+            return;
         case GLFW_KEY_S:
             cam.setPosition(cam.getPosition() - speed * cam.getDirection());
-        case GLFW_KEY_A:
-            cam.setPosition(cam.getPosition() +
-                            speed * glm::cross(cam.getDirection(), cam.getPosition()));
+            return;
         case GLFW_KEY_D:
+            cam.setPosition(cam.getPosition() +
+                            speed * glm::cross(cam.getDirection(), cam.getTop()));
+            return;
+        case GLFW_KEY_A:
             cam.setPosition(cam.getPosition() -
-                            speed * glm::cross(cam.getDirection(), cam.getPosition()));
+                            speed * glm::cross(cam.getDirection(), cam.getTop()));
+            return;
+        case GLFW_KEY_LEFT_CONTROL:
+            cam.setPosition(cam.getPosition() - speed * cam.getTop());
+            return;
+        case GLFW_KEY_LEFT_SHIFT:
+            cam.setPosition(cam.getPosition() + speed * cam.getTop());
+            return;
+        case GLFW_KEY_UP:
+            cam.setDirection(glm::rotate(cam.getDirection(),
+                                         glm::pi<float>() / 36,
+                                         glm::cross(cam.getDirection(), cam.getTop())));
+            return;
+        case GLFW_KEY_DOWN:
+            cam.setDirection(glm::rotate(cam.getDirection(),
+                                         -glm::pi<float>() / 36,
+                                         glm::cross(cam.getDirection(), cam.getTop())));
+            return;
+        case GLFW_KEY_LEFT:
+            cam.setDirection(glm::rotate(cam.getDirection(),
+                                         glm::pi<float>() / 36,
+                                         cam.getTop()));
+            return;
+        case GLFW_KEY_RIGHT:
+            cam.setDirection(glm::rotate(cam.getDirection(),
+                                         -glm::pi<float>() / 36,
+                                         cam.getTop()));
+            return;
         default:
             return;
         }

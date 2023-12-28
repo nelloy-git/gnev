@@ -1,7 +1,12 @@
 #include "view/Camera.hpp"
 
+#include <iostream>
+
 #include "glm/gtc/matrix_transform.hpp"
 #include "glm/gtc/type_ptr.hpp"
+#include "glm/gtx/euler_angles.hpp"
+#include "glm/gtx/rotate_vector.hpp"
+#include "glm/gtx/string_cast.hpp"
 
 namespace gnev {
 
@@ -17,9 +22,38 @@ Camera::Camera(const Ref<Mat4x4Storage>& mat_storage)
     , data_view(DataView::MakeCoherent(1))
     , data_elem(MakeSharable<DataElem>(data_view,
                                        CameraGLdata{view_mat->getIndex(),
-                                                    proj_mat->getIndex()})) {}
+                                                    proj_mat->getIndex()})) {
+    applyViewMat();
+    applyProjMat();
+}
 
 Ref<gl::Buffer> Camera::getBuffer() const { return data_view->accessor->buffer; }
+
+glm::mat4 Camera::getViewMat() const {
+    glm::mat4 dst;
+    view_mat->get(dst);
+    return dst;
+}
+
+GLuint Camera::getViewMatIndex() const {
+    return view_mat->getIndex();
+}
+
+glm::mat4 Camera::getProjMat() const {
+    glm::mat4 dst;
+    proj_mat->get(dst);
+    return dst;
+}
+
+GLuint Camera::getProjMatIndex() const {
+    return proj_mat->getIndex();
+}
+
+glm::vec3 Camera::getTop() const {
+    glm::vec3 top;
+    data_elem->get(top, offsetof(CameraGLdata, top));
+    return top;
+}
 
 void Camera::setPosition(const glm::vec3& position) {
     data_elem->set(position, offsetof(CameraGLdata, position));
@@ -33,7 +67,17 @@ glm::vec3 Camera::getPosition() const {
 }
 
 void Camera::setDirection(const glm::vec3& direction) {
-    data_elem->set(direction, offsetof(CameraGLdata, direction));
+    auto dir = glm::normalize(direction);
+    auto pitch = glm::asin(dir.y);
+
+    if (pitch <= min_pitch) {
+        dir = glm::rotate(dir, min_pitch - pitch, glm::cross(dir, getTop()));
+    }
+    if (pitch >= max_pitch) {
+        dir = glm::rotate(dir, max_pitch - pitch, glm::cross(dir, getTop()));
+    }
+
+    data_elem->set(dir, offsetof(CameraGLdata, direction));
     applyViewMat();
 }
 
@@ -44,8 +88,7 @@ glm::vec3 Camera::getDirection() const {
 }
 
 void Camera::lookAt(const glm::vec3& target) {
-    data_elem->set(glm::normalize(target - getPosition()),
-                   offsetof(CameraGLdata, direction));
+    setDirection(glm::normalize(target - getPosition()));
     applyViewMat();
 }
 

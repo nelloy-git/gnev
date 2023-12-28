@@ -1,9 +1,13 @@
 #include "gl/Program.hpp"
 
+#include <iostream>
+
 using namespace gnev::gl;
 
 Program::Program()
-    : Handler(createHandle(), &deleteHandle) {}
+    : Handler(createHandle(), &deleteHandle)
+    , shader_storage_blocks(getMaxShaderStorageBufferBindings())
+    , shader_uniform_blocks(getMaxUniformBufferBindings()) {}
 
 void Program::glAttachShader(const Shader& shader) {
     Ctx::Get().glAttachShader(handle(), shader.handle());
@@ -54,30 +58,68 @@ GLint Program::glGetUniformLocation(const GLchar* name) const {
     return Ctx::Get().glGetUniformLocation(handle(), name);
 }
 
-void Program::bindShaderStorage(const std::string& shaderStorageBlockName,
-                                const Ref<Buffer>& buffer) {
-    bindShaderStorage(glGetProgramResourceIndex(GL_SHADER_STORAGE_BLOCK,
-                                                shaderStorageBlockName.c_str()),
-                      buffer);
+void Program::bindShaderStorageBlockBuffer(const std::string& storage_block_name,
+                                           const Ref<Buffer>& buffer) {
+    bindShaderStorageBlockBuffer(glGetProgramResourceIndex(GL_SHADER_STORAGE_BLOCK,
+                                                           storage_block_name.c_str()),
+                                 buffer);
 }
 
-void Program::bindShaderStorage(GLuint shaderStorageBlockIndex,
-                                const Ref<Buffer>& buffer) {
-    auto iter = shader_storages.map.find(shaderStorageBlockIndex);
-    if (iter != shader_storages.map.end()) {
+void Program::bindShaderStorageBlockBuffer(GLuint storage_block_index,
+                                           const Ref<Buffer>& buffer) {
+    auto iter = shader_storage_blocks.map.find(storage_block_index);
+    if (iter != shader_storage_blocks.map.end()) {
         GLuint binding = iter->second.first;
-        shader_storages.binds.freeIndex(binding);
+        shader_storage_blocks.binds.freeIndex(binding);
     }
 
-    auto binding_opt = shader_storages.binds.useIndex();
+    auto binding_opt = shader_storage_blocks.binds.useIndex();
     if (not binding_opt) {
         throw std::out_of_range("");
     }
-    shader_storages.map[shaderStorageBlockIndex] = {binding_opt.value(), buffer.getPtr()};
+    shader_storage_blocks.map[storage_block_index] = {binding_opt.value(),
+                                                      buffer.getPtr()};
+
+    std::cout << "BindShaderStorageBlockBuffer: " << storage_block_index << " to "
+              << binding_opt.value() << std::endl;
     Ctx::Get().glShaderStorageBlockBinding(handle(),
-                                           shaderStorageBlockIndex,
+                                           storage_block_index,
                                            binding_opt.value());
+    Ctx::Get().glBindBufferBase(GL_SHADER_STORAGE_BUFFER,
+                                binding_opt.value(),
+                                buffer->handle());
 }
+
+void Program::bindShaderUniformBlockBuffer(const std::string& storage_block_name,
+                                           const Ref<Buffer>& buffer) {
+    bindShaderUniformBlockBuffer(glGetProgramResourceIndex(GL_UNIFORM_BLOCK,
+                                                           storage_block_name.c_str()),
+                                 buffer);
+}
+
+void Program::bindShaderUniformBlockBuffer(GLuint uniform_block_index,
+                                           const Ref<Buffer>& buffer) {
+    auto iter = shader_uniform_blocks.map.find(uniform_block_index);
+    if (iter != shader_uniform_blocks.map.end()) {
+        GLuint binding = iter->second.first;
+        shader_uniform_blocks.binds.freeIndex(binding);
+    }
+
+    auto binding_opt = shader_uniform_blocks.binds.useIndex();
+    if (not binding_opt) {
+        throw std::out_of_range("");
+    }
+    shader_uniform_blocks.map[uniform_block_index] = {binding_opt.value(),
+                                                      buffer.getPtr()};
+
+    std::cout << "BindShaderUniformBlockBuffer: " << uniform_block_index << " to "
+              << binding_opt.value() << std::endl;
+    Ctx::Get().glUniformBlockBinding(handle(), uniform_block_index, binding_opt.value());
+    Ctx::Get().glBindBufferBase(GL_UNIFORM_BUFFER, binding_opt.value(), buffer->handle());
+}
+
+Program::Bindings::Bindings(GLuint capacity)
+    : binds(capacity) {}
 
 GLuint Program::getMaxShaderStorageBufferBindings() {
     static GLuint MAX_SHADER_STORAGE_BUFFER_BINDINGS = []() {
@@ -86,6 +128,15 @@ GLuint Program::getMaxShaderStorageBufferBindings() {
         return value;
     }();
     return MAX_SHADER_STORAGE_BUFFER_BINDINGS;
+}
+
+GLuint Program::getMaxUniformBufferBindings() {
+    static GLuint MAX_UNIFORM_BUFFER_BINDINGS = []() {
+        GLint value;
+        Ctx::Get().glGetIntegerv(GL_MAX_UNIFORM_BUFFER_BINDINGS, &value);
+        return value;
+    }();
+    return MAX_UNIFORM_BUFFER_BINDINGS;
 }
 
 GLuint* Program::createHandle() { return new GLuint(Ctx::Get().glCreateProgram()); }

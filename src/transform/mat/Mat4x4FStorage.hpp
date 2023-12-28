@@ -16,6 +16,8 @@ public:
     Mat4x4Storage(const Ref<DataView> data_view);
     virtual ~Mat4x4Storage() = default;
 
+    Ref<gl::Buffer> getBuffer() const;
+
     Ref<DataElem> lockMat(const MatGLdata& initial);
 
 private:
