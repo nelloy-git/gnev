@@ -10,10 +10,10 @@ namespace gnev {
 class EXPORT Quad_3D {
 public:
     using IndexView = gl::buffer::IndexMapView<QuadGLindex_3D>;
-    using IndexElem = gl::buffer::IndexMapViewElem<QuadGLindex_3D>;
+    using IndexElem = gl::buffer::WeakIndexMapViewElem<QuadGLindex_3D>;
 
     using DataView = gl::buffer::IndexMapView<QuadGLdata_3D>;
-    using DataElem = gl::buffer::IndexMapViewElem<QuadGLdata_3D>;
+    using DataElem = gl::buffer::WeakIndexMapViewElem<QuadGLdata_3D>;
 
     static constexpr GLuint InvalidIndex = std::numeric_limits<GLuint>::max();
 

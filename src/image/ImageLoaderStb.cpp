@@ -1,5 +1,7 @@
 #include "image/ImageLoaderStb.hpp"
 
+#include <iostream>
+
 #include "image/ImageLoaderStbResult.hpp"
 
 #define STB_IMAGE_IMPLEMENTATION
@@ -41,6 +43,14 @@ Ref<base::ImageLoaderResult> ImageLoaderStb::load(const std::filesystem::path& p
     }
 
     Image img = stbResize(img_opt.value(), store_info, result);
+
+    std::cout << "STB_3 [0,0]: ";
+    for (int i = 0; i < 4; i++) {
+        std::cout << int(img_opt.value().data.buffer[i]) << " ";
+    }
+    std::cout << std::endl;
+
+    result->image = img;
     result->messages.push_back(Done);
     done.set_value(true);
     return result;
@@ -134,12 +144,21 @@ std::optional<Image> ImageLoaderStb::stbLoad(const std::filesystem::path& path,
         stbi_load(path.string().c_str(), &w, &h, &c, getComponents(read_info)),
         &stbi_image_free};
 
-    if (read_info.width != 0 and w != read_info.width) {
+    auto received_info = read_info;
+    if (received_info.width == 0) {
+        received_info.width = w;
+    }
+
+    if (received_info.height == 0) {
+        received_info.height = h;
+    }
+
+    if (received_info.width != w) {
         result.messages.push_back(UnsupportedReadWidth);
         return std::nullopt;
     }
 
-    if (read_info.height != 0 and h != read_info.height) {
+    if (received_info.height != h) {
         result.messages.push_back(UnsupportedReadHeight);
         return std::nullopt;
     }
@@ -150,6 +169,9 @@ std::optional<Image> ImageLoaderStb::stbLoad(const std::filesystem::path& path,
 Image ImageLoaderStb::stbResize(const Image& image,
                                 const ImageInfo& store_info,
                                 ImageLoaderStbResult& result) const {
+    std::cout << "Resizing: " << image.info.width << "x" << image.info.height << " to "
+              << store_info.width << "x" << store_info.height << std::endl;
+
     if (image.info.width == store_info.width or image.info.height == store_info.height) {
         return image;
     }

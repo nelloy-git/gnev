@@ -2,6 +2,16 @@
 
 namespace gnev::gl::texture {
 
+Ref<IndexMapView> IndexMapView::MakeArray2D(GLuint img_levels,
+                                            GLuint img_width,
+                                            GLuint img_height,
+                                            GLuint capacity) {
+    auto tex = MakeSharable<gl::Texture>(GL_TEXTURE_2D_ARRAY);
+    tex->initStorage3D(img_levels, GL_RGBA8, img_width, img_height, capacity);
+    auto accessor = MakeSharable<gl::texture::Accessor3dSubImage>(tex);
+    return MakeSharable<IndexMapView>(accessor);
+}
+
 IndexMapView::IndexMapView(const Ref<Accessor3d>& accessor)
     : IndexStorage(accessor->getDepth())
     , accessor(accessor) {}

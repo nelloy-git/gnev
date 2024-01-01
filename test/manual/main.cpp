@@ -1,9 +1,4 @@
-#include <memory>
-#include <optional>
-#include <stdexcept>
 
-#include "magic_enum/magic_enum.hpp"
-#include "util/Ref.hpp"
 
 #ifdef WIN32
 #include <vld.h>
@@ -12,17 +7,19 @@
 #include <filesystem>
 #include <fstream>
 #include <iostream>
+#include <memory>
+#include <optional>
+#include <stdexcept>
 
 #include "GlfwWindow.hpp"
 #include "gl/Ctx.hpp"
 #include "gl/Program.hpp"
-#include "glm/ext/matrix_transform.hpp"
-#include "glm/gtx/euler_angles.hpp"
+#include "gl/Sampler.hpp"
 #include "glm/gtx/rotate_vector.hpp"
 #include "glm/gtx/string_cast.hpp"
 #include "glm/gtx/transform.hpp"
 #include "image/ImageLoaderStb.hpp"
-#include "material/pbr/MaterialFactory_PBR.hpp"
+#include "material/pbr/MaterialStorage_PBR.hpp"
 #include "mesh/3d/QuadMesh_3D.hpp"
 #include "shader/ProgramBuilder.hpp"
 #include "transform/3d/TransformFactory_3D.hpp"
@@ -73,19 +70,13 @@ Ref<gl::Program> buildProgram() {
     return program;
 }
 
-Ref<Material_PBR> createMaterial(MaterialFactory_PBR& factory,
-                                 ImageLoaderStb& loader,
-                                 const std::filesystem::path& albedo) {
-    auto material = factory.createMaterial();
-    auto albedo_tex = factory.createTex(MaterialTexType_PBR::Albedo);
+Ref<base::ImageLoaderResult> loadImg(ImageLoaderStb& loader,
+                                     const std::filesystem::path& path,
+                                     const ImageInfo& store_info) {
+    static constexpr ImageInfo read_info{.format = ImageFormat::RGBA,
+                                         .type = ImageType::UNSIGNED_BYTE};
 
-    ImageInfo read_info{.format = ImageFormat::RGBA, .type = ImageType::UNSIGNED_BYTE};
-    ImageInfo store_info{.width = 32,
-                         .height = 32,
-                         .format = ImageFormat::RGBA,
-                         .type = ImageType::UNSIGNED_BYTE};
-
-    auto result = loader.load(albedo, read_info, store_info);
+    auto result = loader.load(path, read_info, store_info);
 
     auto stbi_result_opt = result.dynamicCast<ImageLoaderStbResult>();
     if (not stbi_result_opt.has_value()) {
@@ -97,17 +88,63 @@ Ref<Material_PBR> createMaterial(MaterialFactory_PBR& factory,
         throw std::runtime_error("");
     }
 
-    albedo_tex->set(result->image);
+    for (int i = 0; i < 4; i++) {
+        std::cout << int(result->image.data.buffer[i]) << " ";
+    }
+    std::cout << std::endl;
+
+    return result;
+}
+
+Ref<Material_PBR>
+createMaterial(const Ref<MaterialStorage_PBR>& storage,
+               ImageLoaderStb& loader,
+               const std::filesystem::path& albedo,
+               const std::optional<std::filesystem::path>& normal = std::nullopt,
+               const std::optional<std::filesystem::path>& specular = std::nullopt) {
+    static constexpr ImageInfo store_info{.width = 128,
+                                          .height = 128,
+                                          .format = ImageFormat::RGBA,
+                                          .type = ImageType::UNSIGNED_BYTE};
+
+    auto material = MakeSharable<Material_PBR>(storage);
+
+    auto albedo_tex = MakeSharable<
+        Material_PBR::TexElem>(storage->getTexView(MaterialTexType_PBR::Albedo));
+    albedo_tex->set(loadImg(loader, albedo, store_info)->image);
     material->setTex(MaterialTexType_PBR::Albedo, albedo_tex);
 
-    std::cout << material->getGLdata() << std::endl;
+    if (normal.has_value()) {
+        auto normal_tex = MakeSharable<
+            Material_PBR::TexElem>(storage->getTexView(MaterialTexType_PBR::Normal));
+        normal_tex->set(loadImg(loader, normal.value(), store_info)->image);
+        material->setTex(MaterialTexType_PBR::Normal, normal_tex);
+    }
+
+    if (specular.has_value()) {
+        auto specular_tex = MakeSharable<
+            Material_PBR::TexElem>(storage->getTexView(MaterialTexType_PBR::Metallic));
+        specular_tex->set(loadImg(loader, specular.value(), store_info)->image);
+        material->setTex(MaterialTexType_PBR::Metallic, specular_tex);
+    }
+
+    // MaterialDataGL_PBR data_gl;
+    // material->getData()->get(data_gl);
+    // std::cout << data_gl << std::endl;
 
     return material;
 }
 
-// Ref<Mesh> createMesh() {}
+struct PointLight {
+    alignas(16) glm::vec3 pos = {0, 1, 0};
+    alignas(16) glm::vec3 constant_linearic_quadratic = {1.0, 0.18, 0.032};
+    alignas(16) glm::vec3 ambient = {1.0f, 1.0f, 1.0f};
+    alignas(16) glm::vec3 diffuse = {1.0f, 1.0f, 1.0f};
+    alignas(16) glm::vec3 specular = {1.0f, 1.0f, 1.0f};
+};
 
 int main(int argc, const char** argv) {
+
     auto current_dir = std::filesystem::current_path();
 
     bool close_window = false;
@@ -117,16 +154,37 @@ int main(int argc, const char** argv) {
     program->use();
 
     // Materials
-    MaterialFactory_PBR material_factory(1, 32, 32, 10);
+    auto material_storage = MaterialStorage_PBR::MakeDynamic(1, 128, 128, 10);
     ImageLoaderStb loader;
-    auto material_gravel =
-        createMaterial(material_factory,
-                       loader,
-                       current_dir / "3rdparty" / "minecraft_textures" / "gravel.png");
+    program
+        ->bindShaderStorageBlockBuffer("Material",
+                                       material_storage->getDataView()->accessor->buffer);
+    program
+        ->bindShaderTextureSampler("inTexAlbedo",
+                                   material_storage->getTex(MaterialTexType_PBR::Albedo));
+    program
+        ->bindShaderTextureSampler("inTexNormal",
+                                   material_storage->getTex(MaterialTexType_PBR::Normal));
+    program->bindShaderTextureSampler("inTexSpecular",
+                                      material_storage
+                                          ->getTex(MaterialTexType_PBR::Metallic));
 
+    // Sampler
+    auto tex_sampler = gl::Sampler::MakeNearestRepeat();
+    tex_sampler->bind(0);
+    tex_sampler->bind(1);
+    tex_sampler->bind(2);
+
+    // Matrixes
     auto mats = Mat4x4Storage::MakeCoherent(1000);
     program->bindShaderStorageBlockBuffer("Mat", mats->getBuffer());
 
+    // Lights
+    auto lights = gl::buffer::IndexMapView<PointLight>::MakeDynamic(10);
+    program->bindShaderStorageBlockBuffer("PointLight", lights->accessor->buffer);
+    auto light = gl::buffer::WeakIndexMapViewElem<PointLight>(lights);
+
+    // Camera
     Camera cam(mats);
     program->bindShaderUniformBlockBuffer("Camera", cam.getBuffer());
     cam.setPosition({3, 3, 3});
@@ -134,37 +192,32 @@ int main(int argc, const char** argv) {
 
     auto mesh = QuadMesh_3D::MakeDynamic(1);
     mesh->bindAttribute(program->glGetAttribLocation("inPos"), 0);
-    // mesh->bindAttribute(program->glGetAttribLocation("inUV"), 1);
-    // mesh->bindAttribute(program->glGetAttribLocation("inIds"), 2);
+    mesh->bindAttribute(program->glGetAttribLocation("inUV"), 1);
+    mesh->bindAttribute(program->glGetAttribLocation("inIds"), 2);
     std::array quads{
         mesh->createQuad(),
-        // mesh->createQuad(),
-        // mesh->createQuad(),
-        // mesh->createQuad(),
-        // mesh->createQuad(),
-        // mesh->createQuad()
     };
-    quads[0]->setQuad({VertGLdata_3D{{-1, 0, -1}, {0, 0}, {0, 0, 0, 0}},
-                       VertGLdata_3D{{-1, 0, 1}, {0, 1}, {0, 0, 0, 0}},
-                       VertGLdata_3D{{1, 0, -1}, {1, 0}, {0, 0, 0, 0}},
-                       VertGLdata_3D{{1, 0, 1}, {1, 1}, {0, 0, 0, 0}}});
-    // quads[1]->setQuad({VertGLdata_3D{{0, -1, -1}, {0, 0}, {0, 0, 0, 0}},
-    //                    VertGLdata_3D{{0, -1, 1}, {0, 1}, {0, 0, 0, 0}},
-    //                    VertGLdata_3D{{0, 1, -1}, {1, 0}, {0, 0, 0, 0}},
-    //                    VertGLdata_3D{{0, 1, 1}, {1, 1}, {0, 0, 0, 0}}});
-    // quads[2]->setQuad({VertGLdata_3D{{-1, 0, -1}, {0, 0}, {0, 0, 0, 0}},
-    //                    VertGLdata_3D{{-1, 0, 1}, {0, 1}, {0, 0, 0, 0}},
-    //                    VertGLdata_3D{{1, 0, -1}, {1, 0}, {0, 0, 0, 0}},
-    //                    VertGLdata_3D{{1, 0, 1}, {1, 1}, {0, 0, 0, 0}}});
+    auto material_gravel =
+        createMaterial(material_storage,
+                       loader,
+                       current_dir / "3rdparty" / "minecraft_textures" / "gravel.png");
+    quads[0]->setQuad({VertGLdata_3D{{-1, 0, -1},
+                                     {0, 0},
+                                     {material_gravel->getData()->getIndex(), 0, 0, 0}},
+                       VertGLdata_3D{{-1, 0, 1},
+                                     {0, 1},
+                                     {material_gravel->getData()->getIndex(), 0, 0, 0}},
+                       VertGLdata_3D{{1, 0, -1},
+                                     {1, 0},
+                                     {material_gravel->getData()->getIndex(), 0, 0, 0}},
+                       VertGLdata_3D{{1, 0, 1},
+                                     {1, 1},
+                                     {material_gravel->getData()->getIndex(), 0, 0, 0}}});
 
     wnd.setKeyCB([&close_window,
                   &cam](GlfwWindow& window, int key, int scancode, int action, int mods) {
         static constexpr float speed = 0.1;
 
-        // std::cout << key << std::endl;
-        std::cout << glm::to_string(cam.getPosition()) << std::endl;
-        std::cout << glm::to_string(cam.getDirection()) << std::endl;
-        std::cout << glm::to_string(cam.getViewMat()) << std::endl;
         switch (key) {
         case GLFW_KEY_ESCAPE:
             close_window = true;
@@ -213,6 +266,26 @@ int main(int argc, const char** argv) {
             return;
         }
     });
+
+    unsigned char pixel[6] = "\0\0\0\0\0";
+    gl::Ctx::Get().glGetTextureSubImage(material_storage
+                                            ->getTex(MaterialTexType_PBR::Albedo)
+                                            ->handle(),
+                                        0,
+                                        0,
+                                        0,
+                                        0,
+                                        1,
+                                        1,
+                                        1,
+                                        GL_RGBA,
+                                        GL_UNSIGNED_BYTE,
+                                        4,
+                                        pixel);
+    for (int i = 0; i < 4; i++) {
+        std::cout << int(pixel[i]) << " ";
+    }
+    std::cout << std::endl;
 
     gl::Ctx::Get().glClearColor(0, 0, 0.2f, 1.f);
     while (not close_window) {

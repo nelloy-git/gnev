@@ -40,6 +40,7 @@ public:
 public:
     // Global
 
+    void glActiveTexture(GLenum texture) const;
     void glClear(GLbitfield mask) const;
     void glClearColor(GLfloat red, GLfloat green, GLfloat blue, GLfloat alpha) const;
     void glGetIntegerv(GLenum pname, GLint* params) const;
@@ -128,6 +129,7 @@ public:
                              GLsizei bufSize,
                              GLsizei* length,
                              GLchar* infoLog) const;
+    void glUniform1i(GLint location, GLint v0) const;
     GLint glGetUniformBlockIndex(GLuint program, const GLchar* uniformBlockName) const;
     void glUniformBlockBinding(GLuint program,
                                GLuint uniformBlockIndex,

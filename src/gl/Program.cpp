@@ -7,7 +7,8 @@ using namespace gnev::gl;
 Program::Program()
     : Handler(createHandle(), &deleteHandle)
     , shader_storage_blocks(getMaxShaderStorageBufferBindings())
-    , shader_uniform_blocks(getMaxUniformBufferBindings()) {}
+    , shader_uniform_blocks(getMaxUniformBufferBindings())
+    , shader_texture_samplers(getMaxTextureImageUnits()) {}
 
 void Program::glAttachShader(const Shader& shader) {
     Ctx::Get().glAttachShader(handle(), shader.handle());
@@ -90,10 +91,10 @@ void Program::bindShaderStorageBlockBuffer(GLuint storage_block_index,
                                 buffer->handle());
 }
 
-void Program::bindShaderUniformBlockBuffer(const std::string& storage_block_name,
+void Program::bindShaderUniformBlockBuffer(const std::string& uniform_block_name,
                                            const Ref<Buffer>& buffer) {
     bindShaderUniformBlockBuffer(glGetProgramResourceIndex(GL_UNIFORM_BLOCK,
-                                                           storage_block_name.c_str()),
+                                                           uniform_block_name.c_str()),
                                  buffer);
 }
 
@@ -118,7 +119,35 @@ void Program::bindShaderUniformBlockBuffer(GLuint uniform_block_index,
     Ctx::Get().glBindBufferBase(GL_UNIFORM_BUFFER, binding_opt.value(), buffer->handle());
 }
 
-Program::Bindings::Bindings(GLuint capacity)
+void Program::bindShaderTextureSampler(const std::string& texture_sampler_name,
+                                       const Ref<Texture>& texture) {
+    bindShaderTextureSampler(glGetUniformLocation(texture_sampler_name.c_str()), texture);
+}
+
+void Program::bindShaderTextureSampler(GLuint texture_sampler_index,
+                                       const Ref<Texture>& texture) {
+    auto iter = shader_texture_samplers.map.find(texture_sampler_index);
+    if (iter != shader_texture_samplers.map.end()) {
+        GLuint binding = iter->second.first;
+        shader_texture_samplers.binds.freeIndex(binding);
+    }
+
+    auto binding_opt = shader_texture_samplers.binds.useIndex();
+    if (not binding_opt) {
+        throw std::out_of_range("");
+    }
+    shader_texture_samplers.map[texture_sampler_index] = {binding_opt.value(),
+                                                          texture.getPtr()};
+
+    std::cout << "BindShaderTextureSampler: " << texture_sampler_index << " to "
+              << binding_opt.value() << std::endl;
+    Ctx::Get().glActiveTexture(GL_TEXTURE0 + binding_opt.value());
+    Ctx::Get().glUniform1i(texture_sampler_index, binding_opt.value());
+    Ctx::Get().glBindTexture(GL_TEXTURE_2D_ARRAY, texture->handle());
+}
+
+template <typename T>
+Program::Bindings<T>::Bindings(GLuint capacity)
     : binds(capacity) {}
 
 GLuint Program::getMaxShaderStorageBufferBindings() {
@@ -137,6 +166,15 @@ GLuint Program::getMaxUniformBufferBindings() {
         return value;
     }();
     return MAX_UNIFORM_BUFFER_BINDINGS;
+}
+
+GLuint Program::getMaxTextureImageUnits() {
+    static GLuint MAX_TEXTURE_IMAGE_UNITS = []() {
+        GLint value;
+        Ctx::Get().glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &value);
+        return value;
+    }();
+    return MAX_TEXTURE_IMAGE_UNITS;
 }
 
 GLuint* Program::createHandle() { return new GLuint(Ctx::Get().glCreateProgram()); }

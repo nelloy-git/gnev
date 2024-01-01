@@ -2,13 +2,13 @@
 
 namespace gnev::gl::texture {
 
-IndexMapViewElem::IndexMapViewElem(WeakRef<IndexMapView> weak_view)
+WeakIndexMapViewElem::WeakIndexMapViewElem(WeakRef<IndexMapView> weak_view)
     : weak_view(weak_view)
     , index_guard(initIndexGuard(weak_view)) {}
 
-WeakRef<IndexMapView> IndexMapViewElem::getWeakView() const { return weak_view; }
+WeakRef<IndexMapView> WeakIndexMapViewElem::getWeakView() const { return weak_view; }
 
-Ref<IndexMapView> IndexMapViewElem::getView() const {
+Ref<IndexMapView> WeakIndexMapViewElem::getView() const {
     auto view_opt = weak_view.lock();
     if (not view_opt.has_value()) {
         throw std::runtime_error("");
@@ -16,17 +16,17 @@ Ref<IndexMapView> IndexMapViewElem::getView() const {
     return view_opt.value();
 }
 
-Ref<GLuint> IndexMapViewElem::getIndex() const { return index_guard; }
+Ref<GLuint> WeakIndexMapViewElem::getIndex() const { return index_guard; }
 
-void IndexMapViewElem::set(const Image& src) { getView()->set(index_guard, src); }
+void WeakIndexMapViewElem::set(const Image& src) { getView()->set(index_guard, src); }
 
-void IndexMapViewElem::get(Image& dst) const { getView()->get(index_guard, dst); }
+void WeakIndexMapViewElem::get(Image& dst) const { getView()->get(index_guard, dst); }
 
-void IndexMapViewElem::change(const ImageInfo& info, Changer changer) {
+void WeakIndexMapViewElem::change(const ImageInfo& info, Changer changer) {
     getView()->change(index_guard, info, changer);
 }
 
-Ref<GLuint> IndexMapViewElem::initIndexGuard(const WeakRef<IndexMapView>& weak_view) {
+Ref<GLuint> WeakIndexMapViewElem::initIndexGuard(const WeakRef<IndexMapView>& weak_view) {
     auto view_opt = weak_view.lock();
     if (not view_opt.has_value()) {
         throw std::runtime_error("");

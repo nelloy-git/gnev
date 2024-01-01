@@ -6,6 +6,9 @@
                 "${default}",
                 "src",
                 "test",
+                "test/auto",
+                "test/manual",
+                "test/shared",
                 "sample",
                 "3rdparty/glfw/include",
                 "3rdparty/json/include",
@@ -14,8 +17,10 @@
                 "3rdparty/glm",
                 "3rdparty/gtest/googletest/include",
                 "3rdparty/magic_enum/include",
+                "3rdparty/quill/quill/include",
                 "3rdparty/stb",
                 "3rdparty/thread_pool/include",
+                "3rdparty/VLD/include",
                 "${workspaceFolder}/3rdparty/thread_pool/include"
             ],
             "defines": [

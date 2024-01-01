@@ -9,7 +9,7 @@ template <IsTransformGL T>
 class EXPORT Transform {
 public:
     using DataView = gl::buffer::IndexMapView<T>;
-    using DataElem = gl::buffer::IndexMapViewElem<T>;
+    using DataElem = gl::buffer::WeakIndexMapViewElem<T>;
 
     static constexpr GLuint InvalidIndex = T::InvalidIndex;
 

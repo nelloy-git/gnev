@@ -6,16 +6,16 @@
 namespace gnev::gl::buffer {
 
 template <typename T>
-class EXPORT IndexMapViewElem {
+class EXPORT WeakIndexMapViewElem {
 public:
     template <typename V>
     using Changer = IndexMapView<T>::template Changer<V>;
 
-    IndexMapViewElem(WeakRef<IndexMapView<T>> weak_view, const T& initial = T{});
-    IndexMapViewElem(WeakRef<IndexMapView<T>> weak_view,
-                     const auto& cleanup,
-                     const T& initial = T{});
-    virtual ~IndexMapViewElem() = default;
+    WeakIndexMapViewElem(WeakRef<IndexMapView<T>> weak_view, const T& initial = T{});
+    WeakIndexMapViewElem(WeakRef<IndexMapView<T>> weak_view,
+                         const auto& cleanup,
+                         const T& initial = T{});
+    virtual ~WeakIndexMapViewElem() = default;
 
     WeakRef<IndexMapView<T>> getWeakView() const;
     Ref<IndexMapView<T>> getView() const;
@@ -49,29 +49,29 @@ private:
 };
 
 template <typename T>
-IndexMapViewElem<T>::IndexMapViewElem(WeakRef<IndexMapView<T>> weak_view,
-                                      const T& initial)
+WeakIndexMapViewElem<T>::WeakIndexMapViewElem(WeakRef<IndexMapView<T>> weak_view,
+                                              const T& initial)
     : weak_view(weak_view)
     , index_guard(initIndexGuard(weak_view, initial)) {
     set(initial);
 }
 
 template <typename T>
-IndexMapViewElem<T>::IndexMapViewElem(WeakRef<IndexMapView<T>> weak_view,
-                                      const auto& cleanup,
-                                      const T& initial)
+WeakIndexMapViewElem<T>::WeakIndexMapViewElem(WeakRef<IndexMapView<T>> weak_view,
+                                              const auto& cleanup,
+                                              const T& initial)
     : weak_view(weak_view)
     , index_guard(initIndexGuard(weak_view, initial, cleanup)) {
     set(initial);
 }
 
 template <typename T>
-WeakRef<IndexMapView<T>> IndexMapViewElem<T>::getWeakView() const {
+WeakRef<IndexMapView<T>> WeakIndexMapViewElem<T>::getWeakView() const {
     return weak_view;
 }
 
 template <typename T>
-Ref<IndexMapView<T>> IndexMapViewElem<T>::getView() const {
+Ref<IndexMapView<T>> WeakIndexMapViewElem<T>::getView() const {
     auto view_opt = weak_view.lock();
     if (not view_opt.has_value()) {
         throw std::runtime_error("");
@@ -80,46 +80,47 @@ Ref<IndexMapView<T>> IndexMapViewElem<T>::getView() const {
 }
 
 template <typename T>
-Ref<GLuint> IndexMapViewElem<T>::getIndex() const {
+Ref<GLuint> WeakIndexMapViewElem<T>::getIndex() const {
     return index_guard;
 }
 
 template <typename T>
-void IndexMapViewElem<T>::set(const T& src) {
+void WeakIndexMapViewElem<T>::set(const T& src) {
     getView()->set(index_guard, src);
 }
 
 template <typename T>
 template <typename V>
-void IndexMapViewElem<T>::set(const V& src, GLintptr ptr_offset) {
+void WeakIndexMapViewElem<T>::set(const V& src, GLintptr ptr_offset) {
     getView()->set(index_guard, src, ptr_offset);
 }
 
 template <typename T>
-void IndexMapViewElem<T>::get(T& dst) const {
+void WeakIndexMapViewElem<T>::get(T& dst) const {
     getView()->get(index_guard, dst);
 }
 
 template <typename T>
 template <typename V>
-void IndexMapViewElem<T>::get(V& dst, GLintptr ptr_offset) const {
+void WeakIndexMapViewElem<T>::get(V& dst, GLintptr ptr_offset) const {
     getView()->get(index_guard, dst, ptr_offset);
 }
 
 template <typename T>
-void IndexMapViewElem<T>::change(const Changer<T>& changer) {
+void WeakIndexMapViewElem<T>::change(const Changer<T>& changer) {
     getView()->change(index_guard, changer);
 }
 
 template <typename T>
 template <typename V>
-void IndexMapViewElem<T>::change(const Changer<V>& changer, GLintptr ptr_offset) {
+void WeakIndexMapViewElem<T>::change(const Changer<V>& changer, GLintptr ptr_offset) {
     getView()->change(index_guard, changer, ptr_offset);
 }
 
 template <typename T>
-Ref<GLuint> IndexMapViewElem<T>::initIndexGuard(const WeakRef<IndexMapView<T>>& weak_view,
-                                                const T& initial) {
+Ref<GLuint>
+WeakIndexMapViewElem<T>::initIndexGuard(const WeakRef<IndexMapView<T>>& weak_view,
+                                        const T& initial) {
     auto view_opt = weak_view.lock();
     if (not view_opt.has_value()) {
         throw std::runtime_error("");
@@ -144,9 +145,10 @@ Ref<GLuint> IndexMapViewElem<T>::initIndexGuard(const WeakRef<IndexMapView<T>>& 
 }
 
 template <typename T>
-Ref<GLuint> IndexMapViewElem<T>::initIndexGuard(const WeakRef<IndexMapView<T>>& weak_view,
-                                                const T& initial,
-                                                const auto& cleanup) {
+Ref<GLuint>
+WeakIndexMapViewElem<T>::initIndexGuard(const WeakRef<IndexMapView<T>>& weak_view,
+                                        const T& initial,
+                                        const auto& cleanup) {
     auto view_opt = weak_view.lock();
     if (not view_opt.has_value()) {
         throw std::runtime_error("");

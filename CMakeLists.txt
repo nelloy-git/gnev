@@ -5,12 +5,10 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 enable_testing()
 
-#set(GLFW_BUILD_X11 OFF)
-#set(GLFW_USE_WAYLAND ON)
-
 add_subdirectory(./3rdparty/glfw)
 add_subdirectory(./3rdparty/json)
 add_subdirectory(./3rdparty/gtest)
+add_subdirectory(./3rdparty/quill)
 
 add_compile_definitions(GLWPP_DEBUG)
 
@@ -30,6 +28,7 @@ include_directories(./3rdparty/glfw/include)
 include_directories(./3rdparty/json/include)
 include_directories(./3rdparty/glm)
 include_directories(./3rdparty/magic_enum/include)
+include_directories(./3rdparty/quill/quill/include)
 include_directories(./3rdparty/stb)
 include_directories(./3rdparty/thread_pool/include())
 include_directories(./3rdparty/VLD/include)
@@ -43,6 +42,7 @@ add_library (${PROJECT_NAME} SHARED
 )
 target_link_libraries(${PROJECT_NAME}
     nlohmann_json
+    quill
 )
 target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_20)
 
@@ -111,4 +111,5 @@ else()
         dl
     )
 endif (WIN32)
+
 target_compile_features(manual_test PUBLIC cxx_std_20)

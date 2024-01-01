@@ -19,3 +19,6 @@
 [submodule "3rdparty/thread_pool"]
 	path = 3rdparty/thread_pool
 	url = https://github.com/bshoshany/thread-pool.git
+[submodule "3rdparty/quill"]
+	path = 3rdparty/quill
+	url = https://github.com/odygrd/quill.git

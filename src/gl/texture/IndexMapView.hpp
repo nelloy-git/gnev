@@ -10,6 +10,9 @@ class EXPORT IndexMapView : public IndexStorage {
 public:
     using Changer = Accessor3d::Changer;
 
+    static Ref<IndexMapView>
+    MakeArray2D(GLuint img_levels, GLuint img_width, GLuint img_height, GLuint capacity);
+
     IndexMapView(const Ref<Accessor3d>& accessor);
     virtual ~IndexMapView() = default;
 

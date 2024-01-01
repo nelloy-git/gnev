@@ -2,6 +2,8 @@
 
 #include <memory>
 
+#include "util/Log.hpp"
+
 using namespace gnev::gl;
 
 #ifdef WIN32
@@ -53,6 +55,9 @@ void Ctx::Init(LoadFunc load_func) {
     if (!saved) {
         throw std::runtime_error("TlsSetValue error");
     }
+
+    gnev::Log::init();
+    GNEV_INFO("Logger inited");
 }
 
 bool Ctx::IsInited() { return tls_index && (TlsGetValue(*tls_index) != 0); }
@@ -75,6 +80,7 @@ void Ctx::Init(LoadFunc load_func) {
         throw std::runtime_error("");
     }
     thread_ctx = std::unique_ptr<Ctx>(new Ctx(load_func));
+    gnev::Log::init();
 }
 
 bool Ctx::IsInited() { return thread_ctx.get(); }
@@ -92,7 +98,15 @@ Ctx::Ctx(LoadFunc load_func)
     gladLoadGLContext(glad.get(), load_func);
 }
 
-void Ctx::glClear(GLbitfield mask) const { glad->Clear(mask); }
+void Ctx::glActiveTexture(GLenum texture) const {
+    GNEV_TRACE_L3("glActiveTexture({})", texture);
+    glad->ActiveTexture(texture);
+}
+
+void Ctx::glClear(GLbitfield mask) const {
+    GNEV_TRACE_L3("glClear({})", mask);
+    glad->Clear(mask);
+}
 
 void Ctx::glClearColor(GLfloat red, GLfloat green, GLfloat blue, GLfloat alpha) const {
     glad->ClearColor(red, green, blue, alpha);
@@ -255,6 +269,8 @@ void Ctx::glGetProgramInfoLog(GLuint program,
                               GLchar* infoLog) const {
     glad->GetProgramInfoLog(program, bufSize, length, infoLog);
 }
+
+void Ctx::glUniform1i(GLint location, GLint v0) const { glad->Uniform1i(location, v0); }
 
 GLint Ctx::glGetUniformBlockIndex(GLuint program, const GLchar* uniformBlockName) const {
     return glad->GetUniformBlockIndex(program, uniformBlockName);

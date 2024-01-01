@@ -5,7 +5,7 @@
 
 namespace gnev::gl::buffer {
 
-class Accessor {
+class EXPORT Accessor {
 public:
     using Changer = std::function<void(void*, GLintptr size)>;
 
@@ -21,7 +21,7 @@ public:
     GLuint getBufferSize() const;
 };
 
-class AccessorSubData : public Accessor {
+class EXPORT AccessorSubData : public Accessor {
 public:
     AccessorSubData(Ref<gl::Buffer>);
     virtual ~AccessorSubData() = default;
@@ -31,7 +31,7 @@ public:
     void change(GLintptr offset, GLintptr size, const Changer& changer) override;
 };
 
-class AccessorCoherent : public Accessor {
+class EXPORT AccessorCoherent : public Accessor {
 public:
     AccessorCoherent(Ref<gl::Buffer>);
     virtual ~AccessorCoherent();

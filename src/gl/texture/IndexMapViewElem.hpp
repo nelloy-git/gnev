@@ -5,12 +5,14 @@
 
 namespace gnev::gl::texture {
 
-class EXPORT IndexMapViewElem {
+class EXPORT WeakIndexMapViewElem {
 public:
     using Changer = IndexMapView::Changer;
 
-    IndexMapViewElem(WeakRef<IndexMapView> weak_view);
-    virtual ~IndexMapViewElem() = default;
+    
+
+    WeakIndexMapViewElem(WeakRef<IndexMapView> weak_view);
+    virtual ~WeakIndexMapViewElem() = default;
 
     WeakRef<IndexMapView> getWeakView() const;
     Ref<IndexMapView> getView() const;

@@ -2,44 +2,42 @@
 
 #include "gl/buffer/IndexMapViewElem.hpp"
 #include "gl/texture/IndexMapViewElem.hpp"
-#include "material/base/Material.hpp"
-#include "material/pbr/MaterialGLdata_PBR.hpp"
+#include "material/pbr/MaterialDataGL_PBR.hpp"
 
 namespace gnev {
 
-class EXPORT Material_PBR : public Material {
+class MaterialStorage_PBR;
+
+class EXPORT Material_PBR {
 public:
-    using GLdata = MaterialGLdata_PBR;
+    using DataGL = MaterialDataGL_PBR;
+    using DataView = gl::buffer::IndexMapView<DataGL>;
+    using DataElem = gl::buffer::WeakIndexMapViewElem<DataGL>;
 
-    template <typename V>
-    using Changer = gl::buffer::IndexMapViewElem<GLdata>::Changer<V>;
-
-    using DataView = gl::buffer::IndexMapView<GLdata>;
     using TexView = gl::texture::IndexMapView;
+    using TexElem = gl::texture::WeakIndexMapViewElem;
 
-    using DataElem = gl::buffer::IndexMapViewElem<GLdata>;
-    using TexElem = gl::texture::IndexMapViewElem;
-
-    Material_PBR(WeakRef<DataView> weak_storage, const GLdata& initial = GLdata{});
+    Material_PBR(const Ref<MaterialStorage_PBR>& material_storage);
     virtual ~Material_PBR() = default;
 
-    GLuint getIndex() const override;
-    GLdata getGLdata() const;
+    WeakRef<MaterialStorage_PBR> getWeakStorage() const;
+    Ref<MaterialStorage_PBR> getStorage() const;
+    Ref<DataElem> getData() const;
 
     void setTex(MaterialTexType_PBR type, Ptr<TexElem> tex);
     Ptr<TexElem> getTex(MaterialTexType_PBR type) const;
 
     void setTexOffset(MaterialTexType_PBR type, const glm::vec4& value);
     glm::vec4 getTexOffset(MaterialTexType_PBR type) const;
-    void changeTexOffset(MaterialTexType_PBR type, const Changer<glm::vec4>& changer);
 
     void setTexMultiplier(MaterialTexType_PBR type, const glm::vec4& value);
     glm::vec4 getTexMultiplier(MaterialTexType_PBR type) const;
-    void changeTexMultiplier(MaterialTexType_PBR type, const Changer<glm::vec4>& changer);
 
 private:
+    WeakRef<MaterialStorage_PBR> weak_storage;
+
     Ref<DataElem> data;
-    std::array<Ptr<TexElem>, GLdata::TexSize> textures;
+    std::array<Ptr<TexElem>, MaterialDataGL_PBR::TexSize> tex;
 };
 
 } // namespace gnev
