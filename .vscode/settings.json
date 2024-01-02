@@ -91,7 +91,9 @@
         "shared_mutex": "cpp",
         "stack": "cpp",
         "bitset": "cpp",
-        "cinttypes": "cpp"
+        "cinttypes": "cpp",
+        "source_location": "cpp",
+        "codecvt": "cpp"
     },
     "cSpell.words": [
         "gnev",
