@@ -40,3 +40,6 @@ struct EnumFmt {
 
 template <>
 struct fmtquill::formatter<gnev::EnumFmt> : ostream_formatter {};
+
+template <>
+struct fmtquill::formatter<std::bitset<std::numeric_limits<GLbitfield>::digits>> : ostream_formatter {};

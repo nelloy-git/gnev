@@ -275,20 +275,23 @@ void Ctx::glGetNamedBufferParameteriv(GLuint buffer, GLenum pname, GLint* params
 }
 
 void* Ctx::glMapNamedBuffer(GLuint buffer, GLenum access) const {
-    GNEV_TRACE_L3("glMapNamedBuffer({}, {})", buffer, EnumFmt{access});
-    return glad->MapNamedBuffer(buffer, access);
+    void* map = glad->MapNamedBuffer(buffer, access);
+    GNEV_TRACE_L3("glMapNamedBuffer({}, {}) -> {}", buffer, EnumFmt{access}, map);
+    return map;
 }
 
 void* Ctx::glMapNamedBufferRange(GLuint buffer,
                                  GLintptr offset,
                                  GLsizeiptr length,
                                  GLbitfield access) const {
-    GNEV_TRACE_L3("glMapNamedBufferRange({}, {}, {}, {})",
+    void* map = glad->MapNamedBufferRange(buffer, offset, length, access);
+    GNEV_TRACE_L3("glMapNamedBufferRange({}, {}, {}, {}) -> {}",
                   buffer,
                   offset,
                   length,
-                  access);
-    return glad->MapNamedBufferRange(buffer, offset, length, access);
+                  access,
+                  map);
+    return map;
 }
 
 void Ctx::glFlushMappedNamedBufferRange(GLuint buffer,
@@ -457,8 +460,9 @@ GLint Ctx::glGetAttribLocation(GLuint program, const GLchar* name) const {
 }
 
 GLint Ctx::glGetUniformLocation(GLuint program, const GLchar* name) const {
-    GNEV_TRACE_L3("glGetUniformLocation({}, {})", program, name);
-    return glad->GetUniformLocation(program, name);
+    GLint loc = glad->GetUniformLocation(program, name);
+    GNEV_TRACE_L3("glGetUniformLocation({}, {}) -> {}", program, name, loc);
+    return loc;
 }
 
 void Ctx::glCreateTextures(GLenum target, GLsizei n, GLuint* textures) const {
@@ -468,7 +472,10 @@ void Ctx::glCreateTextures(GLenum target, GLsizei n, GLuint* textures) const {
     for (GLsizei i = 0; i < n; ++i) {
         textures_list.push_back(textures[i]);
     }
-    GNEV_TRACE_L3("glCreateTextures({}, {}) -> {}", n, "<GLuint*>", textures_list);
+    GNEV_TRACE_L3("glCreateTextures({}, {}) -> {}",
+                  n,
+                  static_cast<void*>(textures),
+                  textures_list);
 }
 
 void Ctx::glDeleteTextures(GLsizei n, GLuint* textures) const {
