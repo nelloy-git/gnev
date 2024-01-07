@@ -15,6 +15,8 @@ const char* Enum::searchMacroName() const {
         return searchGroupNone();
     case DrawElements:
         return searchGroupDrawElements();
+    case GetProgramResourceIndex:
+        return searchGetProgramResourceIndex();
     default:
         return UNKNOWN;
     }
@@ -46,6 +48,54 @@ const char* Enum::searchGroupDrawElements() const {
         return "GL_TRIANGLES_ADJACENCY";
     case GL_PATCHES:
         return "GL_PATCHES";
+
+    default:
+        return UNKNOWN;
+    }
+}
+
+const char* Enum::searchGetProgramResourceIndex() const {
+    switch (value) {
+    case GL_UNIFORM:
+        return "GL_UNIFORM";
+    case GL_UNIFORM_BLOCK:
+        return "GL_UNIFORM_BLOCK";
+    case GL_PROGRAM_INPUT:
+        return "GL_PROGRAM_INPUT";
+    case GL_PROGRAM_OUTPUT:
+        return "GL_PROGRAM_OUTPUT";
+    case GL_VERTEX_SUBROUTINE:
+        return "GL_VERTEX_SUBROUTINE";
+    case GL_TESS_CONTROL_SUBROUTINE:
+        return "GL_TESS_CONTROL_SUBROUTINE";
+    case GL_TESS_EVALUATION_SUBROUTINE:
+        return "GL_TESS_EVALUATION_SUBROUTINE";
+    case GL_GEOMETRY_SUBROUTINE:
+        return "GL_GEOMETRY_SUBROUTINE";
+    case GL_FRAGMENT_SUBROUTINE:
+        return "GL_FRAGMENT_SUBROUTINE";
+    case GL_COMPUTE_SUBROUTINE:
+        return "GL_COMPUTE_SUBROUTINE";
+    case GL_VERTEX_SUBROUTINE_UNIFORM:
+        return "GL_VERTEX_SUBROUTINE_UNIFORM";
+    case GL_TESS_CONTROL_SUBROUTINE_UNIFORM:
+        return "GL_TESS_CONTROL_SUBROUTINE_UNIFORM";
+    case GL_TESS_EVALUATION_SUBROUTINE_UNIFORM:
+        return "GL_TESS_EVALUATION_SUBROUTINE_UNIFORM";
+    case GL_GEOMETRY_SUBROUTINE_UNIFORM:
+        return "GL_GEOMETRY_SUBROUTINE_UNIFORM";
+    case GL_FRAGMENT_SUBROUTINE_UNIFORM:
+        return "GL_FRAGMENT_SUBROUTINE_UNIFORM";
+    case GL_COMPUTE_SUBROUTINE_UNIFORM:
+        return "GL_COMPUTE_SUBROUTINE_UNIFORM";
+    case GL_TRANSFORM_FEEDBACK_VARYING:
+        return "GL_TRANSFORM_FEEDBACK_VARYING";
+    case GL_TRANSFORM_FEEDBACK_BUFFER:
+        return "GL_TRANSFORM_FEEDBACK_BUFFER";
+    case GL_BUFFER_VARIABLE:
+        return "GL_BUFFER_VARIABLE";
+    case GL_SHADER_STORAGE_BLOCK:
+        return "GL_SHADER_STORAGE_BLOCK";
 
     default:
         return UNKNOWN;
@@ -3538,4 +3588,4 @@ const char* Enum::searchGroupNone() const {
     }
 }
 
-} // namespace gnev
+} // namespace gnev::fmt

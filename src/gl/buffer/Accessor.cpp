@@ -7,20 +7,11 @@ namespace gnev::gl::buffer {
 Accessor::Accessor(Ref<gl::Buffer> buffer)
     : buffer(buffer) {}
 
-GLuint Accessor::getBufferSize() const {
-    int size = 0;
-    buffer->getParameteriv(GL_BUFFER_SIZE, &size);
-    return size;
-}
-
 AccessorSubData::AccessorSubData(Ref<gl::Buffer> buffer)
     : Accessor(buffer) {
-    int is_immutable;
-    buffer->getParameteriv(GL_BUFFER_IMMUTABLE_STORAGE, &is_immutable);
 
-    if (is_immutable) {
-        int storage_flags;
-        buffer->getParameteriv(GL_BUFFER_STORAGE_FLAGS, &storage_flags);
+    if (buffer->isStorage()) {
+        GLbitfield storage_flags = buffer->getStorageFlags();
         if (not(storage_flags & GL_DYNAMIC_STORAGE_BIT)) {
             throw std::logic_error("");
         }
@@ -44,21 +35,18 @@ void AccessorSubData::change(GLintptr offset, GLintptr size, const Changer& chan
 
 AccessorCoherent::AccessorCoherent(Ref<gl::Buffer> buffer)
     : Accessor(buffer) {
-    int is_immutable;
-    buffer->getParameteriv(GL_BUFFER_IMMUTABLE_STORAGE, &is_immutable);
-    if (is_immutable == GL_FALSE) {
+    if (not buffer->isStorage()) {
         throw std::logic_error("");
     }
 
-    int storage_flags;
-    buffer->getParameteriv(GL_BUFFER_STORAGE_FLAGS, &storage_flags);
+    GLbitfield storage_flags = buffer->getStorageFlags();
     if (not(storage_flags & GL_MAP_COHERENT_BIT) and
         not(storage_flags & GL_CLIENT_STORAGE_BIT)) {
         throw std::logic_error("");
     }
 
     map = static_cast<GLbyte*>(buffer->mapRange(0,
-                                                getBufferSize(),
+                                                buffer->getSize(),
                                                 GL_MAP_READ_BIT | GL_MAP_WRITE_BIT |
                                                     GL_MAP_PERSISTENT_BIT |
                                                     GL_MAP_COHERENT_BIT));

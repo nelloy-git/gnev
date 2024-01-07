@@ -61,7 +61,7 @@ Ref<IndexMapView<T>> IndexMapView<T>::MakeCoherent(GLuint capacity) {
 
 template <UsableByIndexMapView T>
 IndexMapView<T>::IndexMapView(const Ref<gl::buffer::Accessor>& accessor)
-    : IndexStorage(accessor->getBufferSize() / sizeof(T))
+    : IndexStorage(accessor->buffer->getSize() / sizeof(T))
     , accessor(accessor) {}
 
 template <UsableByIndexMapView T>

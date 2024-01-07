@@ -12,7 +12,8 @@ struct Enum {
 
     enum class Group {
         None,
-        DrawElements
+        DrawElements,
+        GetProgramResourceIndex
     };
 
     Enum(GLenum value, Group group = Group::None);
@@ -35,6 +36,7 @@ struct Enum {
 private:
     const char* searchGroupNone() const;
     const char* searchGroupDrawElements() const;
+    const char* searchGetProgramResourceIndex() const;
 };
 
 } // namespace gnev

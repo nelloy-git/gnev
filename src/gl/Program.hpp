@@ -16,33 +16,31 @@ public:
     Program(Program&& other) = default;
     virtual ~Program() = default;
 
-    void glAttachShader(const Shader& shader);
-    void glValidateProgram();
-    void glLinkProgram();
+    void attach(const Shader& shader);
+    void validate();
+    bool isValidateSucceed() const;
+    void link();
+    bool isLinkSucceed() const;
     void use() const;
-    void glGetProgramiv(GLenum pname, GLint* params) const;
-    void glGetProgramInfoLog(GLsizei bufSize, GLsizei* length, GLchar* infoLog) const;
-    GLint glGetUniformBlockIndex(const GLchar* uniformBlockName) const;
-    void glUniformBlockBinding(GLuint uniformBlockIndex,
-                               GLuint uniformBlockBinding) const;
-    GLint glGetAttribLocation(const GLchar* name) const;
-    GLint glGetUniformLocation(const GLchar* name) const;
 
-    GLint glGetProgramResourceIndex(GLenum programInterface, const GLchar* name) const;
-    void glShaderStorageBlockBinding(GLuint storageBlockIndex,
-                                     GLuint storageBlockBinding) const;
+    GLsizei getInfoLogLength() const;
+    std::string getInfoLog() const;
 
-    void bindShaderStorageBlockBuffer(const std::string& storage_block_name,
+    GLint getAttributeLoc(const GLchar* name) const;
+    GLint getUniformLoc(const GLchar* name) const;
+    GLint getResourceIndex(GLenum interface, const GLchar* name) const;
+
+    void bindShaderStorageBlockBuffer(const GLchar* storage_block_name,
                                       const Ref<Buffer>& buffer);
     void bindShaderStorageBlockBuffer(GLuint storage_block_index,
                                       const Ref<Buffer>& buffer);
 
-    void bindShaderUniformBlockBuffer(const std::string& uniform_block_name,
+    void bindShaderUniformBlockBuffer(const GLchar* uniform_block_name,
                                       const Ref<Buffer>& buffer);
     void bindShaderUniformBlockBuffer(GLuint uniform_block_index,
                                       const Ref<Buffer>& buffer);
 
-    void bindShaderTextureSampler(const std::string& texture_sampler_name,
+    void bindShaderTextureSampler(const GLchar* texture_sampler_name,
                                   const Ref<Texture>& texture);
     void bindShaderTextureSampler(GLuint texture_block_index,
                                   const Ref<Texture>& texture);

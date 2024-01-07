@@ -191,9 +191,9 @@ int main(int argc, const char** argv) {
     cam.lookAt({0, 0, 0});
 
     auto mesh = QuadMesh_3D::MakeDynamic(1);
-    mesh->bindAttribute(program->glGetAttribLocation("inPos"), 0);
-    mesh->bindAttribute(program->glGetAttribLocation("inUV"), 1);
-    mesh->bindAttribute(program->glGetAttribLocation("inIds"), 2);
+    mesh->bindAttribute(program->getAttributeLoc("inPos"), 0);
+    mesh->bindAttribute(program->getAttributeLoc("inUV"), 1);
+    mesh->bindAttribute(program->getAttributeLoc("inIds"), 2);
     std::array quads{
         mesh->createQuad(),
     };

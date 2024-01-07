@@ -22,7 +22,11 @@ public:
                 GLintptr readOffset,
                 GLintptr writeOffset,
                 GLsizeiptr size) const;
-    void getParameteriv(GLenum pname, GLint* params) const;
+
+    GLint getSize() const;
+    bool isStorage() const;
+    GLbitfield getStorageFlags() const;
+
     void* map(GLenum access);
     void* mapRange(GLintptr offset, GLsizeiptr length, GLbitfield access);
     void flushRange(GLintptr offset, GLsizeiptr length);

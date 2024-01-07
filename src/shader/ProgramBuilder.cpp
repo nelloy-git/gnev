@@ -26,7 +26,7 @@ ProgramBuilder::build(const std::unordered_map<GLenum, std::string>& sources) {
         if (!shader_status) {
             return nullptr;
         }
-        program->glAttachShader(shader);
+        program->attach(shader);
     }
 
     auto link_status = link_program(*program);
@@ -68,44 +68,29 @@ bool ProgramBuilder::compile_shader(gl::Shader& shader, const std::string& src) 
 }
 
 bool ProgramBuilder::link_program(gl::Program& program) {
-    program.glLinkProgram();
+    program.link();
 
-    GLint status;
-    program.glGetProgramiv(GL_LINK_STATUS, &status);
-
-    GLint len;
-    program.glGetProgramiv(GL_INFO_LOG_LENGTH, &len);
-
-    std::string dst;
-    dst.resize(len);
-    program.glGetProgramInfoLog(len, &len, dst.data());
-
+    GLint status = program.isLinkSucceed();
+    std::string info_log = program.getInfoLog();
     if (status) {
-        _help += dst;
+        _help += info_log;
     } else {
-        _reason = dst;
+        _reason = info_log;
     }
 
     return status;
 }
 
 bool ProgramBuilder::validate_program(gl::Program& program) {
-    program.glValidateProgram();
+    program.validate();
 
-    GLint status;
-    program.glGetProgramiv(GL_VALIDATE_STATUS, &status);
-
-    GLint len;
-    program.glGetProgramiv(GL_INFO_LOG_LENGTH, &len);
-
-    std::string dst;
-    dst.resize(len);
-    program.glGetProgramInfoLog(len, &len, dst.data());
+    GLint status = program.isValidateSucceed();
+    std::string info_log = program.getInfoLog();
 
     if (status) {
-        _help += dst;
+        _help += info_log;
     } else {
-        _reason = dst;
+        _reason = info_log;
     }
 
     return status;

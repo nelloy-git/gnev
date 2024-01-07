@@ -8,10 +8,10 @@ using namespace gnev::gl;
 
 Buffer::Buffer()
     : Handler(createHandle(), &deleteHandle) {
-    GNEV_TRACE_L2("Buffer_{}::ctor", handle());
+    GNEV_TRACE_L2("Buffer_{}::ctor()", handle());
 }
 
-Buffer::~Buffer() { GNEV_TRACE_L2("Buffer_{}::destr", handle()); }
+Buffer::~Buffer() { GNEV_TRACE_L2("Buffer_{}::destr()", handle()); }
 
 void Buffer::bind(GLenum target) const {
     GNEV_TRACE_L2("Buffer_{}::bind({})", handle(), fmt::Enum{target});
@@ -77,12 +77,31 @@ void Buffer::copyTo(Buffer& writeBuffer,
                                         size);
 }
 
-void Buffer::getParameteriv(GLenum pname, GLint* params) const {
-    GNEV_TRACE_L2("Buffer_{}::getParameteriv({}, {})",
+GLint Buffer::getSize() const {
+    GLint size;
+    Ctx::Get().glGetNamedBufferParameteriv(handle(), GL_BUFFER_SIZE, &size);
+    GNEV_TRACE_L2("Buffer_{}::getSize() -> {}", handle(), size);
+    return size;
+}
+
+bool Buffer::isStorage() const {
+    GLint is_storage;
+    Ctx::Get().glGetNamedBufferParameteriv(handle(),
+                                           GL_BUFFER_IMMUTABLE_STORAGE,
+                                           &is_storage);
+    GNEV_TRACE_L2("Buffer_{}::isStorage() -> {}", handle(), is_storage == GL_TRUE);
+    return is_storage == GL_TRUE;
+}
+
+GLbitfield Buffer::getStorageFlags() const {
+    GLbitfield flags;
+    Ctx::Get().glGetNamedBufferParameteriv(handle(),
+                                           GL_BUFFER_STORAGE_FLAGS,
+                                           reinterpret_cast<GLint*>(&flags));
+    GNEV_TRACE_L2("Buffer_{}::getStorageFlags() -> {}",
                   handle(),
-                  fmt::Enum{pname},
-                  static_cast<const void*>(params));
-    Ctx::Get().glGetNamedBufferParameteriv(handle(), pname, params);
+                  fmt::BitFlags{flags, fmt::BitFlags::Group::glBufferStorage});
+    return flags;
 }
 
 void* Buffer::map(GLenum access) {
