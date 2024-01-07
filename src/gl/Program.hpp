@@ -55,9 +55,9 @@ private:
         std::unordered_map<GLuint, std::pair<GLuint, Ptr<T>>> map;
     };
 
-    Bindings<Buffer> shader_storage_blocks;
-    Bindings<Buffer> shader_uniform_blocks;
-    Bindings<Texture> shader_texture_samplers;
+    std::unique_ptr<Bindings<Buffer>> shader_storage_blocks;
+    std::unique_ptr<Bindings<Buffer>> shader_uniform_blocks;
+    std::unique_ptr<Bindings<Texture>> shader_texture_samplers;
 
     static GLuint getMaxShaderStorageBufferBindings();
     static GLuint getMaxUniformBufferBindings();

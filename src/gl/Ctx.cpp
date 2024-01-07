@@ -4,7 +4,8 @@
 #include <memory>
 #include <source_location>
 
-#include "gl/EnumFmt.hpp"
+#include "gl/fmt/Enum.hpp"
+#include "gl/fmt/BitFlags.hpp"
 #include "util/Log.hpp"
 
 using namespace gnev::gl;
@@ -102,12 +103,12 @@ Ctx::Ctx(LoadFunc load_func)
 }
 
 void Ctx::glActiveTexture(GLenum texture) const {
-    GNEV_TRACE_L3("glActiveTexture({})", EnumFmt{texture});
+    GNEV_TRACE_L3("glActiveTexture({})", fmt::Enum{texture});
     glad->ActiveTexture(texture);
 }
 
 void Ctx::glClear(GLbitfield mask) const {
-    GNEV_TRACE_L3("glClear({})", mask);
+    GNEV_TRACE_L3("glClear({})", fmt::BitFlags{mask, fmt::BitFlags::Group::glClear});
     glad->Clear(mask);
 }
 
@@ -117,17 +118,20 @@ void Ctx::glClearColor(GLfloat red, GLfloat green, GLfloat blue, GLfloat alpha) 
 }
 
 void Ctx::glGetIntegerv(GLenum pname, GLint* params) const {
-    GNEV_TRACE_L3("glGetIntegerv({}, {})", EnumFmt{pname}, "<GLint*>");
+    GNEV_TRACE_L3("glGetIntegerv({}, {})", fmt::Enum{pname}, static_cast<void*>(params));
     glad->GetIntegerv(pname, params);
+    GNEV_TRACE_L3("{} -> {}...", static_cast<void*>(params), *params);
 }
 
 void Ctx::glEnable(GLenum pname) const {
-    GNEV_TRACE_L3("glEnable({})", EnumFmt{pname});
+    GNEV_TRACE_L3("glEnable({})", fmt::Enum{pname});
     glad->Enable(pname);
 }
 
 void Ctx::glDebugMessageCallback(GLDEBUGPROC callback, const void* userParam) const {
-    GNEV_TRACE_L3("glDebugMessageCallback({}, {})", "<GLDEBUGPROC>", "<const void*>");
+    GNEV_TRACE_L3("glDebugMessageCallback({}, {})",
+                  reinterpret_cast<const void*>(callback),
+                  userParam);
     glad->DebugMessageCallback(callback, userParam);
 }
 
@@ -137,12 +141,13 @@ void Ctx::glDebugMessageControl(GLenum source,
                                 GLsizei count,
                                 const GLuint* ids,
                                 GLboolean enabled) const {
-    GNEV_TRACE_L3("glDebugMessageControl({}, {}, {}, {}, {}, {})",
-                  EnumFmt{source},
-                  EnumFmt{type},
-                  EnumFmt{severity},
+    GNEV_TRACE_L3("glDebugMessageControl({}, {}, {}, {}, {} -> {}, {})",
+                  fmt::Enum{source},
+                  fmt::Enum{type},
+                  fmt::Enum{severity},
                   count,
-                  "<const GLuint*>",
+                  static_cast<const void*>(ids),
+                  std::vector(ids, ids + count),
                   enabled);
     glad->DebugMessageControl(source, type, severity, count, ids, enabled);
 }
@@ -152,40 +157,37 @@ void Ctx::glDrawElements(GLenum mode,
                          GLenum type,
                          const void* indices) const {
     GNEV_TRACE_L3("glDrawElements({}, {}, {}, {})",
-                  EnumFmt{mode, EnumFmt::Group::DrawElements},
+                  fmt::Enum{mode, fmt::Enum::Group::DrawElements},
                   count,
                   type,
                   count,
-                  "<const void*>");
+                  indices);
     glad->DrawElements(mode, count, type, indices);
 }
 
 void Ctx::glCreateBuffers(GLsizei n, GLuint* buffers) const {
+    GNEV_TRACE_L3("glCreateBuffers({}, {})", n, static_cast<const void*>(buffers));
     glad->CreateBuffers(n, buffers);
-
-    std::vector<GLuint> buffer_list;
-    for (GLsizei i = 0; i < n; ++i) {
-        buffer_list.push_back(buffers[i]);
-    }
-    GNEV_TRACE_L3("glCreateBuffers({}, {}) -> {}", n, "<GLuint*>", buffer_list);
+    GNEV_TRACE_L3("{} -> {}",
+                  static_cast<const void*>(buffers),
+                  std::vector(buffers, buffers + n));
 }
 
 void Ctx::glDeleteBuffers(GLsizei n, GLuint* buffers) const {
-    std::vector<GLuint> buffer_list;
-    for (GLsizei i = 0; i < n; ++i) {
-        buffer_list.push_back(buffers[i]);
-    }
-    GNEV_TRACE_L3("glDeleteBuffers({}, {})", n, buffer_list);
+    GNEV_TRACE_L3("glDeleteBuffers({}, {} -> {})",
+                  n,
+                  static_cast<void*>(buffers),
+                  std::vector(buffers, buffers + n));
     glad->DeleteBuffers(n, buffers);
 }
 
 void Ctx::glBindBuffer(GLenum target, GLuint buffer) const {
-    GNEV_TRACE_L3("glBindBuffer({}, {})", EnumFmt{target}, buffer);
+    GNEV_TRACE_L3("glBindBuffer({}, {})", fmt::Enum{target}, buffer);
     glad->BindBuffer(target, buffer);
 }
 
 void Ctx::glBindBufferBase(GLenum target, GLuint index, GLuint buffer) const {
-    GNEV_TRACE_L3("glBindBufferBase({}, {}, {})", EnumFmt{target}, index, buffer);
+    GNEV_TRACE_L3("glBindBufferBase({}, {}, {})", fmt::Enum{target}, index, buffer);
     glad->BindBufferBase(target, index, buffer);
 }
 
@@ -195,7 +197,7 @@ void Ctx::glBindBufferRange(GLenum target,
                             GLintptr offset,
                             GLsizeiptr size) const {
     GNEV_TRACE_L3("glBindBufferRange({}, {}, {}, {}, {})",
-                  EnumFmt{target},
+                  fmt::Enum{target},
                   index,
                   buffer,
                   offset,
@@ -210,8 +212,8 @@ void Ctx::glNamedBufferData(GLuint buffer,
     GNEV_TRACE_L3("glNamedBufferData({}, {}, {}, {})",
                   buffer,
                   size,
-                  "<const void*>",
-                  EnumFmt{usage});
+                  data,
+                  fmt::Enum{usage});
     glad->NamedBufferData(buffer, size, data, usage);
 }
 
@@ -222,8 +224,8 @@ void Ctx::glNamedBufferStorage(GLuint buffer,
     GNEV_TRACE_L3("glNamedBufferStorage({}, {}, {}, {})",
                   buffer,
                   size,
-                  "<const void*>",
-                  flags);
+                  data,
+                  fmt::BitFlags{flags, fmt::BitFlags::Group::glBufferStorage});
     glad->NamedBufferStorage(buffer, size, data, flags);
 }
 
@@ -231,11 +233,7 @@ void Ctx::glNamedBufferSubData(GLuint buffer,
                                GLintptr offset,
                                GLsizeiptr size,
                                const void* data) const {
-    GNEV_TRACE_L3("glNamedBufferSubData({}, {}, {}, {})",
-                  buffer,
-                  offset,
-                  size,
-                  "<const void*>");
+    GNEV_TRACE_L3("glNamedBufferSubData({}, {}, {}, {})", buffer, offset, size, data);
     glad->NamedBufferSubData(buffer, offset, size, data);
 }
 
@@ -243,11 +241,7 @@ void Ctx::glGetNamedBufferSubData(GLuint buffer,
                                   GLintptr offset,
                                   GLsizeiptr size,
                                   void* data) const {
-    GNEV_TRACE_L3("glGetNamedBufferSubData({}, {}, {}, {})",
-                  buffer,
-                  offset,
-                  size,
-                  "<void*>");
+    GNEV_TRACE_L3("glGetNamedBufferSubData({}, {}, {}, {})", buffer, offset, size, data);
     glad->GetNamedBufferSubData(buffer, offset, size, data);
 }
 
@@ -266,17 +260,17 @@ void Ctx::glCopyNamedBufferSubData(GLuint readBuffer,
 }
 
 void Ctx::glGetNamedBufferParameteriv(GLuint buffer, GLenum pname, GLint* params) const {
-    glad->GetNamedBufferParameteriv(buffer, pname, params);
-    GNEV_TRACE_L3("glGetNamedBufferParameteriv({}, {}, {}) -> {}...",
+    GNEV_TRACE_L3("glGetNamedBufferParameteriv({}, {}, {})",
                   buffer,
-                  EnumFmt{pname},
-                  "<GLint*>",
-                  *params);
+                  fmt::Enum{pname},
+                  static_cast<void*>(params));
+    glad->GetNamedBufferParameteriv(buffer, pname, params);
+    GNEV_TRACE_L3("{} -> {}...", static_cast<void*>(params), *params);
 }
 
 void* Ctx::glMapNamedBuffer(GLuint buffer, GLenum access) const {
     void* map = glad->MapNamedBuffer(buffer, access);
-    GNEV_TRACE_L3("glMapNamedBuffer({}, {}) -> {}", buffer, EnumFmt{access}, map);
+    GNEV_TRACE_L3("glMapNamedBuffer({}, {}) -> {}", buffer, fmt::Enum{access}, map);
     return map;
 }
 
@@ -308,7 +302,7 @@ void Ctx::glUnmapNamedBuffer(GLuint buffer) const {
 
 GLuint Ctx::glCreateShader(GLenum type) const {
     GLuint shader = glad->CreateShader(type);
-    GNEV_TRACE_L3("glCreateShader({}) -> {}", EnumFmt{type}, shader);
+    GNEV_TRACE_L3("glCreateShader({}) -> {}", fmt::Enum{type}, shader);
     return shader;
 }
 
@@ -321,11 +315,11 @@ void Ctx::glShaderSource(GLuint shader,
                          GLsizei count,
                          const GLchar* const* string,
                          const GLint* length) const {
-    GNEV_TRACE_L3("glShaderSource({}, {}, \"{}\", {})",
+    GNEV_TRACE_L3("glShaderSource({}, {}, {}, {})",
                   shader,
                   count,
-                  string[0],
-                  "<const GLint*>");
+                  std::vector<std::string>(string, string + count),
+                  std::vector(length, length + count));
     glad->ShaderSource(shader, count, string, length);
 }
 
@@ -335,12 +329,12 @@ void Ctx::glCompileShader(GLuint shader) const {
 }
 
 void Ctx::glGetShaderiv(GLuint shader, GLenum pname, GLint* params) const {
-    glad->GetShaderiv(shader, pname, params);
-    GNEV_TRACE_L3("glGetShaderiv({}, {}, {}) -> {}...",
+    GNEV_TRACE_L3("glGetShaderiv({}, {}, {})",
                   shader,
-                  EnumFmt{pname},
-                  "<GLint*>",
-                  *params);
+                  fmt::Enum{pname},
+                  static_cast<void*>(params));
+    glad->GetShaderiv(shader, pname, params);
+    GNEV_TRACE_L3("{} -> {}...", static_cast<void*>(params), *params);
 }
 
 void Ctx::glGetShaderInfoLog(GLuint shader,
@@ -350,9 +344,11 @@ void Ctx::glGetShaderInfoLog(GLuint shader,
     GNEV_TRACE_L3("glGetShaderInfoLog({}, {}, {}, {})",
                   shader,
                   bufSize,
-                  "<GLsizei*>",
-                  "<GLchar*>");
+                  static_cast<void*>(length),
+                  static_cast<void*>(infoLog));
     glad->GetShaderInfoLog(shader, bufSize, length, infoLog);
+    GNEV_TRACE_L3("{} -> {}", static_cast<void*>(length), *length);
+    GNEV_TRACE_L3("{} -> \"{}\"", static_cast<void*>(infoLog), infoLog);
 }
 
 GLuint Ctx::glCreateProgram() const {
@@ -387,12 +383,12 @@ void Ctx::glUseProgram(GLuint program) const {
 }
 
 void Ctx::glGetProgramiv(GLuint program, GLenum pname, GLint* params) const {
-    glad->GetProgramiv(program, pname, params);
-    GNEV_TRACE_L3("glGetProgramiv({}, {}, {}) -> {}...",
+    GNEV_TRACE_L3("glGetProgramiv({}, {}, {})",
                   program,
-                  EnumFmt{pname},
-                  "<GLint*>",
-                  *params);
+                  fmt::Enum{pname},
+                  static_cast<const void*>(params));
+    glad->GetProgramiv(program, pname, params);
+    GNEV_TRACE_L3("{} -> {}...", static_cast<const void*>(params), *params);
 }
 
 void Ctx::glGetProgramInfoLog(GLuint program,
@@ -402,9 +398,11 @@ void Ctx::glGetProgramInfoLog(GLuint program,
     GNEV_TRACE_L3("glGetProgramInfoLog({}, {}, {}, {})",
                   program,
                   bufSize,
-                  "<GLsizei*>",
-                  "<GLchar*>");
+                  static_cast<void*>(length),
+                  static_cast<void*>(infoLog));
     glad->GetProgramInfoLog(program, bufSize, length, infoLog);
+    GNEV_TRACE_L3("{} -> {}", static_cast<void*>(length), *length);
+    GNEV_TRACE_L3("{} -> \"{}\"", static_cast<void*>(infoLog), infoLog);
 }
 
 void Ctx::glUniform1i(GLint location, GLint v0) const {
@@ -414,7 +412,7 @@ void Ctx::glUniform1i(GLint location, GLint v0) const {
 
 GLint Ctx::glGetUniformBlockIndex(GLuint program, const GLchar* uniformBlockName) const {
     GLint index = glad->GetUniformBlockIndex(program, uniformBlockName);
-    GNEV_TRACE_L3("glGetUniformBlockIndex({}, {}) -> {}",
+    GNEV_TRACE_L3("glGetUniformBlockIndex({}, \"{}\") -> {}",
                   program,
                   uniformBlockName,
                   index);
@@ -435,9 +433,9 @@ GLint Ctx::glGetProgramResourceIndex(GLuint program,
                                      GLenum programInterface,
                                      const GLchar* name) const {
     GLint index = glad->GetProgramResourceIndex(program, programInterface, name);
-    GNEV_TRACE_L3("glGetProgramResourceIndex({}, {}, {}) -> {}",
+    GNEV_TRACE_L3("glGetProgramResourceIndex({}, {}, \"{}\") -> {}",
                   program,
-                  EnumFmt{programInterface},
+                  fmt::Enum{programInterface},
                   name,
                   index);
     return index;
@@ -455,54 +453,46 @@ void Ctx::glShaderStorageBlockBinding(GLuint program,
 
 GLint Ctx::glGetAttribLocation(GLuint program, const GLchar* name) const {
     GLint loc = glad->GetAttribLocation(program, name);
-    GNEV_TRACE_L3("glGetAttribLocation({}, {}) -> {}", program, name, loc);
+    GNEV_TRACE_L3("glGetAttribLocation({}, \"{}\") -> {}", program, name, loc);
     return loc;
 }
 
 GLint Ctx::glGetUniformLocation(GLuint program, const GLchar* name) const {
     GLint loc = glad->GetUniformLocation(program, name);
-    GNEV_TRACE_L3("glGetUniformLocation({}, {}) -> {}", program, name, loc);
+    GNEV_TRACE_L3("glGetUniformLocation({}, \"{}\") -> {}", program, name, loc);
     return loc;
 }
 
 void Ctx::glCreateTextures(GLenum target, GLsizei n, GLuint* textures) const {
+    GNEV_TRACE_L3("glCreateTextures({}, {})", n, static_cast<void*>(textures));
     glad->CreateTextures(target, n, textures);
-
-    std::vector<GLuint> textures_list;
-    for (GLsizei i = 0; i < n; ++i) {
-        textures_list.push_back(textures[i]);
-    }
-    GNEV_TRACE_L3("glCreateTextures({}, {}) -> {}",
-                  n,
+    GNEV_TRACE_L3("{} -> {}",
                   static_cast<void*>(textures),
-                  textures_list);
+                  std::vector(textures, textures + n));
 }
 
 void Ctx::glDeleteTextures(GLsizei n, GLuint* textures) const {
-    std::vector<GLuint> texture_list;
-    for (GLsizei i = 0; i < n; ++i) {
-        texture_list.push_back(textures[i]);
-    }
-    GNEV_TRACE_L3("glDeleteTextures({}, {})", n, texture_list);
+    GNEV_TRACE_L3("glDeleteTextures({}, {})", n, std::vector(textures, textures + n));
     glad->DeleteTextures(n, textures);
 }
 
 void Ctx::glBindTexture(GLenum target, GLuint texture) const {
-    GNEV_TRACE_L3("glBindTexture({}, {})", EnumFmt{target}, texture);
+    GNEV_TRACE_L3("glBindTexture({}, {})", fmt::Enum{target}, texture);
     glad->BindTexture(target, texture);
 }
 
 void Ctx::glTextureParameteri(GLuint texture, GLenum pname, GLint param) const {
-    GNEV_TRACE_L3("glTextureParameteri({}, {}, {})", texture, EnumFmt{pname}, param);
+    GNEV_TRACE_L3("glTextureParameteri({}, {}, {})", texture, fmt::Enum{pname}, param);
     glad->TextureParameteri(texture, pname, param);
 }
 
 void Ctx::glGetTextureParameteriv(GLuint texture, GLenum pname, GLint* param) const {
     GNEV_TRACE_L3("glGetTextureParameteriv({}, {}, {})",
                   texture,
-                  EnumFmt{pname},
-                  "<GLint*>");
+                  fmt::Enum{pname},
+                  static_cast<const void*>(param));
     glad->GetTextureParameteriv(texture, pname, param);
+    GNEV_TRACE_L3("{} -> {}...", static_cast<const void*>(param), param[0]);
 }
 
 void Ctx::glGetTextureLevelParameteriv(GLuint texture,
@@ -512,17 +502,19 @@ void Ctx::glGetTextureLevelParameteriv(GLuint texture,
     GNEV_TRACE_L3("glGetTextureLevelParameteriv({}, {}, {}, {})",
                   texture,
                   level,
-                  EnumFmt{pname},
-                  "<GLint*>");
+                  fmt::Enum{pname},
+                  static_cast<const void*>(param));
     glad->GetTextureLevelParameteriv(texture, level, pname, param);
+    GNEV_TRACE_L3("{} -> {}...", static_cast<const void*>(param), param[0]);
 }
 
 void Ctx::glTextureParameterfv(GLuint texture, GLenum pname, const GLfloat* param) const {
     GNEV_TRACE_L3("glTextureParameterfv({}, {}, {})",
                   texture,
-                  EnumFmt{pname},
-                  "<GLfloat*>");
+                  fmt::Enum{pname},
+                  static_cast<const void*>(param));
     glad->TextureParameterfv(texture, pname, param);
+    GNEV_TRACE_L3("{} -> {}...", static_cast<const void*>(param), param[0]);
 }
 
 void Ctx::glTexImage3D(GLenum target,
@@ -536,16 +528,16 @@ void Ctx::glTexImage3D(GLenum target,
                        GLenum type,
                        const void* pixels) const {
     GNEV_TRACE_L3("glTexImage3D({}, {}, {}, {}, {}, {}, {}, {}, {}, {})",
-                  EnumFmt{target},
+                  fmt::Enum{target},
                   level,
                   internalformat,
                   width,
                   height,
                   depth,
                   border,
-                  EnumFmt{format},
-                  EnumFmt{type},
-                  "<const void*>");
+                  fmt::Enum{format},
+                  fmt::Enum{type},
+                  pixels);
     glad->TexImage3D(target,
                      level,
                      internalformat,
@@ -567,7 +559,7 @@ void Ctx::glTextureStorage3D(GLuint texture,
     GNEV_TRACE_L3("glTextureStorage3D({}, {}, {}, {}, {}, {})",
                   texture,
                   levels,
-                  EnumFmt{internalformat},
+                  fmt::Enum{internalformat},
                   width,
                   height,
                   depth);
@@ -594,9 +586,9 @@ void Ctx::glTextureSubImage3D(GLuint texture,
                   width,
                   height,
                   depth,
-                  EnumFmt{format},
-                  EnumFmt{type},
-                  "<const void*>");
+                  fmt::Enum{format},
+                  fmt::Enum{type},
+                  pixels);
     glad->TextureSubImage3D(texture,
                             level,
                             xoffset,
@@ -634,13 +626,13 @@ void Ctx::glCopyImageSubData(GLuint srcName,
                   "{}, "
                   "{}, {}, {})",
                   srcName,
-                  EnumFmt{srcTarget},
+                  fmt::Enum{srcTarget},
                   srcLevel,
                   srcX,
                   srcY,
                   srcZ,
                   dstName,
-                  EnumFmt{dstTarget},
+                  fmt::Enum{dstTarget},
                   dstLevel,
                   dstX,
                   dstY,
@@ -687,10 +679,10 @@ void Ctx::glGetTextureSubImage(GLuint texture,
                   width,
                   height,
                   depth,
-                  EnumFmt{format},
-                  EnumFmt{type},
+                  fmt::Enum{format},
+                  fmt::Enum{type},
                   bufSize,
-                  "<void*>");
+                  pixels);
     glad->GetTextureSubImage(texture,
                              level,
                              xoffset,
@@ -706,21 +698,15 @@ void Ctx::glGetTextureSubImage(GLuint texture,
 }
 
 void Ctx::glCreateSamplers(GLsizei n, GLuint* samplers) const {
+    GNEV_TRACE_L3("glCreateTextures({}, {})", n, static_cast<const void*>(samplers));
     glad->CreateSamplers(n, samplers);
-
-    std::vector<GLuint> samplers_list(n);
-    for (GLsizei i = 0; i < n; ++i) {
-        samplers_list.push_back(samplers[i]);
-    }
-    GNEV_TRACE_L3("glCreateTextures({}, {}) -> {}", n, "<GLuint*>", samplers_list);
+    GNEV_TRACE_L3("{} -> {}",
+                  static_cast<const void*>(samplers),
+                  std::vector(samplers, samplers + n));
 }
 
 void Ctx::glDeleteSamplers(GLsizei n, GLuint* samplers) const {
-    std::vector<GLuint> sampler_list;
-    for (GLsizei i = 0; i < n; ++i) {
-        sampler_list.push_back(samplers[i]);
-    }
-    GNEV_TRACE_L3("glDeleteSamplers({}, {})", n, sampler_list);
+    GNEV_TRACE_L3("glDeleteSamplers({}, {})", n, std::vector(samplers, samplers + n));
     glad->DeleteSamplers(n, samplers);
 }
 
@@ -730,40 +716,35 @@ void Ctx::glBindSampler(GLuint unit, GLuint sampler) const {
 }
 
 void Ctx::glSamplerParameteri(GLuint sampler, GLuint pname, GLint param) const {
-    GNEV_TRACE_L3("glSamplerParameteri({}, {}, {})", sampler, EnumFmt{pname}, param);
+    GNEV_TRACE_L3("glSamplerParameteri({}, {}, {})", sampler, fmt::Enum{pname}, param);
     glad->SamplerParameteri(sampler, pname, param);
 }
 
 void Ctx::glSamplerParameterf(GLuint sampler, GLuint pname, GLfloat param) const {
-    GNEV_TRACE_L3("glSamplerParameterf({}, {}, {})", sampler, EnumFmt{pname}, param);
+    GNEV_TRACE_L3("glSamplerParameterf({}, {}, {})", sampler, fmt::Enum{pname}, param);
     glad->SamplerParameterf(sampler, pname, param);
 }
 
 void Ctx::glSamplerParameterfv(GLuint sampler, GLuint pname, const GLfloat* param) const {
     GNEV_TRACE_L3("glSamplerParameterfv({}, {}, {}) -> {}...",
                   sampler,
-                  EnumFmt{pname},
-                  "<const GLfloat*>",
+                  fmt::Enum{pname},
+                  static_cast<const void*>(param),
                   *param);
     glad->SamplerParameterfv(sampler, pname, param);
+    GNEV_TRACE_L3("{} -> {}...", static_cast<const void*>(param), param[0]);
 }
 
 void Ctx::glCreateVertexArrays(GLsizei n, GLuint* arrays) const {
+    GNEV_TRACE_L3("glCreateVertexArrays({}, {})", n, static_cast<const void*>(arrays));
     glad->CreateVertexArrays(n, arrays);
-
-    std::vector<GLuint> arrays_list(n);
-    for (GLsizei i = 0; i < n; ++i) {
-        arrays_list.push_back(arrays[i]);
-    }
-    GNEV_TRACE_L3("glCreateVertexArrays({}, {}) -> {}", n, "<GLuint*>", arrays_list);
+    GNEV_TRACE_L3("{} -> {}",
+                  static_cast<const void*>(arrays),
+                  std::vector(arrays, arrays + n));
 }
 
 void Ctx::glDeleteVertexArrays(GLsizei n, GLuint* arrays) const {
-    std::vector<GLuint> vao_list;
-    for (GLsizei i = 0; i < n; ++i) {
-        vao_list.push_back(arrays[i]);
-    }
-    GNEV_TRACE_L3("glDeleteVertexArrays({}, {})", n, vao_list);
+    GNEV_TRACE_L3("glDeleteVertexArrays({}, {})", n, std::vector(arrays, arrays + n));
     glad->DeleteVertexArrays(n, arrays);
 }
 
@@ -811,7 +792,7 @@ void Ctx::glVertexArrayAttribFormat(GLuint vaobj,
                   vaobj,
                   attribindex,
                   size,
-                  EnumFmt{type},
+                  fmt::Enum{type},
                   normalized,
                   relativeoffset);
     glad->VertexArrayAttribFormat(vaobj,

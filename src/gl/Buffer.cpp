@@ -1,6 +1,7 @@
 #include "gl/Buffer.hpp"
 
-#include "gl/EnumFmt.hpp"
+#include "gl/fmt/BitFlags.hpp"
+#include "gl/fmt/Enum.hpp"
 #include "util/Log.hpp"
 
 using namespace gnev::gl;
@@ -13,12 +14,12 @@ Buffer::Buffer()
 Buffer::~Buffer() { GNEV_TRACE_L2("Buffer_{}::destr", handle()); }
 
 void Buffer::bind(GLenum target) const {
-    GNEV_TRACE_L2("Buffer_{}::bind({})", handle(), EnumFmt{target});
+    GNEV_TRACE_L2("Buffer_{}::bind({})", handle(), fmt::Enum{target});
     Ctx::Get().glBindBuffer(target, handle());
 }
 
 void Buffer::bindBase(GLenum target, GLuint index) const {
-    GNEV_TRACE_L2("Buffer_{}::bindBase({}, {})", handle(), EnumFmt{target}, index);
+    GNEV_TRACE_L2("Buffer_{}::bindBase({}, {})", handle(), fmt::Enum{target}, index);
     Ctx::Get().glBindBufferBase(target, index, handle());
 }
 
@@ -28,7 +29,7 @@ void Buffer::bindRange(GLenum target,
                        GLsizeiptr size) const {
     GNEV_TRACE_L2("Buffer_{}::bindRange({}, {}, {}, {})",
                   handle(),
-                  EnumFmt{target},
+                  fmt::Enum{target},
                   index,
                   offset,
                   size);
@@ -36,7 +37,7 @@ void Buffer::bindRange(GLenum target,
 }
 
 void Buffer::initData(GLsizeiptr size, const void* data, GLenum usage) {
-    GNEV_TRACE_L2("Buffer_{}::initData({}, {})", handle(), size, data, EnumFmt{usage});
+    GNEV_TRACE_L2("Buffer_{}::initData({}, {})", handle(), size, data, fmt::Enum{usage});
     Ctx::Get().glNamedBufferData(handle(), size, data, usage);
 }
 
@@ -45,7 +46,7 @@ void Buffer::initStorage(GLsizeiptr size, const void* data, GLbitfield flags) {
                   handle(),
                   size,
                   data,
-                  std::bitset<std::numeric_limits<GLbitfield>::digits>(flags));
+                  fmt::BitFlags{flags, fmt::BitFlags::Group::glBufferStorage});
     Ctx::Get().glNamedBufferStorage(handle(), size, data, flags);
 }
 
@@ -77,16 +78,15 @@ void Buffer::copyTo(Buffer& writeBuffer,
 }
 
 void Buffer::getParameteriv(GLenum pname, GLint* params) const {
-    Ctx::Get().glGetNamedBufferParameteriv(handle(), pname, params);
-    GNEV_TRACE_L2("Buffer_{}::getParameteriv({}, {}) -> {}...",
+    GNEV_TRACE_L2("Buffer_{}::getParameteriv({}, {})",
                   handle(),
-                  EnumFmt{pname},
-                  static_cast<void*>(params),
-                  params[0]);
+                  fmt::Enum{pname},
+                  static_cast<const void*>(params));
+    Ctx::Get().glGetNamedBufferParameteriv(handle(), pname, params);
 }
 
 void* Buffer::map(GLenum access) {
-    GNEV_TRACE_L2("Buffer_{}::map({})", handle(), EnumFmt{access});
+    GNEV_TRACE_L2("Buffer_{}::map({})", handle(), fmt::Enum{access});
     return Ctx::Get().glMapNamedBuffer(handle(), access);
 }
 
@@ -95,7 +95,7 @@ void* Buffer::mapRange(GLintptr offset, GLsizeiptr length, GLbitfield access) {
                   handle(),
                   offset,
                   length,
-                  EnumFmt{access});
+                  fmt::Enum{access});
     return Ctx::Get().glMapNamedBufferRange(handle(), offset, length, access);
 }
 

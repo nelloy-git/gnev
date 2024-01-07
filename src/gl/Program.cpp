@@ -6,9 +6,12 @@ using namespace gnev::gl;
 
 Program::Program()
     : Handler(createHandle(), &deleteHandle)
-    , shader_storage_blocks(getMaxShaderStorageBufferBindings())
-    , shader_uniform_blocks(getMaxUniformBufferBindings())
-    , shader_texture_samplers(getMaxTextureImageUnits()) {}
+    , shader_storage_blocks(std::make_unique<
+                            Bindings<Buffer>>(getMaxShaderStorageBufferBindings()))
+    , shader_uniform_blocks(std::make_unique<
+                            Bindings<Buffer>>(getMaxUniformBufferBindings()))
+    , shader_texture_samplers(std::make_unique<
+                              Bindings<Texture>>(getMaxTextureImageUnits())) {}
 
 void Program::glAttachShader(const Shader& shader) {
     Ctx::Get().glAttachShader(handle(), shader.handle());
@@ -68,18 +71,18 @@ void Program::bindShaderStorageBlockBuffer(const std::string& storage_block_name
 
 void Program::bindShaderStorageBlockBuffer(GLuint storage_block_index,
                                            const Ref<Buffer>& buffer) {
-    auto iter = shader_storage_blocks.map.find(storage_block_index);
-    if (iter != shader_storage_blocks.map.end()) {
+    auto iter = shader_storage_blocks->map.find(storage_block_index);
+    if (iter != shader_storage_blocks->map.end()) {
         GLuint binding = iter->second.first;
-        shader_storage_blocks.binds.freeIndex(binding);
+        shader_storage_blocks->binds.freeIndex(binding);
     }
 
-    auto binding_opt = shader_storage_blocks.binds.useIndex();
+    auto binding_opt = shader_storage_blocks->binds.useIndex();
     if (not binding_opt) {
         throw std::out_of_range("");
     }
-    shader_storage_blocks.map[storage_block_index] = {binding_opt.value(),
-                                                      buffer.getPtr()};
+    shader_storage_blocks->map[storage_block_index] = {binding_opt.value(),
+                                                       buffer.getPtr()};
 
     std::cout << "BindShaderStorageBlockBuffer: " << storage_block_index << " to "
               << binding_opt.value() << std::endl;
@@ -100,18 +103,18 @@ void Program::bindShaderUniformBlockBuffer(const std::string& uniform_block_name
 
 void Program::bindShaderUniformBlockBuffer(GLuint uniform_block_index,
                                            const Ref<Buffer>& buffer) {
-    auto iter = shader_uniform_blocks.map.find(uniform_block_index);
-    if (iter != shader_uniform_blocks.map.end()) {
+    auto iter = shader_uniform_blocks->map.find(uniform_block_index);
+    if (iter != shader_uniform_blocks->map.end()) {
         GLuint binding = iter->second.first;
-        shader_uniform_blocks.binds.freeIndex(binding);
+        shader_uniform_blocks->binds.freeIndex(binding);
     }
 
-    auto binding_opt = shader_uniform_blocks.binds.useIndex();
+    auto binding_opt = shader_uniform_blocks->binds.useIndex();
     if (not binding_opt) {
         throw std::out_of_range("");
     }
-    shader_uniform_blocks.map[uniform_block_index] = {binding_opt.value(),
-                                                      buffer.getPtr()};
+    shader_uniform_blocks->map[uniform_block_index] = {binding_opt.value(),
+                                                       buffer.getPtr()};
 
     std::cout << "BindShaderUniformBlockBuffer: " << uniform_block_index << " to "
               << binding_opt.value() << std::endl;
@@ -126,18 +129,18 @@ void Program::bindShaderTextureSampler(const std::string& texture_sampler_name,
 
 void Program::bindShaderTextureSampler(GLuint texture_sampler_index,
                                        const Ref<Texture>& texture) {
-    auto iter = shader_texture_samplers.map.find(texture_sampler_index);
-    if (iter != shader_texture_samplers.map.end()) {
+    auto iter = shader_texture_samplers->map.find(texture_sampler_index);
+    if (iter != shader_texture_samplers->map.end()) {
         GLuint binding = iter->second.first;
-        shader_texture_samplers.binds.freeIndex(binding);
+        shader_texture_samplers->binds.freeIndex(binding);
     }
 
-    auto binding_opt = shader_texture_samplers.binds.useIndex();
+    auto binding_opt = shader_texture_samplers->binds.useIndex();
     if (not binding_opt) {
         throw std::out_of_range("");
     }
-    shader_texture_samplers.map[texture_sampler_index] = {binding_opt.value(),
-                                                          texture.getPtr()};
+    shader_texture_samplers->map[texture_sampler_index] = {binding_opt.value(),
+                                                           texture.getPtr()};
 
     std::cout << "BindShaderTextureSampler: " << texture_sampler_index << " to "
               << binding_opt.value() << std::endl;

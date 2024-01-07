@@ -1,14 +1,14 @@
-#include "gl/EnumFmt.hpp"
+#include "gl/fmt/Enum.hpp"
 
-namespace gnev {
+namespace gnev::fmt {
 
-const char* const EnumFmt::UNKNOWN = "UNKNOWN";
+const char* const Enum::UNKNOWN = "UNKNOWN";
 
-EnumFmt::EnumFmt(GLenum value, Group group)
+Enum::Enum(GLenum value, Group group)
     : value(value)
     , group(group) {}
 
-const char* EnumFmt::searchMacroName() const {
+const char* Enum::searchMacroName() const {
     switch (group) {
         using enum Group;
     case None:
@@ -20,7 +20,7 @@ const char* EnumFmt::searchMacroName() const {
     }
 }
 
-const char* EnumFmt::searchGroupDrawElements() const {
+const char* Enum::searchGroupDrawElements() const {
     switch (value) {
     case GL_POINTS:
         return "GL_POINTS";
@@ -52,7 +52,7 @@ const char* EnumFmt::searchGroupDrawElements() const {
     }
 }
 
-const char* EnumFmt::searchGroupNone() const {
+const char* Enum::searchGroupNone() const {
     switch (this->value) {
     case 0x0600:
         return "GL_2D";

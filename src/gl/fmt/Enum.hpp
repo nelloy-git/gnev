@@ -3,9 +3,9 @@
 #include "gl/Ctx.hpp"
 #include "util/Log.hpp"
 
-namespace gnev {
+namespace gnev::fmt {
 
-struct EnumFmt {
+struct Enum {
     static const char* const UNKNOWN;
     static constexpr bool PRINT_VALUE = false;
     static constexpr bool PRINT_NAME = true;
@@ -15,11 +15,11 @@ struct EnumFmt {
         DrawElements
     };
 
-    EnumFmt(GLenum value, Group group = Group::None);
+    Enum(GLenum value, Group group = Group::None);
     GLenum value;
     Group group;
 
-    friend std::ostream& operator<<(std::ostream& os, const EnumFmt& obj) {
+    friend std::ostream& operator<<(std::ostream& os, const Enum& obj) {
         if constexpr (PRINT_VALUE and PRINT_NAME) {
             os << obj.searchMacroName() << "(" << obj.value << ")";
         } else if constexpr (PRINT_VALUE) {
@@ -32,6 +32,7 @@ struct EnumFmt {
 
     const char* searchMacroName() const;
 
+private:
     const char* searchGroupNone() const;
     const char* searchGroupDrawElements() const;
 };
@@ -39,7 +40,4 @@ struct EnumFmt {
 } // namespace gnev
 
 template <>
-struct fmtquill::formatter<gnev::EnumFmt> : ostream_formatter {};
-
-template <>
-struct fmtquill::formatter<std::bitset<std::numeric_limits<GLbitfield>::digits>> : ostream_formatter {};
+struct fmtquill::formatter<gnev::fmt::Enum> : ostream_formatter {};
