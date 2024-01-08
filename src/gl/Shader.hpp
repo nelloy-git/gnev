@@ -9,10 +9,15 @@ public:
     Shader(GLenum type);
     virtual ~Shader();
 
-    void glShaderSource(GLsizei count, const GLchar* const* string, const GLint* length);
-    void glCompileShader();
-    void glGetShaderiv(GLenum pname, GLint* params) const;
-    void glGetShaderInfoLog(GLsizei bufSize, GLsizei* length, GLchar* infoLog) const;
+    void setSource(GLsizei count, const GLchar* const* string, const GLint* length);
+    void compile();
+
+    GLenum getType() const;
+    bool hasDeleteFlag() const;
+    bool isCompileSucceed() const;
+    GLsizei getInfoLogLenth() const;
+    GLsizei getSourceLenth() const;
+    std::string getInfoLog() const;
 
 private:
     static GLuint* createHandle(GLenum type);

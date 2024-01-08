@@ -19,6 +19,8 @@ Program::Program()
     GNEV_TRACE_L2("Program_{}::ctor()", handle());
 }
 
+Program::~Program() { GNEV_TRACE_L2("Program_{}::destr()", handle()); }
+
 void Program::attach(const Shader& shader) {
     Ctx::Get().glAttachShader(handle(), shader.handle());
     GNEV_TRACE_L2("Program_{}::attach(Shader_{})", handle(), shader.handle());
@@ -73,7 +75,7 @@ std::string Program::getInfoLog() const {
         Ctx::Get().glGetProgramInfoLog(handle(), len, &len, info_log.data());
     }
 
-    GNEV_TRACE_L2("Program_{}::getInfoLog() -> \"{}\"", handle(), info_log.c_str());
+    GNEV_TRACE_L2("Program_{}::getInfoLog() -> \"{}\"", handle(), info_log);
     return info_log;
 }
 

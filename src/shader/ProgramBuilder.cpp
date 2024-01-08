@@ -45,23 +45,16 @@ ProgramBuilder::build(const std::unordered_map<GLenum, std::string>& sources) {
 bool ProgramBuilder::compile_shader(gl::Shader& shader, const std::string& src) {
     auto c_str = src.c_str();
     auto str_len = static_cast<GLint>(src.size());
-    shader.glShaderSource(1, &c_str, &str_len);
+    shader.setSource(1, &c_str, &str_len);
 
-    shader.glCompileShader();
-    GLint status;
-    shader.glGetShaderiv(GL_COMPILE_STATUS, &status);
-
-    GLint len;
-    shader.glGetShaderiv(GL_INFO_LOG_LENGTH, &len);
-
-    std::string dst;
-    dst.resize(len);
-    shader.glGetShaderInfoLog(len, &len, dst.data());
+    shader.compile();
+    bool status = shader.isCompileSucceed();
+    std::string info_log = shader.getInfoLog();
 
     if (status) {
-        _help += dst;
+        _help += info_log;
     } else {
-        _reason = dst;
+        _reason = info_log;
     }
 
     return status;
@@ -70,7 +63,7 @@ bool ProgramBuilder::compile_shader(gl::Shader& shader, const std::string& src) 
 bool ProgramBuilder::link_program(gl::Program& program) {
     program.link();
 
-    GLint status = program.isLinkSucceed();
+    bool status = program.isLinkSucceed();
     std::string info_log = program.getInfoLog();
     if (status) {
         _help += info_log;
@@ -84,7 +77,7 @@ bool ProgramBuilder::link_program(gl::Program& program) {
 bool ProgramBuilder::validate_program(gl::Program& program) {
     program.validate();
 
-    GLint status = program.isValidateSucceed();
+    bool status = program.isValidateSucceed();
     std::string info_log = program.getInfoLog();
 
     if (status) {

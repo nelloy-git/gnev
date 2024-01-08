@@ -14,7 +14,7 @@ public:
     Program();
     Program(const Program& other) = delete;
     Program(Program&& other) = default;
-    virtual ~Program() = default;
+    virtual ~Program();
 
     void attach(const Shader& shader);
     void validate();
