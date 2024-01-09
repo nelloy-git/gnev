@@ -8,7 +8,10 @@ using namespace gnev::gl;
 
 Buffer::Buffer()
     : Handler(createHandle(), &deleteHandle) {
-    GNEV_TRACE_L2("Buffer_{}::ctor()", handle());
+    constexpr auto s = getClassName<Buffer>();
+    constexpr auto start = s.find_last_of(':');
+    constexpr std::string s1{s.begin(), s.end()};
+    GNEV_TRACE_L2("{}()", __FUNCTION__, handle());
 }
 
 Buffer::~Buffer() { GNEV_TRACE_L2("Buffer_{}::destr()", handle()); }

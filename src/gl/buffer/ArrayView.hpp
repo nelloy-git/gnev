@@ -4,6 +4,7 @@
 #include <type_traits>
 
 #include "gl/buffer/Accessor.hpp"
+#include "util/Log.hpp"
 
 namespace gnev::gl::buffer {
 
@@ -60,7 +61,7 @@ inline void ArrayView<T>::set(GLuint index, const V& src, GLintptr ptr_offset)
     requires(not std::is_pointer_v<V>)
 {
     if (sizeof(V) + ptr_offset >= sizeof(T)) {
-        throw std::out_of_range("");
+        GNEV_ERROR("ArrayView<T>::set(...) sizeof(V) + ptr_offset >= sizeof(T)");
     }
     accessor->set(index * sizeof(T) + ptr_offset, sizeof(V), &src);
 }
@@ -78,7 +79,7 @@ inline void ArrayView<T>::get(GLuint index, V& dst, GLintptr ptr_offset) const
     requires(not std::is_pointer_v<V>)
 {
     if (sizeof(V) + ptr_offset >= sizeof(T)) {
-        throw std::out_of_range("");
+        GNEV_ERROR("ArrayView<T>::set(...) sizeof(V) + ptr_offset >= sizeof(T)");
     }
     accessor->get(index * sizeof(T) + ptr_offset, sizeof(V), &dst);
 }
@@ -99,7 +100,7 @@ void ArrayView<T>::change(GLuint index, const Changer<V>& changer, GLintptr ptr_
     requires(not std::is_pointer_v<V>)
 {
     if (sizeof(V) + ptr_offset >= sizeof(T)) {
-        throw std::out_of_range("");
+        GNEV_ERROR("ArrayView<T>::set(...) sizeof(V) + ptr_offset >= sizeof(T)");
     }
     auto wrapper = [changer](gl::Buffer&, void* data, GLintptr) -> void {
         changer(*static_cast<V*>(data));

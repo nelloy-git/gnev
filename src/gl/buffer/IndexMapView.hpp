@@ -2,6 +2,7 @@
 
 #include "gl/buffer/Accessor.hpp"
 #include "util/IndexStorage.hpp"
+#include "util/Log.hpp"
 #include "util/Ref.hpp"
 
 namespace gnev::gl::buffer {
@@ -67,7 +68,7 @@ IndexMapView<T>::IndexMapView(const Ref<gl::buffer::Accessor>& accessor)
 template <UsableByIndexMapView T>
 void IndexMapView<T>::set(GLuint index, const T& src) {
     if (not isUsed(index)) {
-        throw std::out_of_range("");
+        GNEV_ERROR("IndexMapView<T>::set(...) not isUsed(index)");
     }
     accessor->set(index * sizeof(T), sizeof(T), &src);
 }
@@ -75,8 +76,8 @@ void IndexMapView<T>::set(GLuint index, const T& src) {
 template <UsableByIndexMapView T>
 template <UsableByIndexMapView V>
 void IndexMapView<T>::set(GLuint index, const V& src, GLintptr ptr_offset) {
-    if (not isUsed(index) or (ptr_offset + sizeof(V) >= sizeof(T))) {
-        throw std::out_of_range("");
+    if (not isUsed(index)) {
+        GNEV_ERROR("IndexMapView<T>::set(...) not isUsed(index)");
     }
     accessor->set(index * sizeof(T) + ptr_offset, sizeof(V), &src);
 }
@@ -84,7 +85,7 @@ void IndexMapView<T>::set(GLuint index, const V& src, GLintptr ptr_offset) {
 template <UsableByIndexMapView T>
 void IndexMapView<T>::get(GLuint index, T& dst) const {
     if (not isUsed(index)) {
-        throw std::out_of_range("");
+        GNEV_ERROR("IndexMapView<T>::set(...) not isUsed(index)");
     }
     accessor->get(index * sizeof(T), sizeof(T), &dst);
 }
@@ -92,8 +93,8 @@ void IndexMapView<T>::get(GLuint index, T& dst) const {
 template <UsableByIndexMapView T>
 template <UsableByIndexMapView V>
 void IndexMapView<T>::get(GLuint index, V& dst, GLintptr ptr_offset) const {
-    if (not isUsed(index) or (ptr_offset + sizeof(V) >= sizeof(T))) {
-        throw std::out_of_range("");
+    if (not isUsed(index)) {
+        GNEV_ERROR("IndexMapView<T>::set(...) not isUsed(index)");
     }
     accessor->get(index * sizeof(T) + ptr_offset, sizeof(V), &dst);
 }
@@ -101,7 +102,7 @@ void IndexMapView<T>::get(GLuint index, V& dst, GLintptr ptr_offset) const {
 template <UsableByIndexMapView T>
 void IndexMapView<T>::change(GLuint index, const Changer<T>& changer) {
     if (not isUsed(index)) {
-        throw std::out_of_range("");
+        GNEV_ERROR("IndexMapView<T>::set(...) not isUsed(index)");
     }
     auto wrapper = [this, &changer](Accessor&, void* ptr, GLintptr size) {
         changer(*this, *static_cast<T*>(ptr));
@@ -114,8 +115,8 @@ template <UsableByIndexMapView V>
 void IndexMapView<T>::change(GLuint index,
                              const Changer<V>& changer,
                              GLintptr ptr_offset) {
-    if (not isUsed(index) or (ptr_offset + sizeof(V) >= sizeof(T))) {
-        throw std::out_of_range("");
+    if (not isUsed(index)) {
+        GNEV_ERROR("IndexMapView<T>::set(...) not isUsed(index)");
     }
     auto wrapper = [this, &changer](void* ptr, GLintptr size) {
         changer(*static_cast<V*>(ptr));
