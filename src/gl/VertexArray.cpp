@@ -1,55 +1,71 @@
 #include "gl/VertexArray.hpp"
 
+#include "gl/fmt/BitFlags.hpp"
+#include "gl/fmt/Enum.hpp"
+#include "gl/fmt/HandlerTraceL2.hpp"
+
 using namespace gnev::gl;
 
 VertexArray::VertexArray()
-    : Handler(createHandle(), &deleteHandle) {}
+    : Handler(createHandle(), &deleteHandle) {
+    L2()->log();
+}
 
-VertexArray::~VertexArray() {}
+VertexArray::~VertexArray() { L2()->log(); }
 
-void VertexArray::glBindVertexArray() const { Ctx::Get().glBindVertexArray(handle()); }
+void VertexArray::bind() const {
+    L2()->log();
+    Ctx::Get().glBindVertexArray(handle());
+}
 
 void VertexArray::setElementBuffer(const Buffer& buffer) {
+    L2()->log(buffer.handle());
     Ctx::Get().glVertexArrayElementBuffer(handle(), buffer.handle());
 }
 
-void VertexArray::setVertexBuffer(GLuint bindingindex,
+void VertexArray::setVertexBuffer(GLuint binding_index,
                                   const Buffer& buffer,
                                   GLintptr offset,
                                   GLsizei stride) {
+    L2()->log(binding_index, buffer.handle(), offset, stride);
     Ctx::Get().glVertexArrayVertexBuffer(handle(),
-                                         bindingindex,
+                                         binding_index,
                                          buffer.handle(),
                                          offset,
                                          stride);
 }
 
-void VertexArray::glVertexArrayAttribBinding(GLuint attribindex, GLuint bindingindex) {
-    Ctx::Get().glVertexArrayAttribBinding(handle(), attribindex, bindingindex);
+void VertexArray::setAttributeBinding(GLuint attrib_index, GLuint binding_index) {
+    L2()->log(attrib_index, binding_index);
+    Ctx::Get().glVertexArrayAttribBinding(handle(), attrib_index, binding_index);
 }
 
-void VertexArray::glVertexArrayAttribFormat(GLuint attribindex,
-                                            GLint size,
-                                            GLenum type,
-                                            GLboolean normalized,
-                                            GLuint relativeoffset) {
+void VertexArray::setAttributeFormat(GLuint attrib_index,
+                                     GLint size,
+                                     GLenum type,
+                                     GLboolean normalized,
+                                     GLuint relative_offset) {
+    L2()->log(attrib_index, size, fmt::Enum{type}, normalized, relative_offset);
     Ctx::Get().glVertexArrayAttribFormat(handle(),
-                                         attribindex,
+                                         attrib_index,
                                          size,
                                          type,
                                          normalized,
-                                         relativeoffset);
+                                         relative_offset);
 }
 
-void VertexArray::glVertexArrayBindingDivisor(GLuint bindingindex, GLuint divisor) {
-    Ctx::Get().glVertexArrayBindingDivisor(handle(), bindingindex, divisor);
+void VertexArray::setBindingDivisor(GLuint binding_index, GLuint divisor) {
+    L2()->log(binding_index, divisor);
+    Ctx::Get().glVertexArrayBindingDivisor(handle(), binding_index, divisor);
 }
 
-void VertexArray::glEnableVertexArrayAttrib(GLuint index) {
+void VertexArray::enableAttribute(GLuint index) {
+    L2()->log(index);
     Ctx::Get().glEnableVertexArrayAttrib(handle(), index);
 }
 
-void VertexArray::glDisableVertexArrayAttrib(GLuint index) {
+void VertexArray::disableAttribute(GLuint index) {
+    L2()->log(index);
     Ctx::Get().glDisableVertexArrayAttrib(handle(), index);
 }
 

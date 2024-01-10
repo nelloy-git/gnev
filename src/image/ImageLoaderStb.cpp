@@ -1,7 +1,5 @@
 #include "image/ImageLoaderStb.hpp"
 
-#include <iostream>
-
 #include "image/ImageLoaderStbResult.hpp"
 
 #define STB_IMAGE_IMPLEMENTATION
@@ -44,12 +42,6 @@ Ref<base::ImageLoaderResult> ImageLoaderStb::load(const std::filesystem::path& p
 
     Image img = stbResize(img_opt.value(), store_info, result);
 
-    std::cout << "STB_3 [0,0]: ";
-    for (int i = 0; i < 4; i++) {
-        std::cout << int(img_opt.value().data.buffer[i]) << " ";
-    }
-    std::cout << std::endl;
-
     result->image = img;
     result->messages.push_back(Done);
     done.set_value(true);
@@ -80,7 +72,7 @@ bool ImageLoaderStb::validateReadInfo(const ImageInfo& read_info,
         is_valid = false;
     }
 
-    if (read_info.type != GL_UNSIGNED_BYTE) {
+    if (read_info.type != TextureType::UNSIGNED_BYTE) {
         result.messages.push_back(UnsupportedReadType);
         is_valid = false;
     }
@@ -107,7 +99,7 @@ bool ImageLoaderStb::validateStoreInfo(const ImageInfo& store_info,
         is_valid = false;
     }
 
-    if (store_info.type != GL_UNSIGNED_BYTE) {
+    if (store_info.type != TextureType::UNSIGNED_BYTE) {
         result.messages.push_back(UnsupportedStoreType);
         is_valid = false;
     }
@@ -117,13 +109,13 @@ bool ImageLoaderStb::validateStoreInfo(const ImageInfo& store_info,
 
 unsigned int ImageLoaderStb::getComponents(const ImageInfo& info) const {
     switch (info.format) {
-    case GL_RED:
+    case TextureFormat::RED:
         return 1;
-    case GL_RG:
+    case TextureFormat::RG:
         return 2;
-    case GL_RGB:
+    case TextureFormat::RGB:
         return 3;
-    case GL_RGBA:
+    case TextureFormat::RGBA:
         return 4;
     default:
         return 0;
@@ -169,9 +161,6 @@ std::optional<Image> ImageLoaderStb::stbLoad(const std::filesystem::path& path,
 Image ImageLoaderStb::stbResize(const Image& image,
                                 const ImageInfo& store_info,
                                 ImageLoaderStbResult& result) const {
-    std::cout << "Resizing: " << image.info.width << "x" << image.info.height << " to "
-              << store_info.width << "x" << store_info.height << std::endl;
-
     if (image.info.width == store_info.width or image.info.height == store_info.height) {
         return image;
     }

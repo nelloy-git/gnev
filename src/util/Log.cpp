@@ -32,7 +32,7 @@ Log::Log() {
     quill::start();
 
     Log::quill_logger = quill::create_logger(LOGGER_NAME, {file_handler, stdout_handler});
-    Log::quill_logger->set_log_level(quill::LogLevel::TraceL2);
+    Log::quill_logger->set_log_level(quill::LogLevel::TraceL3);
 
     // quill_logger->log()
 

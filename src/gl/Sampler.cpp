@@ -2,6 +2,7 @@
 
 #include "gl/fmt/BitFlags.hpp"
 #include "gl/fmt/Enum.hpp"
+#include "gl/fmt/HandlerTraceL2.hpp"
 #include "util/Log.hpp"
 
 namespace gnev::gl {
@@ -17,42 +18,42 @@ Ref<Sampler> Sampler::MakeNearestRepeat() {
 
 Sampler::Sampler()
     : Handler(createHandle(), &deleteHandle) {
-    GNEV_TRACE_L2("Sampler_{}::ctor()", handle());
+    L2()->log();
 }
 
-Sampler::~Sampler() { GNEV_TRACE_L2("Sampler_{}::destr()", handle()); }
+Sampler::~Sampler() { L2()->log(); }
 
 void Sampler::bind(GLuint unit) {
+    L2()->log(unit);
     Ctx::Get().glBindSampler(unit, handle());
-    GNEV_TRACE_L2("Sampler_{}::bind({})", handle(), unit);
 }
 
 void Sampler::setWrapS(TextureWrapS wrap) {
+    L2()->log(wrap);
     Ctx::Get().glSamplerParameteri(handle(),
                                    GL_TEXTURE_WRAP_S,
                                    static_cast<GLenum>(wrap));
-    GNEV_TRACE_L2("Sampler_{}::setWrapS({})", handle(), wrap);
 }
 
 void Sampler::setWrapT(TextureWrapT wrap) {
+    L2()->log(wrap);
     Ctx::Get().glSamplerParameteri(handle(),
                                    GL_TEXTURE_WRAP_T,
                                    static_cast<GLenum>(wrap));
-    GNEV_TRACE_L2("Sampler_{}::setWrapT({})", handle(), wrap);
 }
 
 void Sampler::setMinFilter(TextureMinFilter filter) {
+    L2()->log(filter);
     Ctx::Get().glSamplerParameteri(handle(),
                                    GL_TEXTURE_MIN_FILTER,
                                    static_cast<GLenum>(filter));
-    GNEV_TRACE_L2("Sampler_{}::setMinFilter({})", handle(), filter);
 }
 
 void Sampler::setMagFilter(TextureMagFilter filter) {
+    L2()->log(filter);
     Ctx::Get().glSamplerParameteri(handle(),
                                    GL_TEXTURE_MAG_FILTER,
                                    static_cast<GLenum>(filter));
-    GNEV_TRACE_L2("Sampler_{}::setMagFilter({})", handle(), filter);
 }
 
 GLuint* Sampler::createHandle() {

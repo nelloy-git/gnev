@@ -18,11 +18,6 @@ public:
     virtual void set(const Image3d& image) = 0;
     virtual void get(Image3d& image) const = 0;
     virtual void change(const ImageInfo3d& info, Changer changer) = 0;
-
-    GLenum getTarget() const;
-    GLuint getWidth(GLuint level) const;
-    GLuint getHeight(GLuint level) const;
-    GLuint getDepth() const;
 };
 
 class Accessor3dSubImage : public Accessor3d {

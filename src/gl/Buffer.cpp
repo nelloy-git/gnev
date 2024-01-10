@@ -2,27 +2,26 @@
 
 #include "gl/fmt/BitFlags.hpp"
 #include "gl/fmt/Enum.hpp"
+#include "gl/fmt/HandlerTraceL2.hpp"
 #include "util/Log.hpp"
 
-using namespace gnev::gl;
+namespace gnev::gl {
 
 Buffer::Buffer()
     : Handler(createHandle(), &deleteHandle) {
-    constexpr auto s = getClassName<Buffer>();
-    constexpr auto start = s.find_last_of(':');
-    constexpr std::string s1{s.begin(), s.end()};
-    GNEV_TRACE_L2("{}()", __FUNCTION__, handle());
+
+    L2()->log();
 }
 
-Buffer::~Buffer() { GNEV_TRACE_L2("Buffer_{}::destr()", handle()); }
+Buffer::~Buffer() { L2()->log(); }
 
 void Buffer::bind(GLenum target) const {
-    GNEV_TRACE_L2("Buffer_{}::bind({})", handle(), fmt::Enum{target});
+    L2()->log(fmt::Enum{target});
     Ctx::Get().glBindBuffer(target, handle());
 }
 
 void Buffer::bindBase(GLenum target, GLuint index) const {
-    GNEV_TRACE_L2("Buffer_{}::bindBase({}, {})", handle(), fmt::Enum{target}, index);
+    L2()->log(fmt::Enum{target}, index);
     Ctx::Get().glBindBufferBase(target, index, handle());
 }
 
@@ -30,36 +29,27 @@ void Buffer::bindRange(GLenum target,
                        GLuint index,
                        GLintptr offset,
                        GLsizeiptr size) const {
-    GNEV_TRACE_L2("Buffer_{}::bindRange({}, {}, {}, {})",
-                  handle(),
-                  fmt::Enum{target},
-                  index,
-                  offset,
-                  size);
+    L2()->log(fmt::Enum{target}, index, offset, size);
     Ctx::Get().glBindBufferRange(target, index, handle(), offset, size);
 }
 
 void Buffer::initData(GLsizeiptr size, const void* data, GLenum usage) {
-    GNEV_TRACE_L2("Buffer_{}::initData({}, {})", handle(), size, data, fmt::Enum{usage});
+    L2()->log(size, data, fmt::Enum{usage});
     Ctx::Get().glNamedBufferData(handle(), size, data, usage);
 }
 
 void Buffer::initStorage(GLsizeiptr size, const void* data, GLbitfield flags) {
-    GNEV_TRACE_L2("Buffer_{}::initStorage({}, {}, {})",
-                  handle(),
-                  size,
-                  data,
-                  fmt::BitFlags{flags, fmt::BitFlags::Group::glBufferStorage});
+    L2()->log(size, data, fmt::BitFlags{flags, fmt::BitFlags::Group::glBufferStorage});
     Ctx::Get().glNamedBufferStorage(handle(), size, data, flags);
 }
 
 void Buffer::setSubData(GLintptr offset, GLsizeiptr size, const void* data) {
-    GNEV_TRACE_L2("Buffer_{}::setSubData({}, {}, {})", handle(), offset, size, data);
+    L2()->log(offset, size, data);
     Ctx::Get().glNamedBufferSubData(handle(), offset, size, data);
 }
 
 void Buffer::getSubData(GLintptr offset, GLsizeiptr size, void* data) const {
-    GNEV_TRACE_L2("Buffer_{}::getSubData({}, {}, {})", handle(), offset, size, data);
+    L2()->log(offset, size, data);
     Ctx::Get().glGetNamedBufferSubData(handle(), offset, size, data);
 }
 
@@ -67,12 +57,7 @@ void Buffer::copyTo(Buffer& writeBuffer,
                     GLintptr readOffset,
                     GLintptr writeOffset,
                     GLsizeiptr size) const {
-    GNEV_TRACE_L2("Buffer_{}::copyTo(Buffer_{}, {}, {}, {})",
-                  handle(),
-                  writeBuffer.handle(),
-                  readOffset,
-                  writeOffset,
-                  size);
+    L2()->log(writeBuffer.handle(), readOffset, writeOffset, size);
     Ctx::Get().glCopyNamedBufferSubData(handle(),
                                         writeBuffer.handle(),
                                         readOffset,
@@ -83,7 +68,7 @@ void Buffer::copyTo(Buffer& writeBuffer,
 GLint Buffer::getSize() const {
     GLint size;
     Ctx::Get().glGetNamedBufferParameteriv(handle(), GL_BUFFER_SIZE, &size);
-    GNEV_TRACE_L2("Buffer_{}::getSize() -> {}", handle(), size);
+    L2()->logRes(size);
     return size;
 }
 
@@ -92,7 +77,7 @@ bool Buffer::isStorage() const {
     Ctx::Get().glGetNamedBufferParameteriv(handle(),
                                            GL_BUFFER_IMMUTABLE_STORAGE,
                                            &is_storage);
-    GNEV_TRACE_L2("Buffer_{}::isStorage() -> {}", handle(), is_storage == GL_TRUE);
+    L2()->logRes(is_storage == GL_TRUE);
     return is_storage == GL_TRUE;
 }
 
@@ -101,33 +86,27 @@ GLbitfield Buffer::getStorageFlags() const {
     Ctx::Get().glGetNamedBufferParameteriv(handle(),
                                            GL_BUFFER_STORAGE_FLAGS,
                                            reinterpret_cast<GLint*>(&flags));
-    GNEV_TRACE_L2("Buffer_{}::getStorageFlags() -> {}",
-                  handle(),
-                  fmt::BitFlags{flags, fmt::BitFlags::Group::glBufferStorage});
+    L2()->logRes(fmt::BitFlags{flags, fmt::BitFlags::Group::glBufferStorage});
     return flags;
 }
 
 void* Buffer::map(GLenum access) {
-    GNEV_TRACE_L2("Buffer_{}::map({})", handle(), fmt::Enum{access});
+    L2()->log(fmt::Enum{access});
     return Ctx::Get().glMapNamedBuffer(handle(), access);
 }
 
 void* Buffer::mapRange(GLintptr offset, GLsizeiptr length, GLbitfield access) {
-    GNEV_TRACE_L2("Buffer_{}::mapRange({}, {}, {})",
-                  handle(),
-                  offset,
-                  length,
-                  fmt::Enum{access});
+    L2()->log(offset, length, fmt::Enum{access});
     return Ctx::Get().glMapNamedBufferRange(handle(), offset, length, access);
 }
 
 void Buffer::flushRange(GLintptr offset, GLsizeiptr length) {
-    GNEV_TRACE_L2("Buffer_{}::flushRange({}, {})", handle(), offset, length);
+    L2()->log(offset, length);
     Ctx::Get().glFlushMappedNamedBufferRange(handle(), offset, length);
 }
 
 void Buffer::unmap() {
-    GNEV_TRACE_L2("Buffer_{}::unmap()", handle());
+    L2()->log();
     Ctx::Get().glUnmapNamedBuffer(handle());
 }
 
@@ -141,3 +120,5 @@ void Buffer::deleteHandle(GLuint* handle) {
     Ctx::Get().glDeleteBuffers(1, handle);
     delete handle;
 }
+
+} // namespace gnev::gl

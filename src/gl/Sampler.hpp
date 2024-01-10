@@ -19,7 +19,7 @@ public:
     virtual ~Sampler();
 
     void bind(GLuint unit);
-    
+
     void setWrapS(TextureWrapS wrap);
     void setWrapT(TextureWrapT wrap);
     void setMinFilter(TextureMinFilter filter);

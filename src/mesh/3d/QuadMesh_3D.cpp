@@ -7,7 +7,7 @@ namespace gnev {
 using IndexView = QuadMesh_3D::IndexView;
 using DataView = QuadMesh_3D::DataView;
 
-Ref<QuadMesh_3D> QuadMesh_3D::MakeDynamic(GLuint capacity){
+Ref<QuadMesh_3D> QuadMesh_3D::MakeDynamic(GLuint capacity) {
     auto data_view = DataView::MakeDynamic(capacity);
     auto index_view = IndexView::MakeDynamic(capacity);
     return MakeSharable<QuadMesh_3D>(index_view, data_view);
@@ -40,19 +40,20 @@ void QuadMesh_3D::bindAttribute(GLuint shader_loc, GLuint attrib_loc) {
     }
 
     const base::VertexAttributeInfo& attr_info = VERT_INFO.attributes[attrib_loc];
-    vao->glVertexArrayAttribBinding(shader_loc, BUFFER_BINDING);
-    vao->glVertexArrayAttribFormat(shader_loc,
-                                   attr_info.elements,
-                                   attr_info.type,
-                                   attr_info.normalized,
-                                   VERT_INFO.offsets[attrib_loc]);
-    vao->glEnableVertexArrayAttrib(shader_loc);
+    vao->setAttributeBinding(shader_loc, BUFFER_BINDING);
+    vao->setAttributeFormat(shader_loc,
+                            attr_info.elements,
+                            attr_info.type,
+                            attr_info.normalized,
+                            VERT_INFO.offsets[attrib_loc]);
+    vao->enableAttribute(shader_loc);
 }
 
 void QuadMesh_3D::draw() const {
-    vao->glBindVertexArray();
+    vao->bind();
     gl::Ctx::Get().glDrawElements(GL_TRIANGLES,
-                                  (sizeof(IndexView::Data) / sizeof(VertGLindex_3D)) * index_view->getMaxUsed(),
+                                  (sizeof(IndexView::Data) / sizeof(VertGLindex_3D)) *
+                                      index_view->getMaxUsed(),
                                   base::IndexEnum<VertGLindex_3D>,
                                   0);
 }

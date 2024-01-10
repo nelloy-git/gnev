@@ -34,13 +34,13 @@ void Mesh::bindAttribute(Loc shader_loc, Loc attrib_loc) {
     }
 
     const gl::VertexAttributeInfo& attr_info = vertex_info->attributes[attrib_loc];
-    vao->glVertexArrayAttribBinding(shader_loc, BINDING_INDEX);
-    vao->glVertexArrayAttribFormat(shader_loc,
-                                  attr_info.elements,
-                                  attr_info.type,
-                                  attr_info.normalized,
-                                  vertex_info->offsets[attrib_loc]);
-    vao->glEnableVertexArrayAttrib(shader_loc);
+    vao->setAttributeBinding(shader_loc, BINDING_INDEX);
+    vao->setAttributeFormat(shader_loc,
+                            attr_info.elements,
+                            attr_info.type,
+                            attr_info.normalized,
+                            vertex_info->offsets[attrib_loc]);
+    vao->enableAttribute(shader_loc);
 }
 
 void Mesh::draw(std::size_t n_triangles, std::size_t first) const {

@@ -12,9 +12,9 @@ enum class TextureWrapS : GLenum {
     MIRROR_CLAMP_TO_EDGE = GL_MIRROR_CLAMP_TO_EDGE,
 };
 
-} // namespace gnev
-
 std::ostream& operator<<(std::ostream& os, const gnev::TextureWrapS& value);
+
+} // namespace gnev
 
 template <>
 struct fmtquill::formatter<gnev::TextureWrapS> : ostream_formatter {};

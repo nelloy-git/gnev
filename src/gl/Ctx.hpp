@@ -5,11 +5,14 @@
 
 #include "BS_thread_pool_light.hpp"
 #include "glad/gl.h"
+#include "util/CtString.hpp"
 #include "util/Export.hpp"
 
 struct GladGLContext;
 
 namespace gnev::gl {
+
+class CtxTraceL3;
 
 class EXPORT Ctx {
 public:
@@ -245,6 +248,10 @@ public:
                                      GLuint divisor) const;
     void glEnableVertexArrayAttrib(GLuint vaobj, GLuint index) const;
     void glDisableVertexArrayAttrib(GLuint vaobj, GLuint index) const;
+
+protected:
+    std::unique_ptr<CtxTraceL3>
+    L3(const CtString<128>& method_name = getMethodName()) const;
 
 private:
 #ifdef WIN32

@@ -73,8 +73,8 @@ Ref<gl::Program> buildProgram() {
 Ref<base::ImageLoaderResult> loadImg(ImageLoaderStb& loader,
                                      const std::filesystem::path& path,
                                      const ImageInfo& store_info) {
-    static constexpr ImageInfo read_info{.format = ImageFormat::RGBA,
-                                         .type = ImageType::UNSIGNED_BYTE};
+    static constexpr ImageInfo read_info{.format = TextureFormat::RGBA,
+                                         .type = TextureType::UNSIGNED_BYTE};
 
     auto result = loader.load(path, read_info, store_info);
 
@@ -104,8 +104,8 @@ createMaterial(const Ref<MaterialStorage_PBR>& storage,
                const std::optional<std::filesystem::path>& specular = std::nullopt) {
     static constexpr ImageInfo store_info{.width = 128,
                                           .height = 128,
-                                          .format = ImageFormat::RGBA,
-                                          .type = ImageType::UNSIGNED_BYTE};
+                                          .format = TextureFormat::RGBA,
+                                          .type = TextureType::UNSIGNED_BYTE};
 
     auto material = MakeSharable<Material_PBR>(storage);
 
@@ -282,10 +282,6 @@ int main(int argc, const char** argv) {
                                         GL_UNSIGNED_BYTE,
                                         4,
                                         pixel);
-    for (int i = 0; i < 4; i++) {
-        std::cout << int(pixel[i]) << " ";
-    }
-    std::cout << std::endl;
 
     gl::Ctx::Get().glClearColor(0, 0, 0.2f, 1.f);
     while (not close_window) {

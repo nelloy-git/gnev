@@ -1,9 +1,9 @@
 #include "gl/Program.hpp"
 
-#include <iostream>
-
 #include "gl/fmt/BitFlags.hpp"
+#include "gl/fmt/CharPtr.hpp"
 #include "gl/fmt/Enum.hpp"
+#include "gl/fmt/HandlerTraceL2.hpp"
 #include "util/Log.hpp"
 
 using namespace gnev::gl;
@@ -16,43 +16,43 @@ Program::Program()
                             Bindings<Buffer>>(getMaxUniformBufferBindings()))
     , shader_texture_samplers(std::make_unique<
                               Bindings<Texture>>(getMaxTextureImageUnits())) {
-    GNEV_TRACE_L2("Program_{}::ctor()", handle());
+    L2()->log();
 }
 
-Program::~Program() { GNEV_TRACE_L2("Program_{}::destr()", handle()); }
+Program::~Program() { L2()->log(); }
 
 void Program::attach(const Shader& shader) {
     Ctx::Get().glAttachShader(handle(), shader.handle());
-    GNEV_TRACE_L2("Program_{}::attach(Shader_{})", handle(), shader.handle());
+    L2()->log(shader.handle());
 }
 
 void Program::validate() {
     Ctx::Get().glValidateProgram(handle());
-    GNEV_TRACE_L2("Program_{}::validate()", handle());
+    L2()->log();
 }
 
 bool Program::isValidateSucceed() const {
     GLint is_valid;
     Ctx::Get().glGetProgramiv(handle(), GL_VALIDATE_STATUS, &is_valid);
-    GNEV_TRACE_L2("Program_{}::isValidateSucceed() -> {}", handle(), is_valid == GL_TRUE);
+    L2()->logRes(is_valid == GL_TRUE);
     return is_valid == GL_TRUE;
 }
 
 void Program::link() {
     Ctx::Get().glLinkProgram(handle());
-    GNEV_TRACE_L2("Program_{}::link()", handle());
+    L2()->log();
 }
 
 bool Program::isLinkSucceed() const {
     GLint is_linked;
     Ctx::Get().glGetProgramiv(handle(), GL_LINK_STATUS, &is_linked);
-    GNEV_TRACE_L2("Program_{}::isLinkSucceed() -> {}", handle(), is_linked == GL_TRUE);
+    L2()->logRes(is_linked == GL_TRUE);
     return is_linked == GL_TRUE;
 }
 
 void Program::use() const {
     Ctx::Get().glUseProgram(handle());
-    GNEV_TRACE_L2("Program_{}::use()", handle());
+    L2()->log();
 }
 
 GLsizei Program::getInfoLogLength() const {
@@ -60,7 +60,7 @@ GLsizei Program::getInfoLogLength() const {
     Ctx::Get().glGetProgramiv(handle(),
                               GL_INFO_LOG_LENGTH,
                               reinterpret_cast<GLint*>(&len));
-    GNEV_TRACE_L2("Program_{}::getInfoLogLength() -> {}", handle(), len);
+    L2()->log(len);
     return len;
 }
 
@@ -75,29 +75,27 @@ std::string Program::getInfoLog() const {
         Ctx::Get().glGetProgramInfoLog(handle(), len, &len, info_log.data());
     }
 
-    GNEV_TRACE_L2("Program_{}::getInfoLog() -> \"{}\"", handle(), info_log);
+    L2()->logRes(fmt::CharPtr{info_log.c_str()});
     return info_log;
 }
 
 GLint Program::getAttributeLoc(const GLchar* name) const {
     GLint index = Ctx::Get().glGetAttribLocation(handle(), name);
-    GNEV_TRACE_L2("Program_{}::getAttributeLoc(\"{}\") -> {}", handle(), name, index);
+    L2()->logRes(fmt::CharPtr{name}, index);
     return index;
 }
 
 GLint Program::getUniformLoc(const GLchar* name) const {
     GLint index = Ctx::Get().glGetUniformLocation(handle(), name);
-    GNEV_TRACE_L2("Program_{}::getUniformLoc(\"{}\") -> {}", handle(), name, index);
+    L2()->logRes(fmt::CharPtr{name}, index);
     return index;
 }
 
 GLint Program::getResourceIndex(GLenum interface, const GLchar* name) const {
     GLint index = Ctx::Get().glGetProgramResourceIndex(handle(), interface, name);
-    GNEV_TRACE_L2("Program_{}::getResourceIndex({}, \"{}\") -> {}",
-                  handle(),
-                  fmt::Enum{interface, fmt::Enum::Group::GetProgramResourceIndex},
-                  name,
-                  index);
+    L2()->logRes(fmt::Enum{interface, fmt::Enum::Group::GetProgramResourceIndex},
+                 fmt::CharPtr{name},
+                 index);
     return index;
 }
 
@@ -129,10 +127,7 @@ void Program::bindShaderStorageBlockBuffer(GLuint storage_block_index,
     Ctx::Get().glBindBufferBase(GL_SHADER_STORAGE_BUFFER,
                                 binding_opt.value(),
                                 buffer->handle());
-    GNEV_TRACE_L2("Program_{}::bindShaderStorageBlockBuffer({}, Buffer_{})",
-                  handle(),
-                  storage_block_index,
-                  buffer->handle());
+    L2()->log(storage_block_index, buffer->handle());
 }
 
 void Program::bindShaderUniformBlockBuffer(const GLchar* uniform_block_name,
@@ -158,10 +153,7 @@ void Program::bindShaderUniformBlockBuffer(GLuint uniform_block_index,
 
     Ctx::Get().glUniformBlockBinding(handle(), uniform_block_index, binding_opt.value());
     Ctx::Get().glBindBufferBase(GL_UNIFORM_BUFFER, binding_opt.value(), buffer->handle());
-    GNEV_TRACE_L2("Program_{}::bindShaderUniformBlockBuffer({}, Buffer_{})",
-                  handle(),
-                  uniform_block_index,
-                  buffer->handle());
+    L2()->log(uniform_block_index, buffer->handle());
 }
 
 void Program::bindShaderTextureSampler(const GLchar* texture_sampler_name,
@@ -184,15 +176,10 @@ void Program::bindShaderTextureSampler(GLuint texture_sampler_index,
     shader_texture_samplers->map[texture_sampler_index] = {binding_opt.value(),
                                                            texture.getPtr()};
 
-    std::cout << "BindShaderTextureSampler: " << texture_sampler_index << " to "
-              << binding_opt.value() << std::endl;
     Ctx::Get().glActiveTexture(GL_TEXTURE0 + binding_opt.value());
     Ctx::Get().glUniform1i(texture_sampler_index, binding_opt.value());
     Ctx::Get().glBindTexture(GL_TEXTURE_2D_ARRAY, texture->handle());
-    GNEV_TRACE_L2("Program_{}::bindShaderTextureSampler({}, Texture_{})",
-                  handle(),
-                  texture_sampler_index,
-                  texture->handle());
+    L2()->log(texture_sampler_index, texture->handle());
 }
 
 template <typename T>

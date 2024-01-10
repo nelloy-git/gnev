@@ -10,9 +10,9 @@ enum class TextureMagFilter : GLenum {
     LINEAR = GL_LINEAR
 };
 
-} // namespace gnev
+std::ostream& operator<<(std::ostream& os, const TextureMagFilter& value);
 
-std::ostream& operator<<(std::ostream& os, const gnev::TextureMagFilter& value);
+} // namespace gnev
 
 template <>
 struct fmtquill::formatter<gnev::TextureMagFilter> : ostream_formatter {};

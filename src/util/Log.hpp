@@ -35,21 +35,4 @@ private:
     static quill::Logger* quill_logger;
 };
 
-template <typename T>
-constexpr std::string_view getClassName() {
-#ifdef __clang__
-    std::string_view str = __PRETTY_FUNCTION__;
-#elif defined(__GNUC__)
-    std::string_view str = __PRETTY_FUNCTION__;
-#elif defined(_MSC_VER)
-    std::string_view str = __FUNCSIG__;
-#else
-#error "Unsupported compiler"
-#endif
-    auto start = str.find_last_of('<');
-    auto end = str.find_last_of('>');
-
-    return str.substr(start + 1, end - start);
-}
-
 } // namespace gnev

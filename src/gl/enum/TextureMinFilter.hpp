@@ -14,9 +14,9 @@ enum class TextureMinFilter : GLenum {
     LINEAR_MIPMAP_LINEAR = GL_LINEAR_MIPMAP_LINEAR
 };
 
-} // namespace gnev
-
 std::ostream& operator<<(std::ostream& os, const gnev::TextureMinFilter& value);
+
+} // namespace gnev
 
 template <>
 struct fmtquill::formatter<gnev::TextureMinFilter> : ostream_formatter {};

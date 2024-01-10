@@ -3,7 +3,9 @@
 #include <memory>
 #include <stdexcept>
 
-using namespace gnev::gl;
+#include "gl/fmt/HandlerTraceL2.hpp"
+
+namespace gnev::gl {
 
 Handler::Handler(GLuint* handle, void (*deleter)(GLuint*))
     : _handle(std::unique_ptr<GLuint, void (*)(GLuint*)>(handle, deleter)) {
@@ -12,4 +14,8 @@ Handler::Handler(GLuint* handle, void (*deleter)(GLuint*))
     }
 }
 
-Handler::~Handler() {}
+std::unique_ptr<HandlerTraceL2> Handler::L2(const CtString<128>& class_name,
+                                            const CtString<128>& method_name) const {
+    return std::make_unique<HandlerTraceL2>(handle(), class_name, method_name);
+}
+} // namespace gnev::gl
