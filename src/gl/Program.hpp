@@ -4,10 +4,12 @@
 #include "gl/Handler.hpp"
 #include "gl/Shader.hpp"
 #include "gl/Texture.hpp"
-#include "util/IndexStorage.hpp"
 #include "util/Ref.hpp"
 
 namespace gnev::gl {
+
+template <typename T>
+class ProgramBinding;
 
 class EXPORT Program : public Handler {
 public:
@@ -46,20 +48,13 @@ public:
                                   const Ref<Texture>& texture);
 
 private:
-    template <typename T>
-    struct Bindings {
-        Bindings(GLuint capacity);
-        IndexStorage binds;
-        std::unordered_map<GLuint, std::pair<GLuint, Ptr<T>>> map;
-    };
+    std::unique_ptr<ProgramBinding<Buffer>> shader_storage_blocks;
+    std::unique_ptr<ProgramBinding<Buffer>> shader_uniform_blocks;
+    std::unique_ptr<ProgramBinding<Texture>> shader_texture_samplers;
 
-    std::unique_ptr<Bindings<Buffer>> shader_storage_blocks;
-    std::unique_ptr<Bindings<Buffer>> shader_uniform_blocks;
-    std::unique_ptr<Bindings<Texture>> shader_texture_samplers;
-
-    static GLuint getMaxShaderStorageBufferBindings();
-    static GLuint getMaxUniformBufferBindings();
-    static GLuint getMaxTextureImageUnits();
+    GLuint getMaxShaderStorageBufferBindings();
+    GLuint getMaxUniformBufferBindings();
+    GLuint getMaxTextureImageUnits();
 
     static GLuint* createHandle();
     static void deleteHandle(GLuint* handle);

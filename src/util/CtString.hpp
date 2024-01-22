@@ -1,16 +1,15 @@
 #pragma once
 
+#include <algorithm>
 #include <array>
 #include <concepts>
+#include <limits>
 #include <source_location>
+#include <stdexcept>
 #include <string_view>
 
-struct CtStringInterface {
-    virtual constexpr std::string_view to_string_view() const = 0;
-};
-
 template <std::size_t Size>
-struct CtString : public CtStringInterface {
+struct CtString {
     consteval CtString(const char (&str)[Size])
         : length(initLength(str))
         , array(initArray(str)) {}
@@ -29,7 +28,7 @@ struct CtString : public CtStringInterface {
         : length(initLength(str))
         , array(initArray(str)) {}
 
-    constexpr std::string_view to_string_view() const override {
+    constexpr std::string_view to_string_view() const {
         return std::string_view(array.data(), length - 1);
     }
 
@@ -74,8 +73,8 @@ private:
     }
 };
 
-template<auto CtStr>
-consteval auto CtStringOptimize(){
+template <auto CtStr>
+consteval auto CtStringOptimize() {
     constexpr std::size_t S = CtStr.length;
     std::array<char, S> arr = {};
     std::copy(CtStr.begin(), CtStr.begin() + S, arr.begin());
@@ -144,10 +143,10 @@ consteval std::size_t cstrLength(const char* const str) {
     return i;
 }
 
-template <std::size_t Length = 128, char Filler = '\3'>
+template <std::size_t Length = 128>
 consteval auto toCtString(const char* const str) {
     std::array<char, Length> buffer = {};
-    std::fill(buffer.begin(), buffer.end(), Filler);
+    std::fill(buffer.begin(), buffer.end(), '\0');
 
     std::size_t str_length = cstrLength(str);
     if (str_length == 0) {
@@ -159,13 +158,13 @@ consteval auto toCtString(const char* const str) {
     return CtString{buffer};
 }
 
-template <std::size_t Length = 128, char Filler = '\3'>
+template <std::size_t Length = 128>
 consteval auto
 getFuncName(const std::source_location& src_loc = std::source_location::current()) {
-    return toCtString<Length, Filler>(src_loc.function_name());
+    return toCtString<Length>(src_loc.function_name());
 }
 
-template <std::size_t Length = 128, char Filler = '\3'>
+template <std::size_t Length = 128>
 consteval auto
 getMethodName(const std::source_location& src_loc = std::source_location::current()) {
     auto str = getFuncName<Length>(src_loc);
@@ -178,9 +177,47 @@ getMethodName(const std::source_location& src_loc = std::source_location::curren
     std::string_view method_name = no_args.substr(method_start + 1);
 
     std::array<char, Length> arr = {};
-    std::fill(arr.begin(), arr.end(), Filler);
+    std::fill(arr.begin(), arr.end(), '\0');
     std::copy(method_name.data(),
               method_name.data() + std::min(method_name.length(), Length),
+              arr.begin());
+    arr[Length - 1] = '\0';
+
+    return CtString{arr};
+}
+
+template <std::size_t Length = 128>
+consteval auto
+getClassName(const std::source_location& src_loc = std::source_location::current()) {
+    constexpr auto namespaces_to_remove = std::array{
+        "gnev::",
+        "gnev::gl::",
+    };
+
+    auto str = getFuncName(src_loc);
+    auto func_name = str.to_string_view();
+
+    std::size_t class_start = func_name.find(' ');
+    std::string_view no_res = func_name.substr(class_start + 1);
+    std::size_t args_start = no_res.find('(');
+    std::string_view no_args = no_res.substr(0, args_start);
+    std::size_t method_start = no_args.find_last_of(':');
+    std::string_view full_class = no_args.substr(0, method_start - 1);
+
+    std::string_view class_name = full_class;
+    for (auto& ns : namespaces_to_remove) {
+        std::string str{ns};
+        std::size_t pos = full_class.find(str);
+        if (pos != std::string::npos and
+            class_name.length() > full_class.length() - str.length()) {
+            class_name = full_class.substr(pos + str.length());
+        }
+    }
+
+    std::array<char, Length> arr = {};
+    std::fill(arr.begin(), arr.end(), '\0');
+    std::copy(class_name.data(),
+              class_name.data() + std::min(class_name.length(), Length),
               arr.begin());
     arr[Length - 1] = '\0';
 

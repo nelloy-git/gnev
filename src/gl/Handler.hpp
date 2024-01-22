@@ -7,7 +7,7 @@
 
 namespace gnev::gl {
 
-class HandlerTraceL2;
+class HandlerLog;
 
 class EXPORT Handler {
 public:
@@ -20,13 +20,9 @@ public:
     inline GLuint handle() const { return *_handle; };
 
 protected:
-    // std::unique_ptr<HandlerTraceL2>
-    // L2(const CtString<128>& class_name = getClassName(),
-    //    const CtString<128>& method_name = getMethodName()) const;
-    std::unique_ptr<HandlerTraceL2>
-    L2() const;
-
-    // GNEV_REGISTER_HANDLER_TRACE_L2(TRACE_L2, WITH_RES_L2);
+    std::unique_ptr<HandlerLog>
+    L2(const std::string_view& class_name = getClassName().to_string_view(),
+       const std::string_view& method_name = getMethodName().to_string_view()) const;
 
 private:
     std::unique_ptr<GLuint, void (*)(GLuint*)> _handle;

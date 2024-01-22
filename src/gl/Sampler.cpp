@@ -2,7 +2,7 @@
 
 #include "gl/fmt/BitFlags.hpp"
 #include "gl/fmt/Enum.hpp"
-#include "gl/fmt/HandlerTraceL2.hpp"
+#include "gl/fmt/HandlerLog.hpp"
 #include "util/Log.hpp"
 
 namespace gnev::gl {

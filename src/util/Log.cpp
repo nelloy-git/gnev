@@ -20,6 +20,10 @@ Log::Log() {
         return cfg;
     }());
     file_handler->set_log_level(quill::LogLevel::TraceL3);
+    file_handler->set_pattern("%(ascii_time) [%(thread)] %(logger_name) %(level_name) - "
+                              "%(message)",              // format
+                              "%H:%M:%S.%Qms",     // timestamp format
+                              quill::Timezone::GmtTime); // timestamp's timezone
 
     auto stdout_handler = quill::stdout_handler();
     stdout_handler->set_log_level(quill::LogLevel::Debug);

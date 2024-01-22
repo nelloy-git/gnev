@@ -6,7 +6,7 @@
 
 #include "gl/fmt/BitFlags.hpp"
 #include "gl/fmt/CharPtr.hpp"
-#include "gl/fmt/CtxTraceL3.hpp"
+#include "gl/fmt/CtxLog.hpp"
 #include "gl/fmt/Enum.hpp"
 #include "util/Log.hpp"
 
@@ -245,6 +245,7 @@ void Ctx::glGetNamedBufferParameteriv(GLuint buffer, GLenum pname, GLint* params
 }
 
 void* Ctx::glMapNamedBuffer(GLuint buffer, GLenum access) const {
+    L3()->logRes(buffer, fmt::Enum{access}, CALL);
     void* map = glad->MapNamedBuffer(buffer, access);
     L3()->logRes(buffer, fmt::Enum{access}, map);
     return map;
@@ -254,6 +255,7 @@ void* Ctx::glMapNamedBufferRange(GLuint buffer,
                                  GLintptr offset,
                                  GLsizeiptr length,
                                  GLbitfield access) const {
+    L3()->logRes(buffer, offset, length, access, CALL);
     void* map = glad->MapNamedBufferRange(buffer, offset, length, access);
     L3()->logRes(buffer, offset, length, access, map);
     return map;
@@ -272,6 +274,7 @@ void Ctx::glUnmapNamedBuffer(GLuint buffer) const {
 }
 
 GLuint Ctx::glCreateShader(GLenum type) const {
+    L3()->logRes(fmt::Enum{type}, CALL);
     GLuint shader = glad->CreateShader(type);
     L3()->logRes(fmt::Enum{type}, shader);
     return shader;
@@ -315,6 +318,7 @@ void Ctx::glGetShaderInfoLog(GLuint shader,
 }
 
 GLuint Ctx::glCreateProgram() const {
+    L3()->logRes(CALL);
     GLuint program = glad->CreateProgram();
     L3()->logRes(program);
     return program;
@@ -367,6 +371,7 @@ void Ctx::glUniform1i(GLint location, GLint v0) const {
 }
 
 GLint Ctx::glGetUniformBlockIndex(GLuint program, const GLchar* uniformBlockName) const {
+    L3()->logRes(program, fmt::CharPtr{uniformBlockName}, CALL);
     GLint index = glad->GetUniformBlockIndex(program, uniformBlockName);
     L3()->logRes(program, fmt::CharPtr{uniformBlockName}, index);
     return index;
@@ -382,6 +387,7 @@ void Ctx::glUniformBlockBinding(GLuint program,
 GLint Ctx::glGetProgramResourceIndex(GLuint program,
                                      GLenum programInterface,
                                      const GLchar* name) const {
+    L3()->logRes(program, fmt::Enum{programInterface}, fmt::CharPtr{name}, CALL);
     GLint index = glad->GetProgramResourceIndex(program, programInterface, name);
     L3()->logRes(program, fmt::Enum{programInterface}, fmt::CharPtr{name}, index);
     return index;
@@ -395,12 +401,14 @@ void Ctx::glShaderStorageBlockBinding(GLuint program,
 }
 
 GLint Ctx::glGetAttribLocation(GLuint program, const GLchar* name) const {
+    L3()->logRes(program, fmt::CharPtr{name}, CALL);
     GLint loc = glad->GetAttribLocation(program, name);
     L3()->logRes(program, fmt::CharPtr{name}, loc);
     return loc;
 }
 
 GLint Ctx::glGetUniformLocation(GLuint program, const GLchar* name) const {
+    L3()->logRes(program, fmt::CharPtr{name}, CALL);
     GLint loc = glad->GetUniformLocation(program, name);
     L3()->logRes(program, fmt::CharPtr{name}, loc);
     return loc;
@@ -716,6 +724,6 @@ void Ctx::glDisableVertexArrayAttrib(GLuint vaobj, GLuint index) const {
     glad->DisableVertexArrayAttrib(vaobj, index);
 }
 
-// std::unique_ptr<CtxTraceL3> Ctx::L3(const CtString<128>& member_name) const {
-//     return std::make_unique<CtxTraceL3>(member_name);
-// }
+std::unique_ptr<CtxLog> Ctx::L3(const std::string_view& method_name) const {
+    return std::make_unique<CtxLog>(method_name);
+}

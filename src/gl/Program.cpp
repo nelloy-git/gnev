@@ -3,19 +3,19 @@
 #include "gl/fmt/BitFlags.hpp"
 #include "gl/fmt/CharPtr.hpp"
 #include "gl/fmt/Enum.hpp"
-#include "gl/fmt/HandlerTraceL2.hpp"
-#include "util/Log.hpp"
+#include "gl/fmt/HandlerLog.hpp"
+#include "gl/program/ProgramBinding.hpp"
 
 using namespace gnev::gl;
 
 Program::Program()
     : Handler(createHandle(), &deleteHandle)
     , shader_storage_blocks(std::make_unique<
-                            Bindings<Buffer>>(getMaxShaderStorageBufferBindings()))
+                            ProgramBinding<Buffer>>(getMaxShaderStorageBufferBindings()))
     , shader_uniform_blocks(std::make_unique<
-                            Bindings<Buffer>>(getMaxUniformBufferBindings()))
+                            ProgramBinding<Buffer>>(getMaxUniformBufferBindings()))
     , shader_texture_samplers(std::make_unique<
-                              Bindings<Texture>>(getMaxTextureImageUnits())) {
+                              ProgramBinding<Texture>>(getMaxTextureImageUnits())) {
     L2()->log();
 }
 
@@ -108,26 +108,19 @@ void Program::bindShaderStorageBlockBuffer(const GLchar* storage_block_name,
 
 void Program::bindShaderStorageBlockBuffer(GLuint storage_block_index,
                                            const Ref<Buffer>& buffer) {
-    auto iter = shader_storage_blocks->map.find(storage_block_index);
-    if (iter != shader_storage_blocks->map.end()) {
-        GLuint binding = iter->second.first;
-        shader_storage_blocks->binds.freeIndex(binding);
+    L2()->log(storage_block_index, buffer->handle());
+    std::optional<GLuint> binding_index_opt =
+        shader_storage_blocks->set(storage_block_index, buffer.getPtr());
+    if (not binding_index_opt) {
+        Log::ERROR("No free binds left");
+        return;
     }
-
-    auto binding_opt = shader_storage_blocks->binds.useIndex();
-    if (not binding_opt) {
-        throw std::out_of_range("");
-    }
-    shader_storage_blocks->map[storage_block_index] = {binding_opt.value(),
-                                                       buffer.getPtr()};
-
     Ctx::Get().glShaderStorageBlockBinding(handle(),
                                            storage_block_index,
-                                           binding_opt.value());
+                                           binding_index_opt.value());
     Ctx::Get().glBindBufferBase(GL_SHADER_STORAGE_BUFFER,
-                                binding_opt.value(),
+                                binding_index_opt.value(),
                                 buffer->handle());
-    L2()->log(storage_block_index, buffer->handle());
 }
 
 void Program::bindShaderUniformBlockBuffer(const GLchar* uniform_block_name,
@@ -138,22 +131,20 @@ void Program::bindShaderUniformBlockBuffer(const GLchar* uniform_block_name,
 
 void Program::bindShaderUniformBlockBuffer(GLuint uniform_block_index,
                                            const Ref<Buffer>& buffer) {
-    auto iter = shader_uniform_blocks->map.find(uniform_block_index);
-    if (iter != shader_uniform_blocks->map.end()) {
-        GLuint binding = iter->second.first;
-        shader_uniform_blocks->binds.freeIndex(binding);
-    }
-
-    auto binding_opt = shader_uniform_blocks->binds.useIndex();
-    if (not binding_opt) {
-        throw std::out_of_range("");
-    }
-    shader_uniform_blocks->map[uniform_block_index] = {binding_opt.value(),
-                                                       buffer.getPtr()};
-
-    Ctx::Get().glUniformBlockBinding(handle(), uniform_block_index, binding_opt.value());
-    Ctx::Get().glBindBufferBase(GL_UNIFORM_BUFFER, binding_opt.value(), buffer->handle());
     L2()->log(uniform_block_index, buffer->handle());
+    std::optional<GLuint> binding_index_opt =
+        shader_uniform_blocks->set(uniform_block_index, buffer.getPtr());
+    if (not binding_index_opt) {
+        Log::ERROR("No free binds left");
+        return;
+    }
+
+    Ctx::Get().glUniformBlockBinding(handle(),
+                                     uniform_block_index,
+                                     binding_index_opt.value());
+    Ctx::Get().glBindBufferBase(GL_UNIFORM_BUFFER,
+                                binding_index_opt.value(),
+                                buffer->handle());
 }
 
 void Program::bindShaderTextureSampler(const GLchar* texture_sampler_name,
@@ -163,36 +154,25 @@ void Program::bindShaderTextureSampler(const GLchar* texture_sampler_name,
 
 void Program::bindShaderTextureSampler(GLuint texture_sampler_index,
                                        const Ref<Texture>& texture) {
-    auto iter = shader_texture_samplers->map.find(texture_sampler_index);
-    if (iter != shader_texture_samplers->map.end()) {
-        GLuint binding = iter->second.first;
-        shader_texture_samplers->binds.freeIndex(binding);
-    }
-
-    auto binding_opt = shader_texture_samplers->binds.useIndex();
-    if (not binding_opt) {
-        throw std::out_of_range("");
-    }
-    shader_texture_samplers->map[texture_sampler_index] = {binding_opt.value(),
-                                                           texture.getPtr()};
-
-    Ctx::Get().glActiveTexture(GL_TEXTURE0 + binding_opt.value());
-    Ctx::Get().glUniform1i(texture_sampler_index, binding_opt.value());
-    Ctx::Get().glBindTexture(GL_TEXTURE_2D_ARRAY, texture->handle());
     L2()->log(texture_sampler_index, texture->handle());
+    std::optional<GLuint> binding_index_opt =
+        shader_texture_samplers->set(texture_sampler_index, texture.getPtr());
+    if (not binding_index_opt) {
+        Log::ERROR("No free binds left");
+        return;
+    }
+    Ctx::Get().glActiveTexture(GL_TEXTURE0 + binding_index_opt.value());
+    Ctx::Get().glUniform1i(texture_sampler_index, binding_index_opt.value());
+    Ctx::Get().glBindTexture(GL_TEXTURE_2D_ARRAY, texture->handle());
 }
-
-template <typename T>
-Program::Bindings<T>::Bindings(GLuint capacity)
-    : binds(capacity) {}
 
 GLuint Program::getMaxShaderStorageBufferBindings() {
     static GLuint MAX_SHADER_STORAGE_BUFFER_BINDINGS = []() {
         GLint value;
         Ctx::Get().glGetIntegerv(GL_MAX_SHADER_STORAGE_BUFFER_BINDINGS, &value);
-        GNEV_TRACE_L2("GL_MAX_SHADER_STORAGE_BUFFER_BINDINGS = {}", value);
         return value;
     }();
+    L2()->logRes(MAX_SHADER_STORAGE_BUFFER_BINDINGS);
     return MAX_SHADER_STORAGE_BUFFER_BINDINGS;
 }
 
@@ -200,9 +180,9 @@ GLuint Program::getMaxUniformBufferBindings() {
     static GLuint MAX_UNIFORM_BUFFER_BINDINGS = []() {
         GLint value;
         Ctx::Get().glGetIntegerv(GL_MAX_UNIFORM_BUFFER_BINDINGS, &value);
-        GNEV_TRACE_L2("GL_MAX_UNIFORM_BUFFER_BINDINGS = {}", value);
         return value;
     }();
+    L2()->logRes(MAX_UNIFORM_BUFFER_BINDINGS);
     return MAX_UNIFORM_BUFFER_BINDINGS;
 }
 
@@ -210,9 +190,9 @@ GLuint Program::getMaxTextureImageUnits() {
     static GLuint MAX_TEXTURE_IMAGE_UNITS = []() {
         GLint value;
         Ctx::Get().glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &value);
-        GNEV_TRACE_L2("GL_MAX_TEXTURE_IMAGE_UNITS = {}", value);
         return value;
     }();
+    L2()->logRes(MAX_TEXTURE_IMAGE_UNITS);
     return MAX_TEXTURE_IMAGE_UNITS;
 }
 

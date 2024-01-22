@@ -12,7 +12,7 @@ struct GladGLContext;
 
 namespace gnev::gl {
 
-struct CtxTraceL3;
+struct CtxLog;
 
 class EXPORT Ctx {
 public:
@@ -250,9 +250,9 @@ public:
     void glDisableVertexArrayAttrib(GLuint vaobj, GLuint index) const;
 
 protected:
-    auto L3(const CtStringInterface& member_name = CtStringOptimize<getMethodName()>()) const {
-        return std::make_unique<CtxTraceL3>(member_name);
-    }
+    static constexpr std::string CALL = "Call";
+    std::unique_ptr<CtxLog>
+    L3(const std::string_view& method_name = getMethodName().to_string_view()) const;
 
 private:
 #ifdef WIN32
