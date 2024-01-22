@@ -5,74 +5,100 @@
 #include <source_location>
 #include <string_view>
 
-consteval std::size_t cstrLength(const char* const str, std::size_t max_length) {
-    size_t i = 0;
-    if (str)
-        for (; i < max_length and str[i] != '\0'; ++i)
-            ;
-    return i;
-}
+struct CtStringInterface {
+    virtual constexpr std::string_view to_string_view() const = 0;
+};
 
-template <std::size_t Length>
-struct CtString {
-    consteval CtString(const char (&str)[Length]) {
-        length = cstrLength(str, Length);
-        std::copy(std::begin(str), std::end(str), data.begin());
+template <std::size_t Size>
+struct CtString : public CtStringInterface {
+    consteval CtString(const char (&str)[Size])
+        : length(initLength(str))
+        , array(initArray(str)) {}
+
+    consteval CtString(const std::array<char, Size>& str)
+        : length(initLength(str))
+        , array(initArray(str)) {}
+
+    template <std::size_t S>
+    consteval CtString(const char (&str)[S])
+        : length(initLength(str))
+        , array(initArray(str)) {}
+
+    template <std::size_t S>
+    consteval CtString(const std::array<char, S>& str)
+        : length(initLength(str))
+        , array(initArray(str)) {}
+
+    constexpr std::string_view to_string_view() const override {
+        return std::string_view(array.data(), length - 1);
     }
 
-    consteval CtString(const std::array<char, Length>& str) {
-        length = cstrLength(str.data(), Length);
-        std::copy(std::begin(str), std::end(str), data.begin());
-    }
+    consteval auto begin() const { return array.begin(); }
 
-    static consteval auto toCtString(const char* const str) {
-        std::size_t len = cstrLength(str, 512);
+    consteval auto end() const { return array.end(); }
 
-        std::array<char, Length> arr = {};
-        std::copy(str, str + std::min(len, Length), arr.begin());
-        return CtString<Length>(arr);
-    }
+    const std::size_t length;
+    const std::array<char, Size> array;
 
-    std::size_t length;
-    std::array<char, Length> data = {};
-
-    constexpr std::string_view to_string_view() const {
-        return std::string_view(data.data(), length);
-    }
-
-    consteval bool isNullTerm() const { return length < Length; }
-
-    consteval auto begin() const { return data.begin(); }
-
-    consteval auto end() const { return isNullTerm() ? data.end() - 1 : data.end(); }
-
-    template <std::size_t N>
-    consteval auto repeat() const {
-        if constexpr (N == 0) {
-            return CtString<1>{""};
-        } else {
-            std::array<char, N* length> arr = {};
-            for (int i = 0; i < N; ++i) {
-                for (int j = 0; j < length; ++j) {
-                    arr[i * length + j] = data.data()[j];
-                }
-            }
-            return CtString{arr};
+private:
+    template <std::size_t S>
+    static consteval std::size_t initLength(const char (&str)[S]) {
+        auto term = std::find(std::begin(str), std::end(str), '\0');
+        if (term == std::end(str)) {
+            throw std::logic_error("CtString supports nullterm strings only");
         }
+        return std::distance(std::begin(str), term + 1);
+    }
+
+    template <std::size_t S>
+    static consteval std::array<char, Size> initArray(const char (&str)[S]) {
+        std::array<char, Size> res = {};
+        std::copy(std::begin(str), std::end(str), res.begin());
+        return res;
+    }
+
+    template <std::size_t S>
+    static consteval std::size_t initLength(const std::array<char, S>& str) {
+        auto term = std::find(std::begin(str), std::end(str), '\0');
+        if (term == std::end(str)) {
+            throw std::logic_error("CtString supports nullterm strings only");
+        }
+        return std::distance(std::begin(str), term + 1);
+    }
+
+    template <std::size_t S>
+    static consteval std::array<char, Size> initArray(const std::array<char, S>& str) {
+        std::array<char, Size> res = {};
+        std::copy(std::begin(str), std::end(str), res.begin());
+        return res;
     }
 };
 
+template<auto CtStr>
+consteval auto CtStringOptimize(){
+    constexpr std::size_t S = CtStr.length;
+    std::array<char, S> arr = {};
+    std::copy(CtStr.begin(), CtStr.begin() + S, arr.begin());
+    return CtString{arr};
+}
+
 template <auto... CtStrs>
-consteval auto CtStringConcat() {
-    std::array<char, (CtStrs.length + ... + 0)> arr{};
+consteval std::size_t CtStringConcatLength() {
+    return (CtStrs.length + ... + 0) - sizeof...(CtStrs) + 1;
+}
+
+template <auto... CtStrs, std::size_t Size = CtStringConcatLength<CtStrs...>()>
+consteval CtString<Size> CtStringConcat() {
+    std::array<char, Size> arr{};
 
     std::size_t p = 0;
     (
         [&arr, &p]() {
-            std::copy(CtStrs.begin(), CtStrs.end(), arr.begin() + p);
-            p += CtStrs.length;
+            std::copy(CtStrs.begin(), CtStrs.end() - 1, arr.begin() + p);
+            p += CtStrs.length - 1;
         }(),
         ...);
+    arr[Size - 1] = '\0';
     return CtString{arr};
 }
 
@@ -81,12 +107,14 @@ consteval auto CtStringRepeat() {
     if constexpr (N == 0) {
         return CtString<1>{""};
     } else {
-        std::array<char, N* CtStr.length> arr = {};
+        constexpr std::size_t L = N * (CtStr.length - 1) + 1;
+        std::array<char, L> arr = {};
         for (int i = 0; i < N; ++i) {
-            for (int j = 0; j < CtStr.length; ++j) {
-                arr[i * CtStr.length + j] = CtStr.data.data()[j];
+            for (int j = 0; j < CtStr.length - 1; ++j) {
+                arr[i * (CtStr.length - 1) + j] = CtStr.array.data()[j];
             }
         }
+        arr[L - 1] = '\0';
         return CtString{arr};
     }
 }
@@ -102,46 +130,45 @@ consteval auto CtStringRepeatSep() {
     }
 }
 
-template <std::size_t MaxLength = 128>
+consteval std::size_t cstrLength(const char* const str) {
+    constexpr std::size_t MAX_LEN = std::numeric_limits<std::size_t>::max();
+    if (not str) {
+        return 0;
+    }
+
+    size_t i = 0;
+    while (i <= MAX_LEN and str[i] != '\0') {
+        ++i;
+    }
+
+    return i;
+}
+
+template <std::size_t Length = 128, char Filler = '\3'>
+consteval auto toCtString(const char* const str) {
+    std::array<char, Length> buffer = {};
+    std::fill(buffer.begin(), buffer.end(), Filler);
+
+    std::size_t str_length = cstrLength(str);
+    if (str_length == 0) {
+        throw std::logic_error("toCtString received empty string");
+    }
+    std::copy(str, str + std::min(Length - 1, str_length - 1), buffer.begin());
+    buffer[Length - 1] = '\0';
+
+    return CtString{buffer};
+}
+
+template <std::size_t Length = 128, char Filler = '\3'>
 consteval auto
 getFuncName(const std::source_location& src_loc = std::source_location::current()) {
-    auto str = src_loc.function_name();
-
-    std::array<char, MaxLength> arr = {};
-    std::copy(str, str + cstrLength(str, MaxLength), arr.begin());
-    return CtString{arr};
+    return toCtString<Length, Filler>(src_loc.function_name());
 }
 
-template <std::size_t MaxLength = 128>
-consteval auto
-getClassName(const std::source_location& src_loc = std::source_location::current()) {
-    auto str = getFuncName(src_loc);
-    auto func_name = str.to_string_view();
-
-    std::size_t class_start = func_name.find(' ');
-    std::string_view no_res = func_name.substr(class_start + 1);
-
-    std::size_t args_start = no_res.find('(');
-    std::string_view no_args = no_res.substr(0, args_start);
-
-    std::size_t method_start = no_args.find_last_of(':');
-    std::string_view full_class = no_args.substr(0, method_start - 1);
-
-    std::size_t namespace_start = full_class.find("gnev::gl::");
-    std::string_view class_name =
-        full_class.substr(std::min(sizeof("gnev::gl::") - 1, full_class.length()));
-
-    std::array<char, MaxLength> arr = {};
-    std::copy(class_name.data(),
-              class_name.data() + std::min(class_name.length(), MaxLength),
-              arr.begin());
-    return CtString{arr};
-}
-
-template <std::size_t MaxLength = 128>
+template <std::size_t Length = 128, char Filler = '\3'>
 consteval auto
 getMethodName(const std::source_location& src_loc = std::source_location::current()) {
-    auto str = getFuncName(src_loc);
+    auto str = getFuncName<Length>(src_loc);
     auto func_name = str.to_string_view();
 
     std::size_t args_start = func_name.find('(');
@@ -150,10 +177,12 @@ getMethodName(const std::source_location& src_loc = std::source_location::curren
     std::size_t method_start = no_args.find_last_of(':');
     std::string_view method_name = no_args.substr(method_start + 1);
 
-    std::array<char, MaxLength> arr = {};
+    std::array<char, Length> arr = {};
+    std::fill(arr.begin(), arr.end(), Filler);
     std::copy(method_name.data(),
-              method_name.data() + std::min(method_name.length(), MaxLength),
+              method_name.data() + std::min(method_name.length(), Length),
               arr.begin());
+    arr[Length - 1] = '\0';
 
     return CtString{arr};
 }

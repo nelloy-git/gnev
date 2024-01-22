@@ -7,62 +7,52 @@ namespace gnev::gl {
 
 struct CtxTraceL3 {
     template <std::size_t ArgsN>
-    static consteval auto getPattern() {
+    static consteval auto getFmt() {
         constexpr CtString Prefix{"{}("};
-        constexpr CtString Suffix = {")"};
         constexpr CtString Body =
-            CtStringRepeatSep<CtString("{}"), CtString(", "), ArgsN>();
+            CtStringRepeatSep<CtString{"{}"}, CtString{", "}, ArgsN>();
+        constexpr CtString Suffix{")"};
         return CtStringConcat<Prefix, Body, Suffix>();
     }
 
     template <std::size_t ArgsN>
-    static consteval auto getPatternRes() {
+    static consteval auto getFmtRes() {
         constexpr CtString Prefix{"{}("};
+        constexpr CtString Body =
+            CtStringRepeatSep<CtString("{}"), CtString(", "), ArgsN>();
         constexpr CtString Suffix = {") -> {}"};
-        constexpr CtString Body =
-            CtStringRepeatSep<CtString("{}"), CtString(", "), ArgsN>();
         return CtStringConcat<Prefix, Body, Suffix>();
     }
 
     template <std::size_t ArgsN>
-    static consteval auto getPatternPtr() {
+    static consteval auto getFmtPtr() {
         constexpr CtString Prefix{"{} -> "};
         constexpr CtString Body =
             CtStringRepeatSep<CtString("{}"), CtString(", "), ArgsN>();
         return CtStringConcat<Prefix, Body>();
     }
 
-    template <typename... Args>
-    CtxTraceL3(const CtString<128>& method_name)
-        : method_name(method_name) {}
+    CtxTraceL3(const CtStringInterface& member_name)
+        : member_name(member_name) {}
 
-    const CtString<128>& method_name;
+    const CtStringInterface& member_name;
 
     template <typename... Args>
     void log(Args&&... args) {
-        if constexpr (QUILL_ACTIVE_LOG_LEVEL <= QUILL_LOG_LEVEL_TRACE_L3) {
-            static constexpr auto Pattern = getPattern<sizeof...(args)>();
-            static constexpr std::string_view PatternView = Pattern.to_string_view();
-            GNEV_TRACE_L3(PatternView, method_name.to_string_view(), args...);
-        }
+        static constexpr auto Fmt = getFmt<sizeof...(args)>();
+        Log::template L3<Fmt>(member_name.to_string_view(), std::forward<Args>(args)...);
     }
 
     template <typename... Args>
     void logRes(Args&&... args) {
-        if constexpr (QUILL_ACTIVE_LOG_LEVEL <= QUILL_LOG_LEVEL_TRACE_L3) {
-            static constexpr auto Pattern = getPatternRes<sizeof...(args) - 1>();
-            static constexpr std::string_view PatternView = Pattern.to_string_view();
-            GNEV_TRACE_L3(PatternView, method_name.to_string_view(), args...);
-        }
+        static constexpr auto Fmt = getFmtRes<sizeof...(args) - 1>();
+        Log::template L3<Fmt>(member_name.to_string_view(), std::forward<Args>(args)...);
     }
 
     template <typename... Args>
     void logPtr(const void* const ptr, Args&&... args) {
-        if constexpr (QUILL_ACTIVE_LOG_LEVEL <= QUILL_LOG_LEVEL_TRACE_L3) {
-            static constexpr auto Pattern = getPatternPtr<sizeof...(args)>();
-            static constexpr std::string_view PatternView = Pattern.to_string_view();
-            GNEV_TRACE_L3(PatternView, ptr, args...);
-        }
+        static constexpr auto Fmt = getFmtPtr<sizeof...(args)>();
+        Log::template L3<Fmt>(ptr, std::forward<Args>(args)...);
     }
 };
 

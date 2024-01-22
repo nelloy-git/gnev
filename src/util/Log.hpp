@@ -6,6 +6,7 @@
 
 #include "quill/Quill.h"
 #include "util/Export.hpp"
+#include "util/CtString.hpp"
 
 namespace gnev {
 
@@ -27,6 +28,9 @@ static constexpr auto LOGGER_NAME = "gnev";
 class EXPORT Log {
 public:
     static void init();
+
+    template<auto Fmt>
+    static void L3(auto&&... args) { QUILL_LOG_TRACE_L3(quill_logger, Fmt.array.data(), args...); }
 
 private:
     Log();

@@ -93,7 +93,8 @@
         "bitset": "cpp",
         "cinttypes": "cpp",
         "source_location": "cpp",
-        "codecvt": "cpp"
+        "codecvt": "cpp",
+        "string_view": "cpp"
     },
     "cSpell.words": [
         "gnev",

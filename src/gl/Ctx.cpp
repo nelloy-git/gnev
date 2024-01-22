@@ -716,6 +716,6 @@ void Ctx::glDisableVertexArrayAttrib(GLuint vaobj, GLuint index) const {
     glad->DisableVertexArrayAttrib(vaobj, index);
 }
 
-std::unique_ptr<CtxTraceL3> Ctx::L3(const CtString<128>& method_name) const {
-    return std::make_unique<CtxTraceL3>(method_name);
-}
+// std::unique_ptr<CtxTraceL3> Ctx::L3(const CtString<128>& member_name) const {
+//     return std::make_unique<CtxTraceL3>(member_name);
+// }
