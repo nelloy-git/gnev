@@ -1,5 +1,7 @@
 #pragma once
 
+#include <future>
+
 #include "image/ImageLoader.hpp"
 
 namespace gnev {

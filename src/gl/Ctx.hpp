@@ -3,7 +3,6 @@
 #include <memory>
 #include <stdexcept>
 
-#include "BS_thread_pool_light.hpp"
 #include "glad/gl.h"
 #include "util/CtString.hpp"
 #include "util/Export.hpp"
@@ -20,25 +19,9 @@ public:
     using LoadFunc = ApiProc (*)(const char*);
 
     static void Init(LoadFunc load_func);
-    static void Init(LoadFunc load_func,
-                     std::unique_ptr<BS::thread_pool_light>&& gl_workers);
     static bool IsInited();
     static Ctx& Get();
     virtual ~Ctx() = default;
-
-    template <typename F,
-              typename... A,
-              typename R = std::invoke_result_t<std::decay_t<F>, std::decay_t<A>...>>
-    std::future<R> submit(F&& task, A&&... args) {
-        if (workers) {
-            return workers->submit(std::forward<F>(task), std::forward<A>(args)...);
-        } else {
-            std::promise<R> promise;
-            std::future<R> future = promise.get_future();
-            promise.set_value(std::forward<F>(task)(std::forward<A>(args)...));
-            return future;
-        }
-    }
 
 public:
     // Global
@@ -264,7 +247,6 @@ private:
     Ctx(LoadFunc load_func);
 
     std::unique_ptr<GladGLContext> glad;
-    std::unique_ptr<BS::thread_pool_light> workers;
 };
 
 } // namespace gnev::gl

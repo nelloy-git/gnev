@@ -1,5 +1,7 @@
 #pragma once
 
+#include <functional>
+
 #include "gl/Buffer.hpp"
 #include "util/Ref.hpp"
 
