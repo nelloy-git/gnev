@@ -4,12 +4,10 @@
 #include "gl/Handler.hpp"
 #include "gl/Shader.hpp"
 #include "gl/Texture.hpp"
+#include "gl/program/ProgramBinding.hpp"
 #include "util/Ref.hpp"
 
 namespace gnev::gl {
-
-template <typename T>
-class ProgramBinding;
 
 class EXPORT Program : public Handler {
 public:

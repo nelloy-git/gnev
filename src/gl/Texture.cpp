@@ -11,7 +11,7 @@ Texture::Texture(GLenum target)
     L2()->log(target);
 }
 
-Texture::~Texture() {}
+Texture::~Texture() { L2()->log(); }
 
 void Texture::bind(TextureTarget target) const {
     L2()->log(target);

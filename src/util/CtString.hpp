@@ -8,7 +8,11 @@
 #include <stdexcept>
 #include <string_view>
 
-template <std::size_t Size>
+namespace gnev {
+
+constexpr std::size_t DEFAULT_CTSTRING_SIZE = 128;
+
+template <std::size_t Size = DEFAULT_CTSTRING_SIZE>
 struct CtString {
     consteval CtString(const char (&str)[Size])
         : length(initLength(str))
@@ -132,7 +136,7 @@ consteval auto CtStringRepeatSep() {
 consteval std::size_t cstrLength(const char* const str) {
     constexpr std::size_t MAX_LEN = std::numeric_limits<std::size_t>::max();
     if (not str) {
-        return 0;
+        throw std::logic_error("cstrLength got nullptr");
     }
 
     size_t i = 0;
@@ -143,22 +147,21 @@ consteval std::size_t cstrLength(const char* const str) {
     return i;
 }
 
-template <std::size_t Length = 128>
+template <std::size_t Length = DEFAULT_CTSTRING_SIZE>
 consteval auto toCtString(const char* const str) {
     std::array<char, Length> buffer = {};
     std::fill(buffer.begin(), buffer.end(), '\0');
 
     std::size_t str_length = cstrLength(str);
-    if (str_length == 0) {
-        throw std::logic_error("toCtString received empty string");
+    if (str_length != 0) {
+        std::copy(str, str + std::min(Length - 1, str_length - 1), buffer.begin());
+        buffer[Length - 1] = '\0';
     }
-    std::copy(str, str + std::min(Length - 1, str_length - 1), buffer.begin());
-    buffer[Length - 1] = '\0';
 
     return CtString{buffer};
 }
 
-template <std::size_t Length = 128>
+template <std::size_t Length = DEFAULT_CTSTRING_SIZE>
 consteval auto
 getFuncName(const std::source_location& src_loc = std::source_location::current()) {
     return toCtString<Length>(src_loc.function_name());
@@ -186,7 +189,7 @@ getMethodName(const std::source_location& src_loc = std::source_location::curren
     return CtString{arr};
 }
 
-template <std::size_t Length = 128>
+template <std::size_t Length = DEFAULT_CTSTRING_SIZE>
 consteval auto
 getClassName(const std::source_location& src_loc = std::source_location::current()) {
     constexpr auto namespaces_to_remove = std::array{
@@ -222,4 +225,6 @@ getClassName(const std::source_location& src_loc = std::source_location::current
     arr[Length - 1] = '\0';
 
     return CtString{arr};
+}
+
 }

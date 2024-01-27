@@ -21,8 +21,8 @@ public:
 
 protected:
     std::unique_ptr<HandlerLog>
-    L2(const std::string_view& class_name = getClassName().to_string_view(),
-       const std::string_view& method_name = getMethodName().to_string_view()) const;
+    L2(const CtString<>& class_name = getClassName(),
+       const CtString<>& method_name = getMethodName()) const;
 
 private:
     std::unique_ptr<GLuint, void (*)(GLuint*)> _handle;

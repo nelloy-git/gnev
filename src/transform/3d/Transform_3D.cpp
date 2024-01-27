@@ -1,6 +1,7 @@
 #include "transform/3d/Transform_3D.hpp"
 
 #include "glm/ext/matrix_transform.hpp"
+#define GLM_ENABLE_EXPERIMENTAL
 #include "glm/gtx/euler_angles.hpp"
 #include "glm/gtx/transform.hpp"
 

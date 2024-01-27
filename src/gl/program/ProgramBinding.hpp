@@ -9,7 +9,7 @@
 namespace gnev::gl {
 
 template <typename T>
-class ProgramBinding {
+class EXPORT ProgramBinding {
 public:
     ProgramBinding(unsigned int capacity)
         : binds(capacity) {}

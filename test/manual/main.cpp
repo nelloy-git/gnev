@@ -15,6 +15,7 @@
 #include "gl/Ctx.hpp"
 #include "gl/Program.hpp"
 #include "gl/Sampler.hpp"
+#define GLM_ENABLE_EXPERIMENTAL
 #include "glm/gtx/rotate_vector.hpp"
 #include "glm/gtx/string_cast.hpp"
 #include "glm/gtx/transform.hpp"
@@ -143,7 +144,15 @@ struct PointLight {
     alignas(16) glm::vec3 specular = {1.0f, 1.0f, 1.0f};
 };
 
+struct Test {
+    void log(const CtString<>& str = getMethodName()){
+        std::cout << "HERE: " << str.to_string_view().data() << std::endl;
+    }
+};
+
 int main(int argc, const char** argv) {
+
+    Test{}.log();
 
     auto current_dir = std::filesystem::current_path();
 

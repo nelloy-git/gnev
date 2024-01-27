@@ -7,8 +7,8 @@ namespace gnev::gl {
 
 class HandlerLog {
 public:
-    HandlerLog(const std::string_view& class_name,
-               const std::string_view& method_name,
+    HandlerLog(const CtString<>& class_name,
+               const CtString<>& method_name,
                unsigned int handle)
         : class_name(class_name)
         , method_name(method_name)
@@ -17,24 +17,34 @@ public:
     template <typename... Args>
     void log(Args&&... args) {
         static constexpr auto Fmt = getFmt<sizeof...(args)>();
-        Log::template L2<Fmt>(class_name, handle, method_name, std::forward<Args>(args)...);
+        Log::template L2<Fmt>(class_name.to_string_view(),
+                              handle,
+                              method_name.to_string_view(),
+                              std::forward<Args>(args)...);
     }
 
     template <typename... Args>
     void logRes(Args&&... args) {
         static constexpr auto Fmt = getFmtRes<sizeof...(args) - 1>();
-        Log::template L2<Fmt>(class_name, handle, method_name, std::forward<Args>(args)...);
+        Log::template L2<Fmt>(class_name.to_string_view(),
+                              handle,
+                              method_name.to_string_view(),
+                              std::forward<Args>(args)...);
     }
 
     template <typename... Args>
     void logPtr(const void* const ptr, Args&&... args) {
         static constexpr auto Fmt = getFmtPtr<sizeof...(args)>();
-        Log::template L2<Fmt>(class_name, handle, method_name, ptr, std::forward<Args>(args)...);
+        Log::template L2<Fmt>(class_name.to_string_view(),
+                              handle,
+                              method_name.to_string_view(),
+                              ptr,
+                              std::forward<Args>(args)...);
     }
 
 private:
-    const std::string_view class_name;
-    const std::string_view method_name;
+    const CtString<>& class_name;
+    const CtString<>& method_name;
     const unsigned int handle;
 
     template <std::size_t ArgsN, std::size_t TabsN = 0>
@@ -63,8 +73,8 @@ private:
         return CtStringConcat<Prefix, Body>();
     }
 
-    template<std::size_t ArgsN>
-    static consteval auto getFmtError(){
+    template <std::size_t ArgsN>
+    static consteval auto getFmtError() {
         constexpr CtString Prefix{"{}<{}>::{}("};
         constexpr CtString Body =
             CtStringRepeatSep<CtString("{}"), CtString(", "), ArgsN>();

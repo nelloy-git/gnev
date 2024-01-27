@@ -2,6 +2,8 @@
 
 #include <vector>
 
+#include "gl/program/ProgramBinding.hpp"
+
 using namespace gnev;
 
 ProgramBuilder::ProgramBuilder() {}
