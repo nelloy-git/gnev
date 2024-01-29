@@ -3,7 +3,6 @@
 namespace gnev {
 
 std::atomic<bool> Log::inited = false;
-quill::Logger* Log::quill_logger = nullptr;
 
 void Log::init() {
     bool is_already_inited = inited.exchange(true);
@@ -20,10 +19,11 @@ Log::Log() {
         return cfg;
     }());
     file_handler->set_log_level(quill::LogLevel::TraceL3);
-    file_handler->set_pattern("%(ascii_time) [%(thread)] %(logger_name) %(level_name) - "
-                              "%(message)",              // format
-                              "%H:%M:%S.%Qms",     // timestamp format
-                              quill::Timezone::GmtTime); // timestamp's timezone
+    file_handler
+        ->set_pattern("%(ascii_time) [%(thread)] %(logger_name:<9) %(level_name:<12)"
+                      "%(message)",              // format
+                      "%H:%M:%S.%Qms",           // timestamp format
+                      quill::Timezone::GmtTime); // timestamp's timezone
 
     auto stdout_handler = quill::stdout_handler();
     stdout_handler->set_log_level(quill::LogLevel::Debug);
@@ -36,7 +36,7 @@ Log::Log() {
     quill::start();
 
     Log::quill_logger = quill::create_logger(LOGGER_NAME, {file_handler, stdout_handler});
-    Log::quill_logger->set_log_level(quill::LogLevel::TraceL3);
+    Log::quill_logger->set_log_level(quill::LogLevel::TraceL2);
 
     // quill_logger->log()
 

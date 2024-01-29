@@ -14,8 +14,8 @@ Handler::Handler(GLuint* handle, void (*deleter)(GLuint*))
     }
 }
 
-std::unique_ptr<HandlerLog> Handler::L2(const CtString<>& class_name,
-                                        const CtString<>& method_name) const {
+std::unique_ptr<HandlerLog> Handler::Log(const CtString<>& class_name,
+                                         const CtString<>& method_name) const {
     return std::make_unique<HandlerLog>(class_name, method_name, *_handle);
 }
 } // namespace gnev::gl

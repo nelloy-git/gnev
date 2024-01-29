@@ -57,13 +57,14 @@ void Ctx::Init(LoadFunc load_func) {
         throw std::runtime_error("Context already inited");
     }
 
-    bool saved = TlsSetValue(*tls_index, new Ctx(load_func));
+    Ctx* p_ctx = new Ctx(load_func);
+    bool saved = TlsSetValue(*tls_index, p_ctx);
     if (!saved) {
         throw std::runtime_error("TlsSetValue error");
     }
 
     gnev::Log::init();
-    GNEV_INFO("Logger inited");
+    CtxLog().INFO<"Logger {}">("inited");
 }
 
 bool Ctx::IsInited() { return tls_index && (TlsGetValue(*tls_index) != 0); }
@@ -87,7 +88,7 @@ void Ctx::Init(LoadFunc load_func) {
     }
     thread_ctx = std::unique_ptr<Ctx>(new Ctx(load_func));
     gnev::Log::init();
-    GNEV_INFO("Logger inited");
+    CtxLog().INFO("Logger inited");
 }
 
 bool Ctx::IsInited() { return thread_ctx.get(); }
@@ -106,33 +107,33 @@ Ctx::Ctx(LoadFunc load_func)
 }
 
 void Ctx::glActiveTexture(GLenum texture) const {
-    L3()->log(fmt::Enum{texture});
+    Log()->L3(fmt::Enum{texture});
     glad->ActiveTexture(texture);
 }
 
 void Ctx::glClear(GLbitfield mask) const {
-    L3()->log(fmt::BitFlags{mask, fmt::BitFlags::Group::glClear});
+    Log()->L3(fmt::BitFlags{mask, fmt::BitFlags::Group::glClear});
     glad->Clear(mask);
 }
 
 void Ctx::glClearColor(GLfloat red, GLfloat green, GLfloat blue, GLfloat alpha) const {
-    L3()->log(red, green, blue, alpha);
+    Log()->L3(red, green, blue, alpha);
     glad->ClearColor(red, green, blue, alpha);
 }
 
 void Ctx::glGetIntegerv(GLenum pname, GLint* params) const {
-    L3()->log(fmt::Enum{pname}, static_cast<void*>(params));
+    Log()->L3(fmt::Enum{pname}, static_cast<void*>(params));
     glad->GetIntegerv(pname, params);
-    L3()->logPtr(static_cast<void*>(params), *params);
+    Log()->L3ptr(static_cast<void*>(params), *params);
 }
 
 void Ctx::glEnable(GLenum pname) const {
-    L3()->log(fmt::Enum{pname});
+    Log()->L3(fmt::Enum{pname});
     glad->Enable(pname);
 }
 
 void Ctx::glDebugMessageCallback(GLDEBUGPROC callback, const void* userParam) const {
-    L3()->log(reinterpret_cast<const void*>(callback), userParam);
+    Log()->L3(reinterpret_cast<const void*>(callback), userParam);
     glad->DebugMessageCallback(callback, userParam);
 }
 
@@ -142,7 +143,7 @@ void Ctx::glDebugMessageControl(GLenum source,
                                 GLsizei count,
                                 const GLuint* ids,
                                 GLboolean enabled) const {
-    L3()->log(fmt::Enum{source},
+    Log()->L3(fmt::Enum{source},
               fmt::Enum{type},
               fmt::Enum{severity},
               count,
@@ -156,7 +157,7 @@ void Ctx::glDrawElements(GLenum mode,
                          GLsizei count,
                          GLenum type,
                          const void* indices) const {
-    L3()->log(fmt::Enum{mode, fmt::Enum::Group::DrawElements},
+    Log()->L3(fmt::Enum{mode, fmt::Enum::Group::DrawElements},
               count,
               type,
               count,
@@ -165,23 +166,23 @@ void Ctx::glDrawElements(GLenum mode,
 }
 
 void Ctx::glCreateBuffers(GLsizei n, GLuint* buffers) const {
-    L3()->log(n, static_cast<const void*>(buffers));
+    Log()->L3(n, static_cast<const void*>(buffers));
     glad->CreateBuffers(n, buffers);
-    L3()->logPtr(static_cast<const void*>(buffers), std::vector(buffers, buffers + n));
+    Log()->L3ptr(static_cast<const void*>(buffers), std::vector(buffers, buffers + n));
 }
 
 void Ctx::glDeleteBuffers(GLsizei n, GLuint* buffers) const {
-    L3()->log(n, std::vector(buffers, buffers + n));
+    Log()->L3(n, std::vector(buffers, buffers + n));
     glad->DeleteBuffers(n, buffers);
 }
 
 void Ctx::glBindBuffer(GLenum target, GLuint buffer) const {
-    L3()->log(fmt::Enum{target}, buffer);
+    Log()->L3(fmt::Enum{target}, buffer);
     glad->BindBuffer(target, buffer);
 }
 
 void Ctx::glBindBufferBase(GLenum target, GLuint index, GLuint buffer) const {
-    L3()->log(fmt::Enum{target}, index, buffer);
+    Log()->L3(fmt::Enum{target}, index, buffer);
     glad->BindBufferBase(target, index, buffer);
 }
 
@@ -190,7 +191,7 @@ void Ctx::glBindBufferRange(GLenum target,
                             GLuint buffer,
                             GLintptr offset,
                             GLsizeiptr size) const {
-    L3()->log(fmt::Enum{target}, index, buffer, offset, size);
+    Log()->L3(fmt::Enum{target}, index, buffer, offset, size);
     glad->BindBufferRange(target, index, buffer, offset, size);
 }
 
@@ -198,7 +199,7 @@ void Ctx::glNamedBufferData(GLuint buffer,
                             GLsizeiptr size,
                             const void* data,
                             GLenum usage) const {
-    L3()->log(buffer, size, data, fmt::Enum{usage});
+    Log()->L3(buffer, size, data, fmt::Enum{usage});
     glad->NamedBufferData(buffer, size, data, usage);
 }
 
@@ -206,7 +207,7 @@ void Ctx::glNamedBufferStorage(GLuint buffer,
                                GLsizeiptr size,
                                const void* data,
                                GLbitfield flags) const {
-    L3()->log(buffer,
+    Log()->L3(buffer,
               size,
               data,
               fmt::BitFlags{flags, fmt::BitFlags::Group::glBufferStorage});
@@ -217,7 +218,7 @@ void Ctx::glNamedBufferSubData(GLuint buffer,
                                GLintptr offset,
                                GLsizeiptr size,
                                const void* data) const {
-    L3()->log(buffer, offset, size, data);
+    Log()->L3(buffer, offset, size, data);
     glad->NamedBufferSubData(buffer, offset, size, data);
 }
 
@@ -225,7 +226,7 @@ void Ctx::glGetNamedBufferSubData(GLuint buffer,
                                   GLintptr offset,
                                   GLsizeiptr size,
                                   void* data) const {
-    L3()->log(buffer, offset, size, data);
+    Log()->L3(buffer, offset, size, data);
     glad->GetNamedBufferSubData(buffer, offset, size, data);
 }
 
@@ -234,20 +235,20 @@ void Ctx::glCopyNamedBufferSubData(GLuint readBuffer,
                                    GLintptr readOffset,
                                    GLintptr writeOffset,
                                    GLsizeiptr size) const {
-    L3()->log(readBuffer, writeBuffer, readOffset, writeOffset, size);
+    Log()->L3(readBuffer, writeBuffer, readOffset, writeOffset, size);
     glad->CopyNamedBufferSubData(readBuffer, writeBuffer, readOffset, writeOffset, size);
 }
 
 void Ctx::glGetNamedBufferParameteriv(GLuint buffer, GLenum pname, GLint* params) const {
-    L3()->log(buffer, fmt::Enum{pname}, static_cast<void*>(params));
+    Log()->L3(buffer, fmt::Enum{pname}, static_cast<void*>(params));
     glad->GetNamedBufferParameteriv(buffer, pname, params);
-    L3()->logPtr(static_cast<void*>(params), *params);
+    Log()->L3ptr(static_cast<void*>(params), *params);
 }
 
 void* Ctx::glMapNamedBuffer(GLuint buffer, GLenum access) const {
-    L3()->logRes(buffer, fmt::Enum{access}, CALL);
+    Log()->L3res(buffer, fmt::Enum{access}, CALL);
     void* map = glad->MapNamedBuffer(buffer, access);
-    L3()->logRes(buffer, fmt::Enum{access}, map);
+    Log()->L3res(buffer, fmt::Enum{access}, map);
     return map;
 }
 
@@ -255,33 +256,33 @@ void* Ctx::glMapNamedBufferRange(GLuint buffer,
                                  GLintptr offset,
                                  GLsizeiptr length,
                                  GLbitfield access) const {
-    L3()->logRes(buffer, offset, length, access, CALL);
+    Log()->L3res(buffer, offset, length, access, CALL);
     void* map = glad->MapNamedBufferRange(buffer, offset, length, access);
-    L3()->logRes(buffer, offset, length, access, map);
+    Log()->L3res(buffer, offset, length, access, map);
     return map;
 }
 
 void Ctx::glFlushMappedNamedBufferRange(GLuint buffer,
                                         GLintptr offset,
                                         GLsizeiptr length) const {
-    L3()->log(buffer, offset, length);
+    Log()->L3(buffer, offset, length);
     glad->FlushMappedNamedBufferRange(buffer, offset, length);
 }
 
 void Ctx::glUnmapNamedBuffer(GLuint buffer) const {
-    L3()->log(buffer);
+    Log()->L3(buffer);
     glad->UnmapNamedBuffer(buffer);
 }
 
 GLuint Ctx::glCreateShader(GLenum type) const {
-    L3()->logRes(fmt::Enum{type}, CALL);
+    Log()->L3res(fmt::Enum{type}, CALL);
     GLuint shader = glad->CreateShader(type);
-    L3()->logRes(fmt::Enum{type}, shader);
+    Log()->L3res(fmt::Enum{type}, shader);
     return shader;
 }
 
 void Ctx::glDeleteShader(GLuint shader) const {
-    L3()->log(shader);
+    Log()->L3(shader);
     glad->DeleteShader(shader);
 }
 
@@ -289,7 +290,7 @@ void Ctx::glShaderSource(GLuint shader,
                          GLsizei count,
                          const GLchar* const* string,
                          const GLint* length) const {
-    L3()->log(shader,
+    Log()->L3(shader,
               count,
               std::vector<std::string>(string, string + count),
               std::vector(length, length + count));
@@ -297,163 +298,163 @@ void Ctx::glShaderSource(GLuint shader,
 }
 
 void Ctx::glCompileShader(GLuint shader) const {
-    L3()->log(shader);
+    Log()->L3(shader);
     glad->CompileShader(shader);
 }
 
 void Ctx::glGetShaderiv(GLuint shader, GLenum pname, GLint* params) const {
-    L3()->log(shader, fmt::Enum{pname}, static_cast<void*>(params));
+    Log()->L3(shader, fmt::Enum{pname}, static_cast<void*>(params));
     glad->GetShaderiv(shader, pname, params);
-    L3()->logPtr(static_cast<void*>(params), *params);
+    Log()->L3ptr(static_cast<void*>(params), *params);
 }
 
 void Ctx::glGetShaderInfoLog(GLuint shader,
                              GLsizei bufSize,
                              GLsizei* length,
                              GLchar* infoLog) const {
-    L3()->log(shader, bufSize, static_cast<void*>(length), static_cast<void*>(infoLog));
+    Log()->L3(shader, bufSize, static_cast<void*>(length), static_cast<void*>(infoLog));
     glad->GetShaderInfoLog(shader, bufSize, length, infoLog);
-    L3()->logPtr(static_cast<void*>(length), *length);
-    L3()->logPtr(static_cast<void*>(infoLog), fmt::CharPtr{infoLog});
+    Log()->L3ptr(static_cast<void*>(length), *length);
+    Log()->L3ptr(static_cast<void*>(infoLog), fmt::CharPtr{infoLog});
 }
 
 GLuint Ctx::glCreateProgram() const {
-    L3()->logRes(CALL);
+    Log()->L3res(CALL);
     GLuint program = glad->CreateProgram();
-    L3()->logRes(program);
+    Log()->L3res(program);
     return program;
 }
 
 void Ctx::glDeleteProgram(GLuint program) const {
-    L3()->log(program);
+    Log()->L3(program);
     glad->DeleteProgram(program);
 }
 
 void Ctx::glAttachShader(GLuint program, GLuint shader) const {
-    L3()->log(program, shader);
+    Log()->L3(program, shader);
     glad->AttachShader(program, shader);
 }
 
 void Ctx::glValidateProgram(GLuint program) const {
-    L3()->log(program);
+    Log()->L3(program);
     glad->ValidateProgram(program);
 }
 
 void Ctx::glLinkProgram(GLuint program) const {
-    L3()->log(program);
+    Log()->L3(program);
     glad->LinkProgram(program);
 }
 
 void Ctx::glUseProgram(GLuint program) const {
-    L3()->log(program);
+    Log()->L3(program);
     glad->UseProgram(program);
 }
 
 void Ctx::glGetProgramiv(GLuint program, GLenum pname, GLint* params) const {
-    L3()->log(program, fmt::Enum{pname}, static_cast<const void*>(params));
+    Log()->L3(program, fmt::Enum{pname}, static_cast<const void*>(params));
     glad->GetProgramiv(program, pname, params);
-    L3()->logPtr(static_cast<const void*>(params), *params);
+    Log()->L3ptr(static_cast<const void*>(params), *params);
 }
 
 void Ctx::glGetProgramInfoLog(GLuint program,
                               GLsizei bufSize,
                               GLsizei* length,
                               GLchar* infoLog) const {
-    L3()->log(program, bufSize, static_cast<void*>(length), static_cast<void*>(infoLog));
+    Log()->L3(program, bufSize, static_cast<void*>(length), static_cast<void*>(infoLog));
     glad->GetProgramInfoLog(program, bufSize, length, infoLog);
-    L3()->logPtr(static_cast<void*>(length), *length);
-    L3()->logPtr(static_cast<void*>(infoLog), fmt::CharPtr{infoLog});
+    Log()->L3ptr(static_cast<void*>(length), *length);
+    Log()->L3ptr(static_cast<void*>(infoLog), fmt::CharPtr{infoLog});
 }
 
 void Ctx::glUniform1i(GLint location, GLint v0) const {
-    L3()->log(location, v0);
+    Log()->L3(location, v0);
     glad->Uniform1i(location, v0);
 }
 
 GLint Ctx::glGetUniformBlockIndex(GLuint program, const GLchar* uniformBlockName) const {
-    L3()->logRes(program, fmt::CharPtr{uniformBlockName}, CALL);
+    Log()->L3res(program, fmt::CharPtr{uniformBlockName}, CALL);
     GLint index = glad->GetUniformBlockIndex(program, uniformBlockName);
-    L3()->logRes(program, fmt::CharPtr{uniformBlockName}, index);
+    Log()->L3res(program, fmt::CharPtr{uniformBlockName}, index);
     return index;
 }
 
 void Ctx::glUniformBlockBinding(GLuint program,
                                 GLuint uniformBlockIndex,
                                 GLuint uniformBlockBinding) const {
-    L3()->log(program, uniformBlockIndex, uniformBlockBinding);
+    Log()->L3(program, uniformBlockIndex, uniformBlockBinding);
     glad->UniformBlockBinding(program, uniformBlockIndex, uniformBlockBinding);
 }
 
 GLint Ctx::glGetProgramResourceIndex(GLuint program,
                                      GLenum programInterface,
                                      const GLchar* name) const {
-    L3()->logRes(program, fmt::Enum{programInterface}, fmt::CharPtr{name}, CALL);
+    Log()->L3res(program, fmt::Enum{programInterface}, fmt::CharPtr{name}, CALL);
     GLint index = glad->GetProgramResourceIndex(program, programInterface, name);
-    L3()->logRes(program, fmt::Enum{programInterface}, fmt::CharPtr{name}, index);
+    Log()->L3res(program, fmt::Enum{programInterface}, fmt::CharPtr{name}, index);
     return index;
 }
 
 void Ctx::glShaderStorageBlockBinding(GLuint program,
                                       GLuint storageBlockIndex,
                                       GLuint storageBlockBinding) const {
-    L3()->log(program, storageBlockIndex, storageBlockBinding);
+    Log()->L3(program, storageBlockIndex, storageBlockBinding);
     glad->ShaderStorageBlockBinding(program, storageBlockIndex, storageBlockBinding);
 }
 
 GLint Ctx::glGetAttribLocation(GLuint program, const GLchar* name) const {
-    L3()->logRes(program, fmt::CharPtr{name}, CALL);
+    Log()->L3res(program, fmt::CharPtr{name}, CALL);
     GLint loc = glad->GetAttribLocation(program, name);
-    L3()->logRes(program, fmt::CharPtr{name}, loc);
+    Log()->L3res(program, fmt::CharPtr{name}, loc);
     return loc;
 }
 
 GLint Ctx::glGetUniformLocation(GLuint program, const GLchar* name) const {
-    L3()->logRes(program, fmt::CharPtr{name}, CALL);
+    Log()->L3res(program, fmt::CharPtr{name}, CALL);
     GLint loc = glad->GetUniformLocation(program, name);
-    L3()->logRes(program, fmt::CharPtr{name}, loc);
+    Log()->L3res(program, fmt::CharPtr{name}, loc);
     return loc;
 }
 
 void Ctx::glCreateTextures(GLenum target, GLsizei n, GLuint* textures) const {
-    L3()->log(n, static_cast<void*>(textures));
+    Log()->L3(n, static_cast<void*>(textures));
     glad->CreateTextures(target, n, textures);
-    L3()->logPtr(static_cast<void*>(textures), std::vector(textures, textures + n));
+    Log()->L3ptr(static_cast<void*>(textures), std::vector(textures, textures + n));
 }
 
 void Ctx::glDeleteTextures(GLsizei n, GLuint* textures) const {
-    L3()->log(n, std::vector(textures, textures + n));
+    Log()->L3(n, std::vector(textures, textures + n));
     glad->DeleteTextures(n, textures);
 }
 
 void Ctx::glBindTexture(GLenum target, GLuint texture) const {
-    L3()->log(fmt::Enum{target}, texture);
+    Log()->L3(fmt::Enum{target}, texture);
     glad->BindTexture(target, texture);
 }
 
 void Ctx::glTextureParameteri(GLuint texture, GLenum pname, GLint param) const {
-    L3()->log(texture, fmt::Enum{pname}, param);
+    Log()->L3(texture, fmt::Enum{pname}, param);
     glad->TextureParameteri(texture, pname, param);
 }
 
 void Ctx::glGetTextureParameteriv(GLuint texture, GLenum pname, GLint* param) const {
-    L3()->log(texture, fmt::Enum{pname}, static_cast<const void*>(param));
+    Log()->L3(texture, fmt::Enum{pname}, static_cast<const void*>(param));
     glad->GetTextureParameteriv(texture, pname, param);
-    L3()->logPtr(static_cast<const void*>(param), *param);
+    Log()->L3ptr(static_cast<const void*>(param), *param);
 }
 
 void Ctx::glGetTextureLevelParameteriv(GLuint texture,
                                        GLint level,
                                        GLenum pname,
                                        GLint* param) const {
-    L3()->log(texture, level, fmt::Enum{pname}, static_cast<const void*>(param));
+    Log()->L3(texture, level, fmt::Enum{pname}, static_cast<const void*>(param));
     glad->GetTextureLevelParameteriv(texture, level, pname, param);
-    L3()->logPtr(static_cast<const void*>(param), *param);
+    Log()->L3ptr(static_cast<const void*>(param), *param);
 }
 
 void Ctx::glTextureParameterfv(GLuint texture, GLenum pname, const GLfloat* param) const {
-    L3()->log(texture, fmt::Enum{pname}, static_cast<const void*>(param));
+    Log()->L3(texture, fmt::Enum{pname}, static_cast<const void*>(param));
     glad->TextureParameterfv(texture, pname, param);
-    L3()->logPtr(static_cast<const void*>(param), param[0]);
+    Log()->L3ptr(static_cast<const void*>(param), param[0]);
 }
 
 void Ctx::glTexImage3D(GLenum target,
@@ -466,7 +467,7 @@ void Ctx::glTexImage3D(GLenum target,
                        GLenum format,
                        GLenum type,
                        const void* pixels) const {
-    L3()->log(fmt::Enum{target},
+    Log()->L3(fmt::Enum{target},
               level,
               internalformat,
               width,
@@ -494,7 +495,7 @@ void Ctx::glTextureStorage3D(GLuint texture,
                              GLsizei width,
                              GLsizei height,
                              GLsizei depth) const {
-    L3()->log(texture, levels, fmt::Enum{internalformat}, width, height, depth);
+    Log()->L3(texture, levels, fmt::Enum{internalformat}, width, height, depth);
     glad->TextureStorage3D(texture, levels, internalformat, width, height, depth);
 }
 
@@ -509,7 +510,7 @@ void Ctx::glTextureSubImage3D(GLuint texture,
                               GLenum format,
                               GLenum type,
                               const void* pixels) const {
-    L3()->log(texture,
+    Log()->L3(texture,
               level,
               xoffset,
               yoffset,
@@ -534,7 +535,7 @@ void Ctx::glTextureSubImage3D(GLuint texture,
 }
 
 void Ctx::glGenerateTextureMipmap(GLuint texture) const {
-    L3()->log(texture);
+    Log()->L3(texture);
     glad->GenerateTextureMipmap(texture);
 }
 
@@ -553,7 +554,7 @@ void Ctx::glCopyImageSubData(GLuint srcName,
                              GLsizei srcWidth,
                              GLsizei srcHeight,
                              GLsizei srcDepth) const {
-    L3()->log(srcName,
+    Log()->L3(srcName,
               fmt::Enum{srcTarget},
               srcLevel,
               srcX,
@@ -597,7 +598,7 @@ void Ctx::glGetTextureSubImage(GLuint texture,
                                GLenum type,
                                GLsizei bufSize,
                                void* pixels) const {
-    L3()->log(texture,
+    Log()->L3(texture,
               level,
               xoffset,
               yoffset,
@@ -624,55 +625,55 @@ void Ctx::glGetTextureSubImage(GLuint texture,
 }
 
 void Ctx::glCreateSamplers(GLsizei n, GLuint* samplers) const {
-    L3()->log(n, static_cast<const void*>(samplers));
+    Log()->L3(n, static_cast<const void*>(samplers));
     glad->CreateSamplers(n, samplers);
-    L3()->logPtr(static_cast<const void*>(samplers), std::vector(samplers, samplers + n));
+    Log()->L3ptr(static_cast<const void*>(samplers), std::vector(samplers, samplers + n));
 }
 
 void Ctx::glDeleteSamplers(GLsizei n, GLuint* samplers) const {
-    L3()->log(n, std::vector(samplers, samplers + n));
+    Log()->L3(n, std::vector(samplers, samplers + n));
     glad->DeleteSamplers(n, samplers);
 }
 
 void Ctx::glBindSampler(GLuint unit, GLuint sampler) const {
-    L3()->log(unit, sampler);
+    Log()->L3(unit, sampler);
     glad->BindSampler(unit, sampler);
 }
 
 void Ctx::glSamplerParameteri(GLuint sampler, GLuint pname, GLint param) const {
-    L3()->log(sampler, fmt::Enum{pname}, param);
+    Log()->L3(sampler, fmt::Enum{pname}, param);
     glad->SamplerParameteri(sampler, pname, param);
 }
 
 void Ctx::glSamplerParameterf(GLuint sampler, GLuint pname, GLfloat param) const {
-    L3()->log(sampler, fmt::Enum{pname}, param);
+    Log()->L3(sampler, fmt::Enum{pname}, param);
     glad->SamplerParameterf(sampler, pname, param);
 }
 
 void Ctx::glSamplerParameterfv(GLuint sampler, GLuint pname, const GLfloat* param) const {
-    L3()->log(sampler, fmt::Enum{pname}, static_cast<const void*>(param), *param);
+    Log()->L3(sampler, fmt::Enum{pname}, static_cast<const void*>(param), *param);
     glad->SamplerParameterfv(sampler, pname, param);
-    L3()->logPtr(static_cast<const void*>(param), param[0]);
+    Log()->L3ptr(static_cast<const void*>(param), param[0]);
 }
 
 void Ctx::glCreateVertexArrays(GLsizei n, GLuint* arrays) const {
-    L3()->log(n, static_cast<const void*>(arrays));
+    Log()->L3(n, static_cast<const void*>(arrays));
     glad->CreateVertexArrays(n, arrays);
-    L3()->logPtr(static_cast<const void*>(arrays), std::vector(arrays, arrays + n));
+    Log()->L3ptr(static_cast<const void*>(arrays), std::vector(arrays, arrays + n));
 }
 
 void Ctx::glDeleteVertexArrays(GLsizei n, GLuint* arrays) const {
-    L3()->log(n, std::vector(arrays, arrays + n));
+    Log()->L3(n, std::vector(arrays, arrays + n));
     glad->DeleteVertexArrays(n, arrays);
 }
 
 void Ctx::glBindVertexArray(GLuint vaobj) const {
-    L3()->log(vaobj);
+    Log()->L3(vaobj);
     glad->BindVertexArray(vaobj);
 }
 
 void Ctx::glVertexArrayElementBuffer(GLuint vaobj, GLuint buffer) const {
-    L3()->log(vaobj, buffer);
+    Log()->L3(vaobj, buffer);
     glad->VertexArrayElementBuffer(vaobj, buffer);
 }
 
@@ -681,14 +682,14 @@ void Ctx::glVertexArrayVertexBuffer(GLuint vaobj,
                                     GLuint buffer,
                                     GLintptr offset,
                                     GLsizei stride) const {
-    L3()->log(vaobj, bindingindex, buffer, offset, stride);
+    Log()->L3(vaobj, bindingindex, buffer, offset, stride);
     glad->VertexArrayVertexBuffer(vaobj, bindingindex, buffer, offset, stride);
 }
 
 void Ctx::glVertexArrayAttribBinding(GLuint vaobj,
                                      GLuint attribindex,
                                      GLuint bindingindex) const {
-    L3()->log(vaobj, attribindex, bindingindex);
+    Log()->L3(vaobj, attribindex, bindingindex);
     glad->VertexArrayAttribBinding(vaobj, attribindex, bindingindex);
 }
 
@@ -698,7 +699,7 @@ void Ctx::glVertexArrayAttribFormat(GLuint vaobj,
                                     GLenum type,
                                     GLboolean normalized,
                                     GLuint relativeoffset) const {
-    L3()->log(vaobj, attribindex, size, fmt::Enum{type}, normalized, relativeoffset);
+    Log()->L3(vaobj, attribindex, size, fmt::Enum{type}, normalized, relativeoffset);
     glad->VertexArrayAttribFormat(vaobj,
                                   attribindex,
                                   size,
@@ -710,20 +711,21 @@ void Ctx::glVertexArrayAttribFormat(GLuint vaobj,
 void Ctx::glVertexArrayBindingDivisor(GLuint vaobj,
                                       GLuint bindingindex,
                                       GLuint divisor) const {
-    L3()->log(vaobj, bindingindex, divisor);
+    Log()->L3(vaobj, bindingindex, divisor);
     glad->VertexArrayBindingDivisor(vaobj, bindingindex, divisor);
 }
 
 void Ctx::glEnableVertexArrayAttrib(GLuint vaobj, GLuint index) const {
-    L3()->log(vaobj, index);
+    Log()->L3(vaobj, index);
     glad->EnableVertexArrayAttrib(vaobj, index);
 }
 
 void Ctx::glDisableVertexArrayAttrib(GLuint vaobj, GLuint index) const {
-    L3()->log(vaobj, index);
+    Log()->L3(vaobj, index);
     glad->DisableVertexArrayAttrib(vaobj, index);
 }
 
-std::unique_ptr<CtxLog> Ctx::L3(const CtString<>& method_name) const {
-    return std::make_unique<CtxLog>(method_name);
+std::unique_ptr<CtxLog> Ctx::Log(const CtString<>& class_name,
+                                 const CtString<>& method_name) const {
+    return std::make_unique<CtxLog>(class_name, method_name);
 }

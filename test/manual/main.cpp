@@ -151,9 +151,6 @@ struct Test {
 };
 
 int main(int argc, const char** argv) {
-
-    Test{}.log();
-
     auto current_dir = std::filesystem::current_path();
 
     bool close_window = false;

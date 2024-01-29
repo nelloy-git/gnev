@@ -68,7 +68,7 @@ IndexMapView<T>::IndexMapView(const Ref<gl::buffer::Accessor>& accessor)
 template <UsableByIndexMapView T>
 void IndexMapView<T>::set(GLuint index, const T& src) {
     if (not isUsed(index)) {
-        GNEV_ERROR("IndexMapView<T>::set(...) not isUsed(index)");
+        // GNEV_ERROR("IndexMapView<T>::set(...) not isUsed(index)");
     }
     accessor->set(index * sizeof(T), sizeof(T), &src);
 }
@@ -77,7 +77,7 @@ template <UsableByIndexMapView T>
 template <UsableByIndexMapView V>
 void IndexMapView<T>::set(GLuint index, const V& src, GLintptr ptr_offset) {
     if (not isUsed(index)) {
-        GNEV_ERROR("IndexMapView<T>::set(...) not isUsed(index)");
+        // GNEV_ERROR("IndexMapView<T>::set(...) not isUsed(index)");
     }
     accessor->set(index * sizeof(T) + ptr_offset, sizeof(V), &src);
 }
@@ -85,7 +85,7 @@ void IndexMapView<T>::set(GLuint index, const V& src, GLintptr ptr_offset) {
 template <UsableByIndexMapView T>
 void IndexMapView<T>::get(GLuint index, T& dst) const {
     if (not isUsed(index)) {
-        GNEV_ERROR("IndexMapView<T>::set(...) not isUsed(index)");
+        // GNEV_ERROR("IndexMapView<T>::set(...) not isUsed(index)");
     }
     accessor->get(index * sizeof(T), sizeof(T), &dst);
 }
@@ -94,7 +94,7 @@ template <UsableByIndexMapView T>
 template <UsableByIndexMapView V>
 void IndexMapView<T>::get(GLuint index, V& dst, GLintptr ptr_offset) const {
     if (not isUsed(index)) {
-        GNEV_ERROR("IndexMapView<T>::set(...) not isUsed(index)");
+        // GNEV_ERROR("IndexMapView<T>::set(...) not isUsed(index)");
     }
     accessor->get(index * sizeof(T) + ptr_offset, sizeof(V), &dst);
 }
@@ -102,7 +102,7 @@ void IndexMapView<T>::get(GLuint index, V& dst, GLintptr ptr_offset) const {
 template <UsableByIndexMapView T>
 void IndexMapView<T>::change(GLuint index, const Changer<T>& changer) {
     if (not isUsed(index)) {
-        GNEV_ERROR("IndexMapView<T>::set(...) not isUsed(index)");
+        // GNEV_ERROR("IndexMapView<T>::set(...) not isUsed(index)");
     }
     auto wrapper = [this, &changer](Accessor&, void* ptr, GLintptr size) {
         changer(*this, *static_cast<T*>(ptr));
@@ -116,7 +116,7 @@ void IndexMapView<T>::change(GLuint index,
                              const Changer<V>& changer,
                              GLintptr ptr_offset) {
     if (not isUsed(index)) {
-        GNEV_ERROR("IndexMapView<T>::set(...) not isUsed(index)");
+        // GNEV_ERROR("IndexMapView<T>::set(...) not isUsed(index)");
     }
     auto wrapper = [this, &changer](void* ptr, GLintptr size) {
         changer(*static_cast<V*>(ptr));

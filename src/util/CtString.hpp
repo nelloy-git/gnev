@@ -32,6 +32,12 @@ struct CtString {
         : length(initLength(str))
         , array(initArray(str)) {}
 
+    template <std::size_t S>
+        requires(S <= Size)
+    consteval CtString(const CtString<S>& str)
+        : length(str.length)
+        , array(initArray(str.array)) {}
+
     constexpr std::string_view to_string_view() const {
         return std::string_view(array.data(), length - 1);
     }

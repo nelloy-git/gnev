@@ -2,6 +2,7 @@
 
 #include <cstring>
 
+#include "gl/fmt/CtxLog.hpp"
 #include "util/Log.hpp"
 
 namespace gnev::gl::buffer {
@@ -15,7 +16,7 @@ AccessorSubData::AccessorSubData(Ref<gl::Buffer> buffer)
     if (buffer->isStorage()) {
         GLbitfield storage_flags = buffer->getStorageFlags();
         if (not(storage_flags & GL_DYNAMIC_STORAGE_BIT)) {
-            GNEV_ERROR("Buffer_{} has invalid storage flags", buffer->handle());
+            CtxLog().ERROR<"Buffer<{}> has invalid storage flags">(buffer->handle());
         }
     }
 }
@@ -38,13 +39,13 @@ void AccessorSubData::change(GLintptr offset, GLintptr size, const Changer& chan
 AccessorCoherent::AccessorCoherent(Ref<gl::Buffer> buffer)
     : Accessor(buffer) {
     if (not buffer->isStorage()) {
-        GNEV_ERROR("Buffer_{} is not storage", buffer->handle());
+        // GNEV_ERROR("Buffer_{} is not storage", buffer->handle());
     }
 
     GLbitfield storage_flags = buffer->getStorageFlags();
     if (not(storage_flags & GL_MAP_COHERENT_BIT) and
         not(storage_flags & GL_CLIENT_STORAGE_BIT)) {
-        GNEV_ERROR("Buffer_{} has invalid storage flags", buffer->handle());
+        // GNEV_ERROR("Buffer_{} has invalid storage flags", buffer->handle());
     }
 
     map = static_cast<GLbyte*>(buffer->mapRange(0,

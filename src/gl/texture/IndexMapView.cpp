@@ -6,7 +6,7 @@ Ref<IndexMapView> IndexMapView::MakeArray2D(GLuint img_levels,
                                             GLuint img_width,
                                             GLuint img_height,
                                             GLuint capacity) {
-    auto tex = MakeSharable<gl::Texture>(GL_TEXTURE_2D_ARRAY);
+    auto tex = MakeSharable<gl::Texture>(TextureTarget::TEXTURE_2D_ARRAY);
     tex->initStorage3D(img_levels,
                        TextureInternalFormat::RGBA8,
                        img_width,
@@ -34,7 +34,7 @@ void IndexMapView::get(GLuint index, Image& dst) const {
 }
 
 void IndexMapView::change(GLuint index, const ImageInfo& info, Changer changer) {
-    // IndexMapView::change(index, info, changer);
+    accessor->change(ImageInfo3d{index, info}, changer);
 }
 
 } // namespace gnev::gl::texture

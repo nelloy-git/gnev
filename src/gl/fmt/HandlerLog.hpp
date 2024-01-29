@@ -15,8 +15,8 @@ public:
         , handle(handle) {}
 
     template <typename... Args>
-    void log(Args&&... args) {
-        static constexpr auto Fmt = getFmt<sizeof...(args)>();
+    void L2(Args&&... args) {
+        static constexpr auto Fmt = getL2Fmt<sizeof...(args)>();
         Log::template L2<Fmt>(class_name.to_string_view(),
                               handle,
                               method_name.to_string_view(),
@@ -24,8 +24,8 @@ public:
     }
 
     template <typename... Args>
-    void logRes(Args&&... args) {
-        static constexpr auto Fmt = getFmtRes<sizeof...(args) - 1>();
+    void L2res(Args&&... args) {
+        static constexpr auto Fmt = getL2resFmt<sizeof...(args) - 1>();
         Log::template L2<Fmt>(class_name.to_string_view(),
                               handle,
                               method_name.to_string_view(),
@@ -33,13 +33,21 @@ public:
     }
 
     template <typename... Args>
-    void logPtr(const void* const ptr, Args&&... args) {
-        static constexpr auto Fmt = getFmtPtr<sizeof...(args)>();
+    void L2ptr(const void* const ptr, Args&&... args) {
+        static constexpr auto Fmt = getL2ptrFmt<sizeof...(args)>();
         Log::template L2<Fmt>(class_name.to_string_view(),
                               handle,
                               method_name.to_string_view(),
                               ptr,
                               std::forward<Args>(args)...);
+    }
+
+    void Error(auto&& msg) {
+        static constexpr auto Fmt = getErrorFmt();
+        Log::template L2<Fmt>(class_name.to_string_view(),
+                              handle,
+                              method_name.to_string_view(),
+                              std::forward<decltype(msg)>(msg));
     }
 
 private:
@@ -48,7 +56,7 @@ private:
     const unsigned int handle;
 
     template <std::size_t ArgsN, std::size_t TabsN = 0>
-    static consteval auto getFmt() {
+    static consteval auto getL2Fmt() {
         constexpr CtString Prefix{"{}<{}>::{}("};
         constexpr CtString Body =
             CtStringRepeatSep<CtString{"{}"}, CtString{", "}, ArgsN>();
@@ -57,7 +65,7 @@ private:
     }
 
     template <std::size_t ArgsN>
-    static consteval auto getFmtRes() {
+    static consteval auto getL2resFmt() {
         constexpr CtString Prefix{"{}<{}>::{}("};
         constexpr CtString Body =
             CtStringRepeatSep<CtString("{}"), CtString(", "), ArgsN>();
@@ -66,21 +74,14 @@ private:
     }
 
     template <std::size_t ArgsN>
-    static consteval auto getFmtPtr() {
+    static consteval auto getL2ptrFmt() {
         constexpr CtString Prefix{"{}<{}>::{} {} -> "};
         constexpr CtString Body =
             CtStringRepeatSep<CtString("{}"), CtString(", "), ArgsN>();
         return CtStringConcat<Prefix, Body>();
     }
 
-    template <std::size_t ArgsN>
-    static consteval auto getFmtError() {
-        constexpr CtString Prefix{"{}<{}>::{}("};
-        constexpr CtString Body =
-            CtStringRepeatSep<CtString("{}"), CtString(", "), ArgsN>();
-        constexpr CtString Suffix = {") -> {}"};
-        return CtStringConcat<Prefix, Body, Suffix>();
-    }
+    static consteval auto getErrorFmt() { return CtString{"{}<{}>::{} {}"}; }
 };
 
 } // namespace gnev::gl

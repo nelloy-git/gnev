@@ -233,9 +233,9 @@ public:
     void glDisableVertexArrayAttrib(GLuint vaobj, GLuint index) const;
 
 protected:
-    static constexpr std::string CALL{"Call"};
-    std::unique_ptr<CtxLog>
-    L3(const CtString<>& method_name = getMethodName()) const;
+    static constexpr std::string_view CALL{"Call"};
+    std::unique_ptr<CtxLog> Log(const CtString<>& class_name = getClassName(),
+                                const CtString<>& method_name = getMethodName()) const;
 
 private:
 #ifdef WIN32

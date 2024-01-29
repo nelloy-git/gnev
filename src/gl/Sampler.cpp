@@ -18,39 +18,39 @@ Ref<Sampler> Sampler::MakeNearestRepeat() {
 
 Sampler::Sampler()
     : Handler(createHandle(), &deleteHandle) {
-    L2()->log();
+    Log()->L2();
 }
 
-Sampler::~Sampler() { L2()->log(); }
+Sampler::~Sampler() { Log()->L2(); }
 
 void Sampler::bind(GLuint unit) {
-    L2()->log(unit);
+    Log()->L2(unit);
     Ctx::Get().glBindSampler(unit, handle());
 }
 
 void Sampler::setWrapS(TextureWrapS wrap) {
-    L2()->log(wrap);
+    Log()->L2(wrap);
     Ctx::Get().glSamplerParameteri(handle(),
                                    GL_TEXTURE_WRAP_S,
                                    static_cast<GLenum>(wrap));
 }
 
 void Sampler::setWrapT(TextureWrapT wrap) {
-    L2()->log(wrap);
+    Log()->L2(wrap);
     Ctx::Get().glSamplerParameteri(handle(),
                                    GL_TEXTURE_WRAP_T,
                                    static_cast<GLenum>(wrap));
 }
 
 void Sampler::setMinFilter(TextureMinFilter filter) {
-    L2()->log(filter);
+    Log()->L2(filter);
     Ctx::Get().glSamplerParameteri(handle(),
                                    GL_TEXTURE_MIN_FILTER,
                                    static_cast<GLenum>(filter));
 }
 
 void Sampler::setMagFilter(TextureMagFilter filter) {
-    L2()->log(filter);
+    Log()->L2(filter);
     Ctx::Get().glSamplerParameteri(handle(),
                                    GL_TEXTURE_MAG_FILTER,
                                    static_cast<GLenum>(filter));

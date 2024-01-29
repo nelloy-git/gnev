@@ -70,6 +70,7 @@ if (WIN32)
     target_link_libraries(auto_test
         ${PROJECT_NAME}
         glfw
+        quill
         GTest::gtest_main
     )
 else()
@@ -77,6 +78,7 @@ else()
         ${PROJECT_NAME}
         glfw
         dl
+        quill
         GTest::gtest_main
     )
 endif (WIN32)

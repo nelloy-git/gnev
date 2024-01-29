@@ -14,7 +14,7 @@ namespace gnev::gl {
 
 class EXPORT Texture : public Handler {
 public:
-    Texture(GLenum target);
+    Texture(TextureTarget target);
     Texture(const Texture&) = delete;
     Texture(Texture&&) = default;
     virtual ~Texture();
