@@ -12,7 +12,7 @@ namespace gnev {
 
 constexpr std::size_t DEFAULT_CTSTRING_SIZE = 128;
 
-template <std::size_t Size = DEFAULT_CTSTRING_SIZE>
+template <std::size_t Size>
 struct CtString {
     consteval CtString(const char (&str)[Size])
         : length(initLength(str))
@@ -33,7 +33,6 @@ struct CtString {
         , array(initArray(str)) {}
 
     template <std::size_t S>
-        requires(S <= Size)
     consteval CtString(const CtString<S>& str)
         : length(str.length)
         , array(initArray(str.array)) {}
@@ -233,4 +232,4 @@ getClassName(const std::source_location& src_loc = std::source_location::current
     return CtString{arr};
 }
 
-}
+} // namespace gnev
