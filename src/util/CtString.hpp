@@ -10,7 +10,10 @@
 
 namespace gnev {
 
+template <std::size_t Size>
+struct CtString;
 constexpr std::size_t DEFAULT_CTSTRING_SIZE = 128;
+using CtStrDef = CtString<DEFAULT_CTSTRING_SIZE>;
 
 template <std::size_t Size>
 struct CtString {
@@ -55,7 +58,7 @@ private:
         if (term == std::end(str)) {
             throw std::logic_error("CtString supports nullterm strings only");
         }
-        return std::distance(std::begin(str), term + 1);
+        return std::min<std::size_t>(Size, std::distance(std::begin(str), term + 1));
     }
 
     template <std::size_t S>
@@ -71,7 +74,7 @@ private:
         if (term == std::end(str)) {
             throw std::logic_error("CtString supports nullterm strings only");
         }
-        return std::distance(std::begin(str), term + 1);
+        return std::min<std::size_t>(Size, std::distance(std::begin(str), term + 1));
     }
 
     template <std::size_t S>
@@ -152,16 +155,24 @@ consteval std::size_t cstrLength(const char* const str) {
     return i;
 }
 
-template <std::size_t Length = DEFAULT_CTSTRING_SIZE>
-consteval auto toCtString(const char* const str) {
-    std::array<char, Length> buffer = {};
+template <std::size_t Size = DEFAULT_CTSTRING_SIZE>
+consteval auto toCtString(const char* const str, bool from_start = false) {
+    std::array<char, Size> buffer = {};
     std::fill(buffer.begin(), buffer.end(), '\0');
 
     std::size_t str_length = cstrLength(str);
-    if (str_length != 0) {
-        std::copy(str, str + std::min(Length - 1, str_length - 1), buffer.begin());
-        buffer[Length - 1] = '\0';
+    if (from_start) {
+        if (str_length != 0) {
+            std::copy(str, str + std::min(Size - 1, str_length - 1), buffer.begin());
+        }
+    } else {
+        if (str_length <= Size) {
+            std::copy(str, str + std::min(Size - 1, str_length - 1), buffer.begin());
+        } else {
+            std::copy(str + str_length - Size, str + str_length, buffer.begin());
+        }
     }
+    buffer[Size - 1] = '\0';
 
     return CtString{buffer};
 }
@@ -172,7 +183,7 @@ getFuncName(const std::source_location& src_loc = std::source_location::current(
     return toCtString<Length>(src_loc.function_name());
 }
 
-template <std::size_t Length = 128>
+template <std::size_t Length = DEFAULT_CTSTRING_SIZE>
 consteval auto
 getMethodName(const std::source_location& src_loc = std::source_location::current()) {
     auto str = getFuncName<Length>(src_loc);
