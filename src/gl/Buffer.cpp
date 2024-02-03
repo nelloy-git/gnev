@@ -68,7 +68,7 @@ void Buffer::copyTo(Buffer& writeBuffer,
 GLint Buffer::getSize() const {
     GLint size;
     Ctx::Get().glGetNamedBufferParameteriv(handle(), GL_BUFFER_SIZE, &size);
-    Log()->L2res(size);
+    Log()->L2(size);
     return size;
 }
 
@@ -77,7 +77,7 @@ bool Buffer::isStorage() const {
     Ctx::Get().glGetNamedBufferParameteriv(handle(),
                                            GL_BUFFER_IMMUTABLE_STORAGE,
                                            &is_storage);
-    Log()->L2res(is_storage == GL_TRUE);
+    Log()->L2(is_storage == GL_TRUE);
     return is_storage == GL_TRUE;
 }
 
@@ -86,7 +86,7 @@ GLbitfield Buffer::getStorageFlags() const {
     Ctx::Get().glGetNamedBufferParameteriv(handle(),
                                            GL_BUFFER_STORAGE_FLAGS,
                                            reinterpret_cast<GLint*>(&flags));
-    Log()->L2res(fmt::BitFlags{flags, fmt::BitFlags::Group::glBufferStorage});
+    Log()->L2(fmt::BitFlags{flags, fmt::BitFlags::Group::glBufferStorage});
     return flags;
 }
 

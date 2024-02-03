@@ -11,7 +11,8 @@ Texture::Texture(TextureTarget target)
     Log()->L2(target);
 }
 
-Texture::~Texture() { Log()->L2(); }
+Texture::~Texture() { Log()->L2();
+}
 
 void Texture::bind(TextureTarget target) const {
     Log()->L2(target);
@@ -23,28 +24,28 @@ TextureTarget Texture::getTarget() const {
     Ctx::Get().glGetTextureParameteriv(handle(),
                                        GL_TEXTURE_TARGET,
                                        reinterpret_cast<GLint*>(&target));
-    Log()->L2res(target);
+    Log()->L2(target);
     return target;
 }
 
 GLuint Texture::getWidth(GLuint level) const {
     GLint width;
     Ctx::Get().glGetTextureLevelParameteriv(handle(), level, GL_TEXTURE_WIDTH, &width);
-    Log()->L2res(level, width);
+    Log()->L2(level, width);
     return width;
 }
 
 GLuint Texture::getHeight(GLuint level) const {
     GLint height;
     Ctx::Get().glGetTextureLevelParameteriv(handle(), level, GL_TEXTURE_HEIGHT, &height);
-    Log()->L2res(level, height);
+    Log()->L2(level, height);
     return height;
 }
 
 GLuint Texture::getDepth(GLuint level) const {
     GLint depth;
     Ctx::Get().glGetTextureLevelParameteriv(handle(), level, GL_TEXTURE_DEPTH, &depth);
-    Log()->L2res(level, depth);
+    Log()->L2(level, depth);
     return depth;
 }
 

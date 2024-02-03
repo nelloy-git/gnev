@@ -1,87 +1,53 @@
 #pragma once
 
 #include "util/CtString.hpp"
+#include "util/Export.hpp"
 #include "util/Log.hpp"
+#include "util/SrcLoc.hpp"
 
 namespace gnev::gl {
 
-class HandlerLog {
-public:
-    HandlerLog(const CtString<>& class_name,
-               const CtString<>& method_name,
-               unsigned int handle)
-        : class_name(class_name)
-        , method_name(method_name)
-        , handle(handle) {}
-
-    template <typename... Args>
-    void L2(Args&&... args) {
-        static constexpr auto Fmt = getL2Fmt<sizeof...(args)>();
-        Log::template L2<Fmt>(class_name.to_string_view(),
-                              handle,
-                              method_name.to_string_view(),
-                              std::forward<Args>(args)...);
-    }
-
-    template <typename... Args>
-    void L2res(Args&&... args) {
-        static constexpr auto Fmt = getL2resFmt<sizeof...(args) - 1>();
-        Log::template L2<Fmt>(class_name.to_string_view(),
-                              handle,
-                              method_name.to_string_view(),
-                              std::forward<Args>(args)...);
-    }
-
-    template <typename... Args>
-    void L2ptr(const void* const ptr, Args&&... args) {
-        static constexpr auto Fmt = getL2ptrFmt<sizeof...(args)>();
-        Log::template L2<Fmt>(class_name.to_string_view(),
-                              handle,
-                              method_name.to_string_view(),
-                              ptr,
-                              std::forward<Args>(args)...);
-    }
-
-    void Error(auto&& msg) {
-        static constexpr auto Fmt = getErrorFmt();
-        Log::template L2<Fmt>(class_name.to_string_view(),
-                              handle,
-                              method_name.to_string_view(),
-                              std::forward<decltype(msg)>(msg));
-    }
+class EXPORT HandlerLog {
 
 private:
-    const CtString<>& class_name;
-    const CtString<>& method_name;
+    const SrcLoc& src_loc;
     const unsigned int handle;
 
-    template <std::size_t ArgsN, std::size_t TabsN = 0>
-    static consteval auto getL2Fmt() {
-        constexpr CtString Prefix{"{}<{}>::{}("};
-        constexpr CtString Body =
-            CtStringRepeatSep<CtString{"{}"}, CtString{", "}, ArgsN>();
-        constexpr CtString Suffix{")"};
-        return CtStringConcat<Prefix, Body, Suffix>();
-    }
-
+    static constexpr CtString Signature{"{}<{}>::{}"};
     template <std::size_t ArgsN>
-    static consteval auto getL2resFmt() {
-        constexpr CtString Prefix{"{}<{}>::{}("};
-        constexpr CtString Body =
-            CtStringRepeatSep<CtString("{}"), CtString(", "), ArgsN>();
-        constexpr CtString Suffix = {") -> {}"};
-        return CtStringConcat<Prefix, Body, Suffix>();
-    }
-
+    static constexpr CtString ArgsCS =
+        CtStringConcat<CtString{"("},
+                       CtStringRepeatSep<CtString{"{}"}, CtString{", "}, ArgsN>(),
+                       CtString{")"}>();
     template <std::size_t ArgsN>
-    static consteval auto getL2ptrFmt() {
-        constexpr CtString Prefix{"{}<{}>::{} {} -> "};
-        constexpr CtString Body =
-            CtStringRepeatSep<CtString("{}"), CtString(", "), ArgsN>();
-        return CtStringConcat<Prefix, Body>();
-    }
+    static constexpr CtString ArgsResCS = CtStringConcat<ArgsCS<ArgsN>>();
+    static constexpr CtString PtrCS = CtStringConcat<CtString{" {} -> {}"}>();
+    static constexpr CtString MsgCS = CtStringConcat<CtString{" => \"{}\""}>();
 
-    static consteval auto getErrorFmt() { return CtString{"{}<{}>::{} {}"}; }
+public:
+    HandlerLog(const SrcLoc& src_loc, unsigned int handle)
+        : src_loc(src_loc)
+        , handle(handle) {}
+
+    template <CtString Suffix = CtStringEmpty, typename... Args>
+    void L2(Args&&... args) {
+        
+
+        if constexpr (Suffix == CtStringEmpty) {
+            static constexpr auto Fmt =
+                CtStringConcat<Signature, CtString{" "}, Log::LIST<sizeof...(args)>>();
+            Log::template L2<Fmt>(src_loc.getClassName(),
+                                  handle,
+                                  src_loc.getMethodName(),
+                                  std::forward<Args>(args)...);
+        } else {
+            static constexpr auto Fmt = CtStringConcat<Signature, Suffix>();
+            Log::template L2<Fmt>(src_loc.getClassName(),
+                                  handle,
+                                  src_loc.getMethodName(),
+                                  std::forward<Args>(args)...);
+        }
+    }
 };
 
 } // namespace gnev::gl

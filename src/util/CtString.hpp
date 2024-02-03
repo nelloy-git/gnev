@@ -40,6 +40,10 @@ struct CtString {
         : length(str.length)
         , array(initArray(str.array)) {}
 
+    consteval CtString(const std::string_view& str)
+        : length(str.length())
+        , array(initArray(str)) {}
+
     constexpr std::string_view to_string_view() const {
         return std::string_view(array.data(), length - 1);
     }
@@ -47,6 +51,41 @@ struct CtString {
     consteval auto begin() const { return array.begin(); }
 
     consteval auto end() const { return array.end(); }
+
+    template <std::size_t S>
+    consteval auto operator=(const CtString<S>& other) const {
+        std::array<char, Size + S - 1> res = {};
+        std::copy(array.begin(), array.end(), res.begin());
+        std::copy(other.array.begin(), other.array.end(), res.begin() + length);
+        return CtString{res};
+    }
+
+    template <std::size_t S>
+    consteval bool operator==(const CtString<S>& other) const {
+        if (length != other.length) {
+            return false;
+        }
+        for (std::size_t i = 0; i < length; ++i) {
+            if (array[i] != other.array[i]) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    template <std::size_t S>
+    consteval std::size_t count(const CtString<S>& pattern) const {
+        auto this_str = to_string_view();
+        auto pattern_str = pattern.to_string_view();
+
+        std::size_t i = 0;
+        std::size_t c = 0;
+        while ((i = this_str.find(pattern_str, i)) != std::string::npos) {
+            i += pattern_str.length();
+            ++c;
+        }
+        return c;
+    }
 
     const std::size_t length;
     const std::array<char, Size> array;
@@ -83,7 +122,17 @@ private:
         std::copy(std::begin(str), std::end(str), res.begin());
         return res;
     }
+
+    static consteval std::array<char, Size> initArray(const std::string_view& str) {
+        std::array<char, Size> res = {};
+        std::fill(res.begin(), res.end(), '\0');
+        std::copy(str.data(), str.data() + std::min(str.length(), Size), res.begin());
+        res[Size - 1] = '\0';
+        return res;
+    }
 };
+
+constexpr CtString CtStringEmpty{""};
 
 template <auto CtStr>
 consteval auto CtStringOptimize() {
@@ -155,23 +204,16 @@ consteval std::size_t cstrLength(const char* const str) {
     return i;
 }
 
-template <std::size_t Size = DEFAULT_CTSTRING_SIZE>
-consteval auto toCtString(const char* const str, bool from_start = false) {
+template <std::size_t Size>
+consteval auto toCtString(const char* const str) {
     std::array<char, Size> buffer = {};
     std::fill(buffer.begin(), buffer.end(), '\0');
 
     std::size_t str_length = cstrLength(str);
-    if (from_start) {
-        if (str_length != 0) {
-            std::copy(str, str + std::min(Size - 1, str_length - 1), buffer.begin());
-        }
-    } else {
-        if (str_length <= Size) {
-            std::copy(str, str + std::min(Size - 1, str_length - 1), buffer.begin());
-        } else {
-            std::copy(str + str_length - Size, str + str_length, buffer.begin());
-        }
+    if (Size < str_length) {
+        throw std::out_of_range("Size < str_length");
     }
+    std::copy(str, str + std::min(Size - 1, str_length - 1), buffer.begin());
     buffer[Size - 1] = '\0';
 
     return CtString{buffer};

@@ -1,9 +1,10 @@
 #pragma once
 
-#include <source_location>
+#include <memory>
 
 #include "gl/Ctx.hpp"
-#include "util/CtString.hpp"
+#include "util/Export.hpp"
+#include "util/SrcLoc.hpp"
 
 namespace gnev::gl {
 
@@ -20,9 +21,18 @@ public:
     inline GLuint handle() const { return *_handle; };
 
 protected:
-    std::unique_ptr<HandlerLog>
-    Log(const CtString<>& class_name = getClassName(),
-        const CtString<>& method_name = getMethodName()) const;
+    static constexpr CtString Msg{" => \"{}\""};
+
+    template <std::size_t ArgsN>
+    static constexpr CtString Args =
+        CtStringConcat<CtString{"("},
+                       CtStringRepeatSep<CtString{"{}"}, CtString{", "}, ArgsN>(),
+                       CtString{")"}>();
+
+    template <std::size_t ArgsN>
+    static constexpr CtString ArgsRes = CtStringConcat<Args<ArgsN>, CtString{" -> {}"}>();
+
+    std::unique_ptr<HandlerLog> Log(const SrcLoc& src_loc = SrcLoc{}) const;
 
 private:
     std::unique_ptr<GLuint, void (*)(GLuint*)> _handle;

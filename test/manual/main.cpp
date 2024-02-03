@@ -145,7 +145,7 @@ struct PointLight {
 };
 
 struct Test {
-    void log(const CtString<>& str = getMethodName()){
+    void log(const CtStrDef& str = getMethodName()) {
         std::cout << "HERE: " << str.to_string_view().data() << std::endl;
     }
 };

@@ -26,7 +26,7 @@ TEST_F(CtxLogPerfomace, info_log) {
 
     auto start_fmt = std::chrono::high_resolution_clock::now();
     for (std::size_t i = 0; i < N; ++i){
-        QUILL_LOG_INFO(quill_logger, "{}", std::format("{}, {}, {}", 0, "azaza", i));
+        QUILL_LOG_INFO(quill_logger, "{}", fmtquill::format("{}, {}, {}", 0, "azaza", i));
     }
     auto end_fmt = std::chrono::high_resolution_clock::now();
 

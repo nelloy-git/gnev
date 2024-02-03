@@ -18,7 +18,6 @@ Log::Log() {
         cfg.set_open_mode('w');
         return cfg;
     }());
-    file_handler->set_log_level(quill::LogLevel::TraceL3);
     file_handler
         ->set_pattern("%(ascii_time) [%(thread)] %(logger_name:<9) %(level_name:<12)"
                       "%(message)",              // format
@@ -37,10 +36,6 @@ Log::Log() {
 
     Log::quill_logger = quill::create_logger(LOGGER_NAME, {file_handler, stdout_handler});
     Log::quill_logger->set_log_level(quill::LogLevel::TraceL2);
-
-    // quill_logger->log()
-
-    // quill_logger->set_log_level(quill::LogLevel::TraceL3);
 }
 
 } // namespace gnev
