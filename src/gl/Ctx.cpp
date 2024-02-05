@@ -18,6 +18,7 @@ using namespace gnev::gl;
 
 namespace {
 
+
 void freeTlsCtx(unsigned long* tls_index) {
     auto tls_ptr = TlsGetValue(*tls_index);
     if (tls_ptr == 0) {
@@ -64,7 +65,7 @@ void Ctx::Init(LoadFunc load_func) {
     }
 
     gnev::Log::init();
-    CtxLog().INFO<"Logger {}">("inited");
+    // CtxLog().INFO("Logger inited");
 }
 
 bool Ctx::IsInited() { return tls_index && (TlsGetValue(*tls_index) != 0); }

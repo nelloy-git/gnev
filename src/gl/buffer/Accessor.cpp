@@ -16,7 +16,7 @@ AccessorSubData::AccessorSubData(Ref<gl::Buffer> buffer)
     if (buffer->isStorage()) {
         GLbitfield storage_flags = buffer->getStorageFlags();
         if (not(storage_flags & GL_DYNAMIC_STORAGE_BIT)) {
-            CtxLog().ERROR<"Buffer<{}> has invalid storage flags">(buffer->handle());
+            // CtxLog().ERROR<"Buffer<{}> has invalid storage flags">(buffer->handle());
         }
     }
 }

@@ -235,7 +235,7 @@ public:
 
 protected:
     static constexpr std::string_view CALL{"Call"};
-    std::unique_ptr<CtxLog> Log(const SrcLoc& src_loc = SrcLoc{}) const;
+    std::unique_ptr<CtxLog> Log(const SrcLoc& src_loc = SrcLoc::Current()) const;
 
 private:
 #ifdef WIN32

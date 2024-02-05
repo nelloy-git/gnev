@@ -5,8 +5,9 @@
 #include "gl/fmt/HandlerLog.hpp"
 #include "gl/fmt/String.hpp"
 #include "gl/program/ProgramBinding.hpp"
+#include "util/SrcLoc.hpp"
 
-using namespace gnev::gl;
+namespace gnev::gl {
 
 Program::Program()
     : Handler(createHandle(), &deleteHandle)
@@ -52,13 +53,11 @@ bool Program::isLinkSucceed() const {
 }
 
 void Program::use() const {
-    static constexpr bool isVoid = SrcLoc{}.doReturnVoid();
     Ctx::Get().glUseProgram(handle());
-    Log()->L2(isVoid, SrcLoc{}.result_name.to_string_view());
+    Log()->L2();
 }
 
 GLsizei Program::getInfoLogLength() const {
-    static constexpr bool isVoid = SrcLoc{}.doReturnVoid();
     GLsizei len;
     Ctx::Get().glGetProgramiv(handle(),
                               GL_INFO_LOG_LENGTH,
@@ -206,3 +205,5 @@ void Program::deleteHandle(GLuint* handle) {
     Ctx::Get().glDeleteProgram(*handle);
     delete handle;
 }
+
+} // namespace gnev::gl

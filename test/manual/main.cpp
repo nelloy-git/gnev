@@ -144,12 +144,6 @@ struct PointLight {
     alignas(16) glm::vec3 specular = {1.0f, 1.0f, 1.0f};
 };
 
-struct Test {
-    void log(const CtStrDef& str = getMethodName()) {
-        std::cout << "HERE: " << str.to_string_view().data() << std::endl;
-    }
-};
-
 int main(int argc, const char** argv) {
     auto current_dir = std::filesystem::current_path();
 

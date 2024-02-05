@@ -45,7 +45,7 @@ struct CtString {
         , array(initArray(str)) {}
 
     constexpr std::string_view to_string_view() const {
-        return std::string_view(array.data(), length - 1);
+        return std::string_view(array.data(), length);
     }
 
     consteval auto begin() const { return array.begin(); }
@@ -97,7 +97,7 @@ private:
         if (term == std::end(str)) {
             throw std::logic_error("CtString supports nullterm strings only");
         }
-        return std::min<std::size_t>(Size, std::distance(std::begin(str), term + 1));
+        return std::min<std::size_t>(std::min(Size, S), std::distance(std::begin(str), term + 1));
     }
 
     template <std::size_t S>
@@ -113,7 +113,7 @@ private:
         if (term == std::end(str)) {
             throw std::logic_error("CtString supports nullterm strings only");
         }
-        return std::min<std::size_t>(Size, std::distance(std::begin(str), term + 1));
+        return std::min<std::size_t>(std::min(Size, S), std::distance(std::begin(str), term) + 1);
     }
 
     template <std::size_t S>
@@ -144,7 +144,7 @@ consteval auto CtStringOptimize() {
 
 template <auto... CtStrs>
 consteval std::size_t CtStringConcatLength() {
-    return (CtStrs.length + ... + 0) - sizeof...(CtStrs) + 1;
+    return ((CtStrs.length - 1) + ... + 0) + 1;
 }
 
 template <auto... CtStrs, std::size_t Size = CtStringConcatLength<CtStrs...>()>
@@ -191,7 +191,7 @@ consteval auto CtStringRepeatSep() {
 }
 
 consteval std::size_t cstrLength(const char* const str) {
-    constexpr std::size_t MAX_LEN = std::numeric_limits<std::size_t>::max();
+    constexpr std::size_t MAX_LEN = std::string::npos;
     if (not str) {
         throw std::logic_error("cstrLength got nullptr");
     }
@@ -210,79 +210,16 @@ consteval auto toCtString(const char* const str) {
     std::fill(buffer.begin(), buffer.end(), '\0');
 
     std::size_t str_length = cstrLength(str);
+    if (str_length == std::string::npos) {
+        throw std::out_of_range("str_length == std::string::npos");
+    }
     if (Size < str_length) {
         throw std::out_of_range("Size < str_length");
     }
-    std::copy(str, str + std::min(Size - 1, str_length - 1), buffer.begin());
+    std::copy(str, str + str_length, buffer.begin());
     buffer[Size - 1] = '\0';
 
     return CtString{buffer};
-}
-
-template <std::size_t Length = DEFAULT_CTSTRING_SIZE>
-consteval auto
-getFuncName(const std::source_location& src_loc = std::source_location::current()) {
-    return toCtString<Length>(src_loc.function_name());
-}
-
-template <std::size_t Length = DEFAULT_CTSTRING_SIZE>
-consteval auto
-getMethodName(const std::source_location& src_loc = std::source_location::current()) {
-    auto str = getFuncName<Length>(src_loc);
-    auto func_name = str.to_string_view();
-
-    std::size_t args_start = func_name.find('(');
-    std::string_view no_args = func_name.substr(0, args_start);
-
-    std::size_t method_start = no_args.find_last_of(':');
-    std::string_view method_name = no_args.substr(method_start + 1);
-
-    std::array<char, Length> arr = {};
-    std::fill(arr.begin(), arr.end(), '\0');
-    std::copy(method_name.data(),
-              method_name.data() + std::min(method_name.length(), Length),
-              arr.begin());
-    arr[Length - 1] = '\0';
-
-    return CtString{arr};
-}
-
-template <std::size_t Length = DEFAULT_CTSTRING_SIZE>
-consteval auto
-getClassName(const std::source_location& src_loc = std::source_location::current()) {
-    constexpr auto namespaces_to_remove = std::array{
-        "gnev::",
-        "gnev::gl::",
-    };
-
-    auto str = getFuncName(src_loc);
-    auto func_name = str.to_string_view();
-
-    std::size_t class_start = func_name.find(' ');
-    std::string_view no_res = func_name.substr(class_start + 1);
-    std::size_t args_start = no_res.find('(');
-    std::string_view no_args = no_res.substr(0, args_start);
-    std::size_t method_start = no_args.find_last_of(':');
-    std::string_view full_class = no_args.substr(0, method_start - 1);
-
-    std::string_view class_name = full_class;
-    for (auto& ns : namespaces_to_remove) {
-        std::string str{ns};
-        std::size_t pos = full_class.find(str);
-        if (pos != std::string::npos and
-            class_name.length() > full_class.length() - str.length()) {
-            class_name = full_class.substr(pos + str.length());
-        }
-    }
-
-    std::array<char, Length> arr = {};
-    std::fill(arr.begin(), arr.end(), '\0');
-    std::copy(class_name.data(),
-              class_name.data() + std::min(class_name.length(), Length),
-              arr.begin());
-    arr[Length - 1] = '\0';
-
-    return CtString{arr};
 }
 
 } // namespace gnev

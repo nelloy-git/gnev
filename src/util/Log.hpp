@@ -21,7 +21,7 @@ public:
     static void init();
 
     template <CtString Fmt = CtStringEmpty, typename... Args>
-    inline static void L3(Args&&... args) {
+    static void L3(Args&&... args) {
         if constexpr (Fmt == CtStringEmpty) {
             static constexpr CtString DefaultFmt = LIST<sizeof...(Args)>;
             QUILL_LOG_TRACE_L3(quill_logger,
@@ -35,7 +35,7 @@ public:
     }
 
     template <CtString Fmt = CtStringEmpty, typename... Args>
-    inline static void L2(Args&&... args) {
+    static void L2(Args&&... args) {
         if constexpr (Fmt == CtStringEmpty) {
             static constexpr CtString DefaultFmt = LIST<sizeof...(Args)>;
             QUILL_LOG_TRACE_L2(quill_logger,
@@ -49,7 +49,7 @@ public:
     }
 
     template <CtString Fmt = CtStringEmpty, typename... Args>
-    inline static void L1(Args&&... args) {
+    static void L1(Args&&... args) {
         if constexpr (Fmt == CtStringEmpty) {
             static constexpr CtString DefaultFmt = LIST<sizeof...(Args)>;
             QUILL_LOG_TRACE_L1(quill_logger,
@@ -63,7 +63,7 @@ public:
     }
 
     template <CtString Fmt = CtStringEmpty, typename... Args>
-    inline static void DEBUG(Args&&... args) {
+    static void DEBUG(Args&&... args) {
         if constexpr (Fmt == CtStringEmpty) {
             static constexpr CtString DefaultFmt = LIST<sizeof...(Args)>;
             QUILL_LOG_DEBUG(quill_logger,
@@ -75,7 +75,7 @@ public:
     }
 
     template <CtString Fmt = CtStringEmpty, typename... Args>
-    inline static void INFO(Args&&... args) {
+    static void INFO(Args&&... args) {
         if constexpr (Fmt == CtStringEmpty) {
             static constexpr CtString DefaultFmt = LIST<sizeof...(Args)>;
             QUILL_LOG_INFO(quill_logger,
@@ -87,7 +87,7 @@ public:
     }
 
     template <CtString Fmt = CtStringEmpty, typename... Args>
-    inline static void WARNING(Args&&... args) {
+    static void WARNING(Args&&... args) {
         if constexpr (Fmt == CtStringEmpty) {
             static constexpr CtString DefaultFmt = LIST<sizeof...(Args)>;
             QUILL_LOG_WARNING(quill_logger,
@@ -101,7 +101,7 @@ public:
     }
 
     template <CtString Fmt = CtStringEmpty, typename... Args>
-    inline static void ERROR(Args&&... args) {
+    static void ERROR(Args&&... args) {
         if constexpr (Fmt == CtStringEmpty) {
             static constexpr CtString DefaultFmt = LIST<sizeof...(Args)>;
             QUILL_LOG_ERROR(quill_logger,
@@ -113,7 +113,7 @@ public:
     }
 
     template <CtString Fmt = CtStringEmpty, typename... Args>
-    inline static void CRITICAL(Args&&... args) {
+    static void CRITICAL(Args&&... args) {
         if constexpr (Fmt == CtStringEmpty) {
             static constexpr CtString DefaultFmt = LIST<sizeof...(Args)>;
             QUILL_LOG_CRITICAL(quill_logger,
@@ -130,7 +130,7 @@ private:
     Log();
 
     static std::atomic<bool> inited;
-    inline static quill::Logger* quill_logger = nullptr;
+    inline static quill::Logger* quill_logger {nullptr};
 };
 
 } // namespace gnev
