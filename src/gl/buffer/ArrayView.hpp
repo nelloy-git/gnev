@@ -4,7 +4,6 @@
 #include <type_traits>
 
 #include "gl/buffer/Accessor.hpp"
-#include "util/Log.hpp"
 
 namespace gnev::gl::buffer {
 

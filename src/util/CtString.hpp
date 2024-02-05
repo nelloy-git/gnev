@@ -45,7 +45,7 @@ struct CtString {
         , array(initArray(str)) {}
 
     constexpr std::string_view to_string_view() const {
-        return std::string_view(array.data(), length);
+        return std::string_view(array.data(), length - 1);
     }
 
     consteval auto begin() const { return array.begin(); }

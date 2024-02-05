@@ -3,7 +3,6 @@
 #include <cstring>
 
 #include "gl/fmt/CtxLog.hpp"
-#include "util/Log.hpp"
 
 namespace gnev::gl::buffer {
 

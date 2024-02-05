@@ -1,7 +1,7 @@
 #pragma once
 
 #include "gl/Ctx.hpp"
-#include "util/Log.hpp"
+#include "util/Logger.hpp"
 
 namespace gnev::fmt {
 
@@ -36,7 +36,6 @@ struct BitFlags {
 private:
     std::string toString_glClear() const;
     std::string toString_glBufferStorage() const;
-
 };
 
 } // namespace gnev::fmt

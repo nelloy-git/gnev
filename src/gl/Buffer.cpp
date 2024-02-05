@@ -2,26 +2,25 @@
 
 #include "gl/fmt/BitFlags.hpp"
 #include "gl/fmt/Enum.hpp"
-#include "gl/fmt/HandlerLog.hpp"
-#include "util/Log.hpp"
+#include "gl/logger/HandlerLogger.hpp"
 
 namespace gnev::gl {
 
 Buffer::Buffer()
     : Handler(createHandle(), &deleteHandle) {
 
-    Log()->L2();
+    Log()->Func();
 }
 
-Buffer::~Buffer() { Log()->L2(); }
+Buffer::~Buffer() { Log()->Func(); }
 
 void Buffer::bind(GLenum target) const {
-    Log()->L2(fmt::Enum{target});
+    Log()->Func(fmt::Enum{target});
     Ctx::Get().glBindBuffer(target, handle());
 }
 
 void Buffer::bindBase(GLenum target, GLuint index) const {
-    Log()->L2(fmt::Enum{target}, index);
+    Log()->Func(fmt::Enum{target}, index);
     Ctx::Get().glBindBufferBase(target, index, handle());
 }
 
@@ -29,27 +28,27 @@ void Buffer::bindRange(GLenum target,
                        GLuint index,
                        GLintptr offset,
                        GLsizeiptr size) const {
-    Log()->L2(fmt::Enum{target}, index, offset, size);
+    Log()->Func(fmt::Enum{target}, index, offset, size);
     Ctx::Get().glBindBufferRange(target, index, handle(), offset, size);
 }
 
 void Buffer::initData(GLsizeiptr size, const void* data, GLenum usage) {
-    Log()->L2(size, data, fmt::Enum{usage});
+    Log()->Func(size, data, fmt::Enum{usage});
     Ctx::Get().glNamedBufferData(handle(), size, data, usage);
 }
 
 void Buffer::initStorage(GLsizeiptr size, const void* data, GLbitfield flags) {
-    Log()->L2(size, data, fmt::BitFlags{flags, fmt::BitFlags::Group::glBufferStorage});
+    Log()->Func(size, data, fmt::BitFlags{flags, fmt::BitFlags::Group::glBufferStorage});
     Ctx::Get().glNamedBufferStorage(handle(), size, data, flags);
 }
 
 void Buffer::setSubData(GLintptr offset, GLsizeiptr size, const void* data) {
-    Log()->L2(offset, size, data);
+    Log()->Func(offset, size, data);
     Ctx::Get().glNamedBufferSubData(handle(), offset, size, data);
 }
 
 void Buffer::getSubData(GLintptr offset, GLsizeiptr size, void* data) const {
-    Log()->L2(offset, size, data);
+    Log()->Func(offset, size, data);
     Ctx::Get().glGetNamedBufferSubData(handle(), offset, size, data);
 }
 
@@ -57,7 +56,7 @@ void Buffer::copyTo(Buffer& writeBuffer,
                     GLintptr readOffset,
                     GLintptr writeOffset,
                     GLsizeiptr size) const {
-    Log()->L2(writeBuffer.handle(), readOffset, writeOffset, size);
+    Log()->Func(writeBuffer.handle(), readOffset, writeOffset, size);
     Ctx::Get().glCopyNamedBufferSubData(handle(),
                                         writeBuffer.handle(),
                                         readOffset,
@@ -68,7 +67,7 @@ void Buffer::copyTo(Buffer& writeBuffer,
 GLint Buffer::getSize() const {
     GLint size;
     Ctx::Get().glGetNamedBufferParameteriv(handle(), GL_BUFFER_SIZE, &size);
-    Log()->L2(size);
+    Log()->Func(size);
     return size;
 }
 
@@ -77,7 +76,7 @@ bool Buffer::isStorage() const {
     Ctx::Get().glGetNamedBufferParameteriv(handle(),
                                            GL_BUFFER_IMMUTABLE_STORAGE,
                                            &is_storage);
-    Log()->L2(is_storage == GL_TRUE);
+    Log()->Func(is_storage == GL_TRUE);
     return is_storage == GL_TRUE;
 }
 
@@ -86,27 +85,27 @@ GLbitfield Buffer::getStorageFlags() const {
     Ctx::Get().glGetNamedBufferParameteriv(handle(),
                                            GL_BUFFER_STORAGE_FLAGS,
                                            reinterpret_cast<GLint*>(&flags));
-    Log()->L2(fmt::BitFlags{flags, fmt::BitFlags::Group::glBufferStorage});
+    Log()->Func(fmt::BitFlags{flags, fmt::BitFlags::Group::glBufferStorage});
     return flags;
 }
 
 void* Buffer::map(GLenum access) {
-    Log()->L2(fmt::Enum{access});
+    Log()->Func(fmt::Enum{access});
     return Ctx::Get().glMapNamedBuffer(handle(), access);
 }
 
 void* Buffer::mapRange(GLintptr offset, GLsizeiptr length, GLbitfield access) {
-    Log()->L2(offset, length, fmt::Enum{access});
+    Log()->Func(offset, length, fmt::Enum{access});
     return Ctx::Get().glMapNamedBufferRange(handle(), offset, length, access);
 }
 
 void Buffer::flushRange(GLintptr offset, GLsizeiptr length) {
-    Log()->L2(offset, length);
+    Log()->Func(offset, length);
     Ctx::Get().glFlushMappedNamedBufferRange(handle(), offset, length);
 }
 
 void Buffer::unmap() {
-    Log()->L2();
+    Log()->Func();
     Ctx::Get().glUnmapNamedBuffer(handle());
 }
 

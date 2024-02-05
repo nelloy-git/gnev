@@ -8,7 +8,6 @@
 #include "gl/fmt/CharPtr.hpp"
 #include "gl/fmt/CtxLog.hpp"
 #include "gl/fmt/Enum.hpp"
-#include "util/Log.hpp"
 
 using namespace gnev::gl;
 
@@ -17,7 +16,6 @@ using namespace gnev::gl;
 #include <windows.h>
 
 namespace {
-
 
 void freeTlsCtx(unsigned long* tls_index) {
     auto tls_ptr = TlsGetValue(*tls_index);
@@ -88,8 +86,7 @@ void Ctx::Init(LoadFunc load_func) {
         throw std::runtime_error("");
     }
     thread_ctx = std::unique_ptr<Ctx>(new Ctx(load_func));
-    gnev::Log::init();
-    CtxLog().INFO("Logger inited");
+    gnev::Logger::init();
 }
 
 bool Ctx::IsInited() { return thread_ctx.get(); }

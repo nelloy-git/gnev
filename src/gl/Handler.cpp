@@ -3,7 +3,7 @@
 #include <memory>
 #include <stdexcept>
 
-#include "gl/fmt/HandlerLog.hpp"
+#include "gl/logger/HandlerLogger.hpp"
 
 namespace gnev::gl {
 
@@ -14,7 +14,8 @@ Handler::Handler(GLuint* handle, void (*deleter)(GLuint*))
     }
 }
 
-// std::unique_ptr<HandlerLog> Handler::Log(const SrcLoc& src_loc) const {
-//     return std::make_unique<HandlerLog>(src_loc, *_handle);
-// }
+std::unique_ptr<HandlerLogger> Handler::Log(const SrcLoc& src_loc) const {
+    return std::make_unique<HandlerLogger>(src_loc, *_handle);
+}
+
 } // namespace gnev::gl

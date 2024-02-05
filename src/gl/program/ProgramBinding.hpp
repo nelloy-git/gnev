@@ -3,7 +3,6 @@
 #include <unordered_map>
 
 #include "util/IndexStorage.hpp"
-#include "util/Log.hpp"
 #include "util/Ref.hpp"
 
 namespace gnev::gl {
@@ -14,7 +13,7 @@ public:
     ProgramBinding(unsigned int capacity)
         : binds(capacity) {}
 
-    // binds loc_index -> binding_index -> object
+    // links loc_index -> binding_index -> object
     // return binding_index
     std::optional<unsigned int> set(unsigned int loc_index, const Ptr<T> obj) {
         // Check is loc_index already in use

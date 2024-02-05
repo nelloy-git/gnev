@@ -2,7 +2,6 @@
 
 #include "gl/buffer/Accessor.hpp"
 #include "util/IndexStorage.hpp"
-#include "util/Log.hpp"
 #include "util/Ref.hpp"
 
 namespace gnev::gl::buffer {

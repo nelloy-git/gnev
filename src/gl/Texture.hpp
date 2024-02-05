@@ -63,13 +63,13 @@ public:
                 GLuint src_x,
                 GLuint src_y,
                 GLuint src_z,
-                GLuint dstlevel,
-                GLuint dstx,
-                GLuint dsty,
-                GLuint dstz,
-                GLuint srcWidth,
-                GLuint srcHeight,
-                GLuint srcDepth) const;
+                GLuint dst_level,
+                GLuint dst_x,
+                GLuint dst_y,
+                GLuint dst_z,
+                GLuint src_width,
+                GLuint src_height,
+                GLuint src_depth) const;
 
 private:
     static GLuint* createHandle(GLenum target);

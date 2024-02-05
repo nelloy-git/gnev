@@ -1,18 +1,18 @@
-#include "util/Log.hpp"
+#include "util/Logger.hpp"
 
 namespace gnev {
 
-std::atomic<bool> Log::inited = false;
+std::atomic<bool> Logger::inited = false;
 
-void Log::init() {
+void Logger::init() {
     bool is_already_inited = inited.exchange(true);
     if (is_already_inited) {
         return;
     }
-    static Log log;
+    static Logger log;
 }
 
-Log::Log() {
+Logger::Logger() {
     auto file_handler = quill::file_handler("app.log", []() {
         quill::FileHandlerConfig cfg;
         cfg.set_open_mode('w');
@@ -34,8 +34,9 @@ Log::Log() {
     quill::configure(cfg);
     quill::start();
 
-    Log::quill_logger = quill::create_logger(LOGGER_NAME, {file_handler, stdout_handler});
-    Log::quill_logger->set_log_level(quill::LogLevel::TraceL2);
+    Logger::quill_logger =
+        quill::create_logger(LOGGER_NAME, {file_handler, stdout_handler});
+    Logger::quill_logger->set_log_level(quill::LogLevel::TraceL2);
 }
 
 } // namespace gnev

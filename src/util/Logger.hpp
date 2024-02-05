@@ -2,7 +2,6 @@
 
 #include <atomic>
 #include <memory>
-#include <source_location>
 
 #include "quill/Quill.h"
 #include "util/CtString.hpp"
@@ -10,7 +9,7 @@
 
 namespace gnev {
 
-class EXPORT Log {
+class EXPORT Logger {
 public:
     static constexpr auto LOGGER_NAME = "gnev";
 
@@ -127,10 +126,10 @@ public:
     }
 
 private:
-    Log();
+    Logger();
 
     static std::atomic<bool> inited;
-    inline static quill::Logger* quill_logger {nullptr};
+    inline static quill::Logger* quill_logger{nullptr};
 };
 
 } // namespace gnev
