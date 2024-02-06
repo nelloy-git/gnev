@@ -1,18 +1,19 @@
 #pragma once
 
 #include "gl/Handler.hpp"
+#include "enum/ShaderType.hpp"
 
 namespace gnev::gl {
 
 class EXPORT Shader : public Handler {
 public:
-    Shader(GLenum type);
+    Shader(ShaderType type);
     virtual ~Shader();
 
     void setSource(GLsizei count, const GLchar* const* string, const GLint* length);
     void compile();
 
-    GLenum getType() const;
+    ShaderType getType() const;
     bool hasDeleteFlag() const;
     bool isCompileSucceed() const;
     GLsizei getInfoLogLenth() const;
@@ -20,7 +21,7 @@ public:
     std::string getInfoLog() const;
 
 private:
-    static GLuint* createHandle(GLenum type);
+    static GLuint* createHandle(ShaderType type);
     static void deleteHandle(GLuint* handle);
 };
 

@@ -55,8 +55,8 @@ Ref<gl::Program> buildProgram() {
     readTextFile(fragment_shader_src, current_dir / "sample" / "shader" / "fragment.fs");
 
     auto program = program_builder.build({
-        {GL_VERTEX_SHADER, vertex_shader_src},
-        {GL_FRAGMENT_SHADER, fragment_shader_src},
+        {ShaderType::VERTEX_SHADER, vertex_shader_src},
+        {ShaderType::FRAGMENT_SHADER, fragment_shader_src},
     });
 
     if (not program) {

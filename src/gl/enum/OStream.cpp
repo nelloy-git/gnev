@@ -1,3 +1,4 @@
+#include "gl/enum/ShaderType.hpp"
 #include "gl/enum/TextureFormat.hpp"
 #include "gl/enum/TextureInternalFormat.hpp"
 #include "gl/enum/TextureMagFilter.hpp"
@@ -6,6 +7,27 @@
 #include "gl/enum/TextureType.hpp"
 #include "gl/enum/TextureWrapS.hpp"
 #include "gl/enum/TextureWrapT.hpp"
+
+std::ostream& gnev::operator<<(std::ostream& os, const gnev::ShaderType& value) {
+    switch (value) {
+        using enum gnev::ShaderType;
+    case COMPUTE_SHADER:
+        return os << "COMPUTE_SHADER";
+    case VERTEX_SHADER:
+        return os << "VERTEX_SHADER";
+    case TESS_CONTROL_SHADER:
+        return os << "TESS_CONTROL_SHADER";
+    case TESS_EVALUATION_SHADER:
+        return os << "TESS_EVALUATION_SHADER";
+    case GEOMETRY_SHADER:
+        return os << "GEOMETRY_SHADER";
+    case FRAGMENT_SHADER:
+        return os << "FRAGMENT_SHADER";
+
+    default:
+        return os << "UNKNOWN";
+    }
+}
 
 std::ostream& gnev::operator<<(std::ostream& os, const gnev::TextureMinFilter& value) {
     switch (value) {

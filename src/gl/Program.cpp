@@ -23,49 +23,50 @@ Program::Program()
 Program::~Program() { Log()->Func(); }
 
 void Program::attach(const Shader& shader) {
-    Ctx::Get().glAttachShader(handle(), shader.handle());
     Log()->Func(shader.handle());
+    Ctx::Get().glAttachShader(handle(), shader.handle());
 }
 
 void Program::validate() {
-    Ctx::Get().glValidateProgram(handle());
     Log()->Func();
+    Ctx::Get().glValidateProgram(handle());
 }
 
 bool Program::isValidateSucceed() const {
+    Log()->Func();
     GLint is_valid;
     Ctx::Get().glGetProgramiv(handle(), GL_VALIDATE_STATUS, &is_valid);
-    Log()->Func(is_valid == GL_TRUE);
     return is_valid == GL_TRUE;
 }
 
 void Program::link() {
-    Ctx::Get().glLinkProgram(handle());
     Log()->Func();
+    Ctx::Get().glLinkProgram(handle());
 }
 
 bool Program::isLinkSucceed() const {
+    Log()->Func();
     GLint is_linked;
     Ctx::Get().glGetProgramiv(handle(), GL_LINK_STATUS, &is_linked);
-    Log()->Func(is_linked == GL_TRUE);
     return is_linked == GL_TRUE;
 }
 
 void Program::use() const {
-    Ctx::Get().glUseProgram(handle());
     Log()->Func();
+    Ctx::Get().glUseProgram(handle());
 }
 
 GLsizei Program::getInfoLogLength() const {
+    Log()->Func();
     GLsizei len;
     Ctx::Get().glGetProgramiv(handle(),
                               GL_INFO_LOG_LENGTH,
                               reinterpret_cast<GLint*>(&len));
-    Log()->Func(len);
     return len;
 }
 
 std::string Program::getInfoLog() const {
+    Log()->Func();
 
     std::string info_log{};
     GLsizei len;
@@ -77,32 +78,31 @@ std::string Program::getInfoLog() const {
         Ctx::Get().glGetProgramInfoLog(handle(), len, &len, info_log.data());
     }
 
-    Log()->Func(info_log);
     return info_log;
 }
 
 GLint Program::getAttributeLoc(const GLchar* name) const {
+    Log()->Func(fmt::String{name});
     GLint index = Ctx::Get().glGetAttribLocation(handle(), name);
-    Log()->Func(fmt::String{name}, index);
     return index;
 }
 
 GLint Program::getUniformLoc(const GLchar* name) const {
+    Log()->Func(fmt::String{name});
     GLint index = Ctx::Get().glGetUniformLocation(handle(), name);
-    Log()->Func(fmt::String{name}, index);
     return index;
 }
 
 GLint Program::getResourceIndex(GLenum interface, const GLchar* name) const {
-    GLint index = Ctx::Get().glGetProgramResourceIndex(handle(), interface, name);
     Log()->Func(fmt::Enum{interface, fmt::Enum::Group::GetProgramResourceIndex},
-                fmt::String{name},
-                index);
+                fmt::String{name});
+    GLint index = Ctx::Get().glGetProgramResourceIndex(handle(), interface, name);
     return index;
 }
 
 void Program::bindShaderStorageBlockBuffer(const GLchar* storage_block_name,
                                            const Ref<Buffer>& buffer) {
+    Log()->Func(fmt::String{storage_block_name}, buffer->handle());
     bindShaderStorageBlockBuffer(getResourceIndex(GL_SHADER_STORAGE_BLOCK,
                                                   storage_block_name),
                                  buffer);
@@ -127,6 +127,7 @@ void Program::bindShaderStorageBlockBuffer(GLuint storage_block_index,
 
 void Program::bindShaderUniformBlockBuffer(const GLchar* uniform_block_name,
                                            const Ref<Buffer>& buffer) {
+    Log()->Func(fmt::String{uniform_block_name}, buffer->handle());
     bindShaderUniformBlockBuffer(getResourceIndex(GL_UNIFORM_BLOCK, uniform_block_name),
                                  buffer);
 }
@@ -151,6 +152,7 @@ void Program::bindShaderUniformBlockBuffer(GLuint uniform_block_index,
 
 void Program::bindShaderTextureSampler(const GLchar* texture_sampler_name,
                                        const Ref<Texture>& texture) {
+    Log()->Func(fmt::String{texture_sampler_name}, texture->handle());
     bindShaderTextureSampler(getUniformLoc(texture_sampler_name), texture);
 }
 
@@ -169,32 +171,35 @@ void Program::bindShaderTextureSampler(GLuint texture_sampler_index,
 }
 
 GLuint Program::getMaxShaderStorageBufferBindings() {
+    Log()->Func();
     static GLuint MAX_SHADER_STORAGE_BUFFER_BINDINGS = []() {
         GLint value;
         Ctx::Get().glGetIntegerv(GL_MAX_SHADER_STORAGE_BUFFER_BINDINGS, &value);
+        Logger::INFO("GL_MAX_SHADER_STORAGE_BUFFER_BINDINGS: ", value);
         return value;
     }();
-    Log()->Func(MAX_SHADER_STORAGE_BUFFER_BINDINGS);
     return MAX_SHADER_STORAGE_BUFFER_BINDINGS;
 }
 
 GLuint Program::getMaxUniformBufferBindings() {
+    Log()->Func();
     static GLuint MAX_UNIFORM_BUFFER_BINDINGS = []() {
         GLint value;
         Ctx::Get().glGetIntegerv(GL_MAX_UNIFORM_BUFFER_BINDINGS, &value);
+        Logger::INFO("GL_MAX_UNIFORM_BUFFER_BINDINGS: ", value);
         return value;
     }();
-    Log()->Func(MAX_UNIFORM_BUFFER_BINDINGS);
     return MAX_UNIFORM_BUFFER_BINDINGS;
 }
 
 GLuint Program::getMaxTextureImageUnits() {
+    Log()->Func();
     static GLuint MAX_TEXTURE_IMAGE_UNITS = []() {
         GLint value;
         Ctx::Get().glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &value);
+        Logger::INFO("GL_MAX_TEXTURE_IMAGE_UNITS: ", value);
         return value;
     }();
-    Log()->Func(MAX_TEXTURE_IMAGE_UNITS);
     return MAX_TEXTURE_IMAGE_UNITS;
 }
 

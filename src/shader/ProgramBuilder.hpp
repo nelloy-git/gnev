@@ -17,7 +17,7 @@ public:
 
     const std::string& reason() const;
     const std::string& help() const;
-    Ptr<gl::Program> build(const std::unordered_map<GLenum, std::string>& sources);
+    Ptr<gl::Program> build(const std::unordered_map<ShaderType, std::string>& sources);
 
 private:
     std::string _reason;

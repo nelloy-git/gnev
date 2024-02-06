@@ -8,7 +8,6 @@ using namespace gnev::gl;
 
 VertexArray::VertexArray()
     : Handler(createHandle(), &deleteHandle) {
-    Log()->Func();
 }
 
 VertexArray::~VertexArray() { Log()->Func(); }

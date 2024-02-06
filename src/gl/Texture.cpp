@@ -8,7 +8,6 @@ namespace gnev::gl {
 
 Texture::Texture(TextureTarget target)
     : Handler(createHandle(static_cast<GLenum>(target)), &deleteHandle) {
-    Log()->Func(target);
 }
 
 Texture::~Texture() { Log()->Func(); }
@@ -19,32 +18,32 @@ void Texture::bind(TextureTarget target) const {
 }
 
 TextureTarget Texture::getTarget() const {
+    Log()->Func();
     TextureTarget target;
     Ctx::Get().glGetTextureParameteriv(handle(),
                                        GL_TEXTURE_TARGET,
                                        reinterpret_cast<GLint*>(&target));
-    Log()->Func(target);
     return target;
 }
 
 GLuint Texture::getWidth(GLuint level) const {
+    Log()->Func(level);
     GLint width;
     Ctx::Get().glGetTextureLevelParameteriv(handle(), level, GL_TEXTURE_WIDTH, &width);
-    Log()->Func(level, width);
     return width;
 }
 
 GLuint Texture::getHeight(GLuint level) const {
+    Log()->Func(level);
     GLint height;
     Ctx::Get().glGetTextureLevelParameteriv(handle(), level, GL_TEXTURE_HEIGHT, &height);
-    Log()->Func(level, height);
     return height;
 }
 
 GLuint Texture::getDepth(GLuint level) const {
+    Log()->Func(level);
     GLint depth;
     Ctx::Get().glGetTextureLevelParameteriv(handle(), level, GL_TEXTURE_DEPTH, &depth);
-    Log()->Func(level, depth);
     return depth;
 }
 

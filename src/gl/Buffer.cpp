@@ -8,8 +8,7 @@ namespace gnev::gl {
 
 Buffer::Buffer()
     : Handler(createHandle(), &deleteHandle) {
-
-    Log()->Func();
+        Log()->Func();
 }
 
 Buffer::~Buffer() { Log()->Func(); }
@@ -65,27 +64,27 @@ void Buffer::copyTo(Buffer& writeBuffer,
 }
 
 GLint Buffer::getSize() const {
+    Log()->Func();
     GLint size;
     Ctx::Get().glGetNamedBufferParameteriv(handle(), GL_BUFFER_SIZE, &size);
-    Log()->Func(size);
     return size;
 }
 
 bool Buffer::isStorage() const {
+    Log()->Func();
     GLint is_storage;
     Ctx::Get().glGetNamedBufferParameteriv(handle(),
                                            GL_BUFFER_IMMUTABLE_STORAGE,
                                            &is_storage);
-    Log()->Func(is_storage == GL_TRUE);
     return is_storage == GL_TRUE;
 }
 
 GLbitfield Buffer::getStorageFlags() const {
+    Log()->Func();
     GLbitfield flags;
     Ctx::Get().glGetNamedBufferParameteriv(handle(),
                                            GL_BUFFER_STORAGE_FLAGS,
                                            reinterpret_cast<GLint*>(&flags));
-    Log()->Func(fmt::BitFlags{flags, fmt::BitFlags::Group::glBufferStorage});
     return flags;
 }
 

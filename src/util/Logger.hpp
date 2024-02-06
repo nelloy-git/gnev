@@ -15,7 +15,7 @@ public:
 
     template <std::size_t ArgsN>
     static constexpr CtString LIST =
-        CtStringRepeatSep<CtString{"{}"}, CtString{", "}, ArgsN>();
+        CtStringRepeatSep<CtString{"{}"}, CtString{" "}, ArgsN>();
 
     static void init();
 
@@ -127,6 +127,9 @@ public:
 
 private:
     Logger();
+
+    std::shared_ptr<quill::Handler> initFileHandler(const quill::fs::path& path, quill::LogLevel level) const;
+    std::shared_ptr<quill::Handler> initStdOutHandler(quill::LogLevel level) const;
 
     static std::atomic<bool> inited;
     inline static quill::Logger* quill_logger{nullptr};

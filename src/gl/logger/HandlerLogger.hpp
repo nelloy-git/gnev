@@ -43,28 +43,11 @@ public:
     template <typename... Args>
     void Func(Args&&... args) const {
         static constexpr std::size_t ArgsN = sizeof...(Args);
-
-        // Logger::template L2<CtString{
-        //     "std: {} class: {} func: {} returns: {}({})"}>(src_loc.std_function_name,
-        //                                                     src_loc.class_name,
-        //                                                     src_loc.short_func_name,
-        //                                                     src_loc.result_name,
-        //                                                     src_loc.non_void_return
-        //                                                         ? "NON_VOID"
-        //                                                         : "IS_VOID");
-        if (src_loc.non_void_return) {
-            static constexpr auto Fmt = Pattern<ArgsN, true>;
-            Logger::template L2<Fmt>(src_loc.class_name,
-                                     handle,
-                                     src_loc.short_func_name,
-                                     std::forward<Args>(args)...);
-        } else {
-            static constexpr auto Fmt = Pattern<ArgsN, false>;
-            Logger::template L2<Fmt>(src_loc.class_name,
-                                     handle,
-                                     src_loc.short_func_name,
-                                     std::forward<Args>(args)...);
-        }
+        static constexpr auto Fmt = Pattern<ArgsN, false>;
+        Logger::template L2<Fmt>(src_loc.class_name,
+                                 handle,
+                                 src_loc.short_func_name,
+                                 std::forward<Args>(args)...);
     }
 
     void DEBUG(auto&& msg) const {
