@@ -20,6 +20,7 @@ Ref<base::ImageLoaderResult> ImageLoaderStb::load(const std::filesystem::path& p
         MakeSharable<ImageLoaderStbResult>(done.get_future(), Image{read_info, 1});
 
     if (not validateReadInfo(read_info, result)) {
+
         done.set_value(false);
         return result;
     }
@@ -136,6 +137,8 @@ std::optional<Image> ImageLoaderStb::stbLoad(const std::filesystem::path& path,
         stbi_load(path.string().c_str(), &w, &h, &c, getComponents(read_info)),
         &stbi_image_free};
 
+    Logger::DEBUG<"Loaded image {}x{}x{}">(w, h, c);
+
     auto received_info = read_info;
     if (received_info.width == 0) {
         received_info.width = w;
@@ -155,7 +158,10 @@ std::optional<Image> ImageLoaderStb::stbLoad(const std::filesystem::path& path,
         return std::nullopt;
     }
 
-    return Image{read_info, {getBufferSize(read_info), ptr}};
+    Logger::DEBUG<"Loaded image info {}x{} {}">(received_info.width,
+                                                received_info.height,
+                                                received_info.format);
+    return Image{received_info, {getBufferSize(received_info), ptr}};
 }
 
 Image ImageLoaderStb::stbResize(const Image& image,
@@ -165,6 +171,19 @@ Image ImageLoaderStb::stbResize(const Image& image,
         return image;
     }
 
+    Logger::DEBUG<"Image resize {}x{} -> {}x{}">(image.info.width,
+                                                 image.info.height,
+                                                 store_info.width,
+                                                 store_info.height);
+    Logger::DEBUG<
+        "Image first pixel before resize: [{}, {}, {}, {}]">(image.data
+                                                                 .get<std::uint8_t>()[0],
+                                                             image.data
+                                                                 .get<std::uint8_t>()[1],
+                                                             image.data
+                                                                 .get<std::uint8_t>()[2],
+                                                             image.data
+                                                                 .get<std::uint8_t>()[3]);
     Image resized{store_info, getBufferSize(store_info)};
     stbir_resize(image.data.get<GLubyte>(),
                  image.info.width,
@@ -178,6 +197,16 @@ Image ImageLoaderStb::stbResize(const Image& image,
                  stbir_datatype::STBIR_TYPE_UINT8,
                  stbir_edge::STBIR_EDGE_CLAMP,
                  stbir_filter::STBIR_FILTER_DEFAULT);
+
+    Logger::DEBUG<
+        "Image first pixel after resize: [{}, {}, {}, {}]">(resized.data
+                                                                .get<std::uint8_t>()[0],
+                                                            resized.data
+                                                                .get<std::uint8_t>()[1],
+                                                            resized.data
+                                                                .get<std::uint8_t>()[2],
+                                                            resized.data
+                                                                .get<std::uint8_t>()[3]);
     return resized;
 }
 
