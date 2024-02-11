@@ -1,7 +1,6 @@
 #pragma once
 
 #include "gl/Ctx.hpp"
-#include "util/Logger.hpp"
 
 namespace gnev {
 
@@ -19,9 +18,6 @@ enum class TextureTarget : GLenum {
     TEXTURE_2D_MULTISAMPLE_ARRAY = GL_TEXTURE_2D_MULTISAMPLE_ARRAY
 };
 
-std::ostream& operator<<(std::ostream& os, const TextureTarget& value);
+std::string_view format_as(TextureTarget value);
 
 } // namespace gnev
-
-template <>
-struct fmtquill::formatter<gnev::TextureTarget> : ostream_formatter {};

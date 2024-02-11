@@ -1,7 +1,6 @@
 #pragma once
 
 #include "gl/Ctx.hpp"
-#include "util/Logger.hpp"
 
 namespace gnev {
 
@@ -12,9 +11,6 @@ enum class TextureWrapT : GLenum {
     MIRROR_CLAMP_TO_EDGE = GL_MIRROR_CLAMP_TO_EDGE,
 };
 
-std::ostream& operator<<(std::ostream& os, const gnev::TextureWrapT& value);
+std::string_view format_as(TextureWrapT value);
 
 } // namespace gnev
-
-template <>
-struct fmtquill::formatter<gnev::TextureWrapT> : ostream_formatter {};

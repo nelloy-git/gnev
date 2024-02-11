@@ -18,6 +18,11 @@ public:
     virtual ~IndexStorage() = default;
 
     std::optional<Index> useIndex();
+
+    std::optional<Index> useIndexRange(Index size){
+        
+    }
+
     bool freeIndex(Index index);
     bool isUsed(Index index) const;
     unsigned int countFree() const;

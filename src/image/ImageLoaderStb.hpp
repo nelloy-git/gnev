@@ -25,6 +25,8 @@ private:
     Image stbResize(const Image& image,
                     const ImageInfo& store_info,
                     ImageLoaderStbResult& result) const;
+
+    
 };
 
 } // namespace gnev

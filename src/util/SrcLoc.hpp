@@ -163,7 +163,14 @@ private:
         fillWords(comma_separated, with_args, {","});
 
 #ifdef WIN32
-        static_assert(false, "TODO");
+        if (comma_separated.size() > 1){
+            return comma_separated.size();
+        }
+
+        if (comma_separated[0] == "()" or comma_separated[0] == "(void)"){
+            return 0;
+        }
+        return 1;
 #else
         if (comma_separated.size() > 1){
             return comma_separated.size();

@@ -62,8 +62,8 @@ void Ctx::Init(LoadFunc load_func) {
         throw std::runtime_error("TlsSetValue error");
     }
 
-    gnev::Log::init();
-    // CtxLog().INFO("Logger inited");
+    gnev::Logger::init();
+    gnev::Logger::INFO<"Logger initialized">();
 }
 
 bool Ctx::IsInited() { return tls_index && (TlsGetValue(*tls_index) != 0); }
@@ -103,7 +103,6 @@ Ctx& Ctx::Get() {
 Ctx::Ctx(LoadFunc load_func)
     : glad(std::make_unique<GladGLContext>()) {
     gladLoadGLContext(glad.get(), load_func);
-    gnev::Logger::INFO("Ctx initialized for thread_id: ", std::this_thread::get_id());
 }
 
 void Ctx::glActiveTexture(GLenum texture) const {

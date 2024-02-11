@@ -1,7 +1,6 @@
 #pragma once
 
 #include "gl/Ctx.hpp"
-#include "util/Logger.hpp"
 
 namespace gnev {
 
@@ -14,9 +13,6 @@ enum class TextureMinFilter : GLenum {
     LINEAR_MIPMAP_LINEAR = GL_LINEAR_MIPMAP_LINEAR
 };
 
-std::ostream& operator<<(std::ostream& os, const gnev::TextureMinFilter& value);
+std::string_view format_as(TextureMinFilter value);
 
 } // namespace gnev
-
-template <>
-struct fmtquill::formatter<gnev::TextureMinFilter> : ostream_formatter {};

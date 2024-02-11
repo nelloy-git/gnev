@@ -1,7 +1,6 @@
 #pragma once
 
 #include "gl/Ctx.hpp"
-#include "util/Logger.hpp"
 
 namespace gnev {
 
@@ -14,9 +13,6 @@ enum class ShaderType : GLenum {
     FRAGMENT_SHADER = GL_FRAGMENT_SHADER,
 };
 
-std::ostream& operator<<(std::ostream& os, const ShaderType& value);
+std::string_view format_as(ShaderType value);
 
 } // namespace gnev
-
-template <>
-struct fmtquill::formatter<gnev::ShaderType> : ostream_formatter {};

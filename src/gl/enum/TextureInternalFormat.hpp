@@ -1,7 +1,6 @@
 #pragma once
 
 #include "gl/Ctx.hpp"
-#include "util/Logger.hpp"
 
 namespace gnev {
 
@@ -75,9 +74,7 @@ enum class TextureInternalFormat : GLenum {
     STENCIL_INDEX8 = GL_STENCIL_INDEX8,
 };
 
-std::ostream& operator<<(std::ostream& os, const TextureInternalFormat& value);
+std::string_view format_as(TextureInternalFormat value);
 
 } // namespace gnev
 
-template <>
-struct fmtquill::formatter<gnev::TextureInternalFormat> : ostream_formatter {};

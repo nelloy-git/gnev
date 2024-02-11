@@ -1,7 +1,6 @@
 #pragma once
 
 #include "gl/Ctx.hpp"
-#include "util/Logger.hpp"
 
 namespace gnev {
 
@@ -27,9 +26,6 @@ enum class TextureType : GLenum {
     UNSIGNED_INT_2_10_10_10_REV = GL_UNSIGNED_INT_2_10_10_10_REV,
 };
 
-std::ostream& operator<<(std::ostream& os, const TextureType& value);
+std::string_view format_as(TextureType value);
 
 } // namespace gnev
-
-template <>
-struct fmtquill::formatter<gnev::TextureType> : ostream_formatter {};

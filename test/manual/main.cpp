@@ -103,8 +103,8 @@ createMaterial(const Ref<MaterialStorage_PBR>& storage,
                const std::filesystem::path& albedo,
                const std::optional<std::filesystem::path>& normal = std::nullopt,
                const std::optional<std::filesystem::path>& specular = std::nullopt) {
-    static constexpr ImageInfo store_info{.width = 128,
-                                          .height = 128,
+    static constexpr ImageInfo store_info{.width = 64,
+                                          .height = 64,
                                           .format = TextureFormat::RGBA,
                                           .type = TextureType::UNSIGNED_BYTE};
 
@@ -129,10 +129,6 @@ createMaterial(const Ref<MaterialStorage_PBR>& storage,
         material->setTex(MaterialTexType_PBR::Metallic, specular_tex);
     }
 
-    // MaterialDataGL_PBR data_gl;
-    // material->getData()->get(data_gl);
-    // std::cout << data_gl << std::endl;
-
     return material;
 }
 
@@ -154,7 +150,7 @@ int main(int argc, const char** argv) {
     program->use();
 
     // Materials
-    auto material_storage = MaterialStorage_PBR::MakeDynamic(1, 128, 128, 10);
+    auto material_storage = MaterialStorage_PBR::MakeDynamic(1, 64, 64, 10);
     ImageLoaderStb loader;
     program
         ->bindShaderStorageBlockBuffer("Material",

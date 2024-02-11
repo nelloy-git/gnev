@@ -175,7 +175,7 @@ GLuint Program::getMaxShaderStorageBufferBindings() {
     static GLuint MAX_SHADER_STORAGE_BUFFER_BINDINGS = []() {
         GLint value;
         Ctx::Get().glGetIntegerv(GL_MAX_SHADER_STORAGE_BUFFER_BINDINGS, &value);
-        Logger::INFO("GL_MAX_SHADER_STORAGE_BUFFER_BINDINGS: ", value);
+        Logger::INFO<"GL_MAX_SHADER_STORAGE_BUFFER_BINDINGS: {}">(value);
         return value;
     }();
     return MAX_SHADER_STORAGE_BUFFER_BINDINGS;
@@ -186,7 +186,7 @@ GLuint Program::getMaxUniformBufferBindings() {
     static GLuint MAX_UNIFORM_BUFFER_BINDINGS = []() {
         GLint value;
         Ctx::Get().glGetIntegerv(GL_MAX_UNIFORM_BUFFER_BINDINGS, &value);
-        Logger::INFO("GL_MAX_UNIFORM_BUFFER_BINDINGS: ", value);
+        Logger::INFO<"GL_MAX_UNIFORM_BUFFER_BINDINGS: {}">(value);
         return value;
     }();
     return MAX_UNIFORM_BUFFER_BINDINGS;
@@ -197,7 +197,7 @@ GLuint Program::getMaxTextureImageUnits() {
     static GLuint MAX_TEXTURE_IMAGE_UNITS = []() {
         GLint value;
         Ctx::Get().glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &value);
-        Logger::INFO("GL_MAX_TEXTURE_IMAGE_UNITS: ", value);
+        Logger::INFO<"GL_MAX_TEXTURE_IMAGE_UNITS: {}">(value);
         return value;
     }();
     return MAX_TEXTURE_IMAGE_UNITS;

@@ -1,5 +1,7 @@
 #pragma once
 
+#include <functional>
+
 #include "gl/Texture.hpp"
 #include "image/Image.hpp"
 #include "util/Ref.hpp"
