@@ -101,5 +101,6 @@
         "Lsizei",
         "mipmaps",
         "MULTISAMPLE"
-    ]
+    ],
+    "cmake.configureOnOpen": false
 }

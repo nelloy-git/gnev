@@ -87,7 +87,7 @@ void Ctx::Init(LoadFunc load_func) {
     }
     gnev::Logger::init();
     thread_ctx = std::unique_ptr<Ctx>(new Ctx(load_func));
-    gnev::Logger::INFO("Logger initialized");
+    gnev::Logger::INFO<"Logger initialized">();
 }
 
 bool Ctx::IsInited() { return thread_ctx.get(); }

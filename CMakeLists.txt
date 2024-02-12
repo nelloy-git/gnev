@@ -72,6 +72,7 @@ if (WIN32)
         glfw
         quill
         GTest::gtest_main
+        GTest::gmock_main
     )
 else()
     target_link_libraries(auto_test
@@ -79,7 +80,7 @@ else()
         glfw
         dl
         quill
-        GTest::gtest_main
+        GTest::gmock_main
     )
 endif (WIN32)
 target_compile_features(auto_test PUBLIC cxx_std_20)

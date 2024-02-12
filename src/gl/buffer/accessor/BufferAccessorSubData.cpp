@@ -12,9 +12,12 @@ BufferAccessorSubData::BufferAccessorSubData(Ref<Buffer>& buffer)
         GLbitfield storage_flags = buffer->getStorageFlags();
         if (not(storage_flags & GL_DYNAMIC_STORAGE_BIT)) {
             InstanceLogger{}
-                .Log<ERROR, "Buffer<{}> has invalid storage flags {}">(fmt::BitFlags{
-                    storage_flags,
-                    fmt::BitFlags::Group::glBufferStorage});
+                .Log<ERROR,
+                     "Buffer<{}> has invalid storage flags {}">(buffer->handle(),
+                                                                fmt::BitFlags{
+                                                                    storage_flags,
+                                                                    fmt::BitFlags::Group::
+                                                                        glBufferStorage});
         }
     }
 }

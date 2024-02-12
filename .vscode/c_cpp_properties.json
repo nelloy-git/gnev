@@ -15,6 +15,7 @@
                 "3rdparty/glad/include",
                 "3rdparty/json/include",
                 "3rdparty/glm",
+                "3rdparty/gtest/googlemock/include",
                 "3rdparty/gtest/googletest/include",
                 "3rdparty/magic_enum/include",
                 "3rdparty/quill/quill/include",

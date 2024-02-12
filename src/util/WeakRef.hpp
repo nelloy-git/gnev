@@ -32,6 +32,10 @@ public:
         return shared_ptr ? std::optional<Ref<T>>(shared_ptr) : std::nullopt;
     };
 
+    bool expired() const {
+        return ptr.expired();
+    }
+
 private:
     std::weak_ptr<T> ptr;
 };

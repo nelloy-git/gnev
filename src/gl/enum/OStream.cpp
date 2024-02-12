@@ -11,11 +11,11 @@
 
 namespace gnev {
 
-std::string_view gnev::format_as(ShaderType value) {
+std::string_view format_as(ShaderType value) {
     return magic_enum::enum_name(value);
 }
 
-std::string_view gnev::format_as(gnev::TextureFormat value) {
+std::string_view format_as(TextureFormat value) {
     return magic_enum::enum_name(value);
 }
 

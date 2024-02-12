@@ -1,6 +1,6 @@
 #pragma once
 
-#include "gl/Buffer/accessor/IBufferAccessor.hpp"
+#include "gl/buffer/accessor/IBufferAccessor.hpp"
 
 namespace gnev::gl {
 
