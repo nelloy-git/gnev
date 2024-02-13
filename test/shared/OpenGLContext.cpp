@@ -1,9 +1,5 @@
 #include "OpenGLContext.hpp"
 
-#ifdef WIN32
-#include <vld.h>
-#endif
-
 #include <stdexcept>
 #include <vector>
 

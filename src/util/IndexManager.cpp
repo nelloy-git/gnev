@@ -11,10 +11,9 @@ Ref<IndexManager> IndexManager::Make(unsigned capacity) {
 IndexManager::IndexManager(unsigned capacity)
     : free{IndexGroup{.first = 0, .count = capacity}} {}
 
-std::optional<Ref<IndexGroup>>
-IndexManager::reserve(unsigned count,
-                      const std::function<void(const IndexGroup&)>& deleter_callback) {
-    auto group_opt = eraseFree(count, deleter_callback);
+std::optional<Ref<IndexGroup>> IndexManager::reserve(unsigned count,
+                                                     const FreeCallback& free_callback) {
+    auto group_opt = eraseFree(count, free_callback);
     if (not group_opt.has_value()) {
         return std::nullopt;
     }
@@ -22,9 +21,7 @@ IndexManager::reserve(unsigned count,
     return group_opt.value();
 }
 
-void IndexManager::optimize(const std::function<void(const IndexGroup& dst,
-                                                     const IndexGroup& src)>&
-                                move_callback) {
+void IndexManager::optimize(const MoveCallback& move_callback) {
     unsigned total_used = 0;
     for (auto weak_src : used) {
         auto src_opt = weak_src.lock();
@@ -39,8 +36,9 @@ void IndexManager::optimize(const std::function<void(const IndexGroup& dst,
         }
 
         IndexGroup dst = {.first = total_used, .count = src->count};
-        move_callback(dst, *src);
+        move_callback(src->first, dst.first, src->count);
         *src = dst;
+        total_used += src->count;
     }
 }
 
@@ -51,6 +49,19 @@ bool IndexManager::isFree(unsigned index) const {
         }
     }
     return false;
+}
+
+unsigned IndexManager::getUsedCapacity()const{
+    if (used.empty()){
+        return 0;
+    }
+    auto last_group_opt = used.back().lock();
+    if (not last_group_opt.has_value()){
+        // TODO error
+        return 0;
+    }
+    auto& last_group = last_group_opt.value();
+    return last_group->first + last_group->count;
 }
 
 void IndexManager::insertFree(IndexGroup& group_p) {
@@ -86,8 +97,7 @@ void IndexManager::insertFree(IndexGroup& group_p) {
 }
 
 std::optional<Ref<IndexGroup>>
-IndexManager::eraseFree(unsigned count,
-                        const std::function<void(const IndexGroup&)>& deleter_callback) {
+IndexManager::eraseFree(unsigned count, const FreeCallback& free_callback) {
     if (free.empty()) {
         InstanceLogger{}.Log<ERROR, "No free indexes left">(count);
         return std::nullopt;
@@ -105,7 +115,7 @@ IndexManager::eraseFree(unsigned count,
         return std::nullopt;
     }
 
-    auto group = makeIndexGroup(source_iter->first, count, deleter_callback);
+    auto group = makeIndexGroup(source_iter->first, count, free_callback);
 
     // reduce free group size
     if (source_iter->count == count) {
@@ -142,17 +152,16 @@ void IndexManager::eraseUsed(const IndexGroup& group) {
 
 Ref<IndexGroup> IndexManager::makeIndexGroup(unsigned first,
                                              unsigned count,
-                                             const std::function<void(const IndexGroup&)>&
-                                                 deleter_callback) {
+                                             const FreeCallback& free_callback) {
     auto group_p = new IndexGroup{.first = first, .count = count};
     auto deleter = [weak_manager = this->weak_from_this(),
-                    deleter_callback](IndexGroup* group_p) {
+                    free_callback](IndexGroup* group_p) {
         auto manager = weak_manager.lock();
         if (manager) {
             manager->insertFree(*group_p);
             manager->eraseUsed(*group_p);
         }
-        deleter_callback(*group_p);
+        free_callback(*group_p);
         delete group_p;
     };
     std::shared_ptr<IndexGroup> group{group_p, deleter};

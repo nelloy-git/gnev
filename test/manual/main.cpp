@@ -25,6 +25,7 @@
 #include "shader/ProgramBuilder.hpp"
 #include "transform/3d/TransformFactory_3D.hpp"
 #include "view/Camera.hpp"
+#include "mesh/Mesh.hpp"
 
 #define GLFW_INCLUDE_NONE
 #include "GLFW/glfw3.h"
@@ -210,6 +211,11 @@ int main(int argc, const char** argv) {
                                      {1, 1},
                                      {material_gravel->getData()->getIndex(), 0, 0, 0}}});
 
+    auto new_mesh = Mesh<VertGLdata_3D>::MakeDynamicStorage(10);
+    new_mesh->bindAttribute(program->getAttributeLoc("inPos"), 0);
+    new_mesh->bindAttribute(program->getAttributeLoc("inUV"), 1);
+    new_mesh->bindAttribute(program->getAttributeLoc("inIds"), 2);
+
     wnd.setKeyCB([&close_window,
                   &cam](GlfwWindow& window, int key, int scancode, int action, int mods) {
         static constexpr float speed = 0.1;
@@ -286,6 +292,7 @@ int main(int argc, const char** argv) {
 
         gl::Ctx::Get().glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         mesh->draw();
+        new_mesh->draw();
     }
 
     return 0;
