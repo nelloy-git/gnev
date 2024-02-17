@@ -2,6 +2,7 @@
 
 #include <concepts>
 
+#include "gl/buffer/accessor/BufferAccessorSubData.hpp"
 #include "gl/buffer/accessor/IBufferAccessor.hpp"
 #include "util/IndexManager.hpp"
 #include "util/InstanceLogger.hpp"
@@ -9,14 +10,13 @@
 namespace gnev::gl {
 
 template <typename T>
-concept IsBufferViewMapData =
-    (not std::is_pointer_v<T>);
+concept IsBufferViewMapData = (not std::is_pointer_v<T>);
 
 template <IsBufferViewMapData T>
 class BufferViewMap {
 public:
-    template <IsBufferViewMapData T>
-    using Changer = std::function<void(T&)>;
+    template <IsBufferViewMapData V>
+    using Changer = std::function<void(V&)>;
 
     using FreeCallback = std::function<void(Ref<IBufferAccessor>&, const IndexGroup&)>;
     using MoveCallback = std::function<
@@ -25,7 +25,7 @@ public:
     static Ref<BufferViewMap<T>> MakeDynamicStorage(unsigned capacity) {
         auto buffer = MakeSharable<gl::Buffer>();
         buffer->initStorage(capacity * sizeof(T), nullptr, GL_DYNAMIC_STORAGE_BIT);
-        auto accessor = MakeSharable<gl::buffer::AccessorSubData>(buffer);
+        auto accessor = MakeSharable<gl::BufferAccessorSubData>(buffer);
         return MakeSharable<BufferViewMap<T>>(accessor);
     }
 
@@ -37,27 +37,29 @@ public:
     static void DefaultFreeCallback(Ref<IBufferAccessor>& accessor,
                                     const IndexGroup& group) {}
 
+    Ref<IBufferAccessor>& getBufferAccessor(){
+        return accessor;
+    }
+
     // callback can cleanup data or whatever
     auto reserve(unsigned count,
                  const FreeCallback& free_callback = &DefaultFreeCallback) {
-        auto wrapper = [accessor, free_callback](const IndexGroup& group) {
+        auto wrapper = [this, free_callback](const IndexGroup& group) {
             free_callback(accessor, group);
         };
         return index_manager->reserve(count, wrapper);
     }
 
     static void DefaultMoveCallback(Ref<IBufferAccessor>& accessor,
-                                    const IndexGroup& dst,
-                                    const IndexGroup& src) {
+                                    unsigned src,
+                                    unsigned dst,
+                                    unsigned count) {
         auto buffer = accessor->getBuffer();
-        buffer->copyTo(buffer,
-                       src.first * sizeof(T),
-                       dst.first * sizeof(T),
-                       src.count * sizeof(T));
+        buffer->copyTo(buffer, src * sizeof(T), dst * sizeof(T), count * sizeof(T));
     }
 
     void optimize(const MoveCallback& move_callback = &DefaultMoveCallback) {
-        auto wrapper = [accessor, move_callback](unsigned src, unsigned dst, unsigned count) {
+        auto wrapper = [this, move_callback](unsigned src, unsigned dst, unsigned count) {
             move_callback(accessor, src, dst, count);
         };
         index_manager->optimize(wrapper);
@@ -66,16 +68,16 @@ public:
     unsigned getCount() const { return index_manager->getUsedCapacity(); }
 
     void set(unsigned index, const T& value) {
-        if (index_manager.isFree(index)) {
+        if (index_manager->isFree(index)) {
             InstanceLogger{}.Log<ERROR, "Index {} is not reserved">(index);
             return;
         }
-        accessor->set(index * sizeof(T), sizeof(T), *value);
+        accessor->set(index * sizeof(T), sizeof(T), &value);
     }
 
     template <IsBufferViewMapData V>
     void set(unsigned index, const V& value, unsigned ptr_offset) {
-        if (index_manager.isFree(index)) {
+        if (index_manager->isFree(index)) {
             InstanceLogger{}.Log<ERROR, "Index {} is not reserved">(index);
             return;
         }
@@ -87,20 +89,20 @@ public:
                                                                       sizeof(T));
             return;
         }
-        accessor->set(index * sizeof(T) + ptr_offset, sizeof(V), *value);
+        accessor->set(index * sizeof(T) + ptr_offset, sizeof(V), &value);
     }
 
     void get(unsigned index, T& dst) const {
-        if (index_manager.isFree(index)) {
+        if (index_manager->isFree(index)) {
             InstanceLogger{}.Log<ERROR, "Index {} is not reserved">(index);
             return;
         }
-        accessor->get(index * sizeof(T), sizeof(T), *dst);
+        accessor->get(index * sizeof(T), sizeof(T), &dst);
     }
 
     template <IsBufferViewMapData V>
     void get(unsigned index, V& dst, unsigned ptr_offset) const {
-        if (index_manager.isFree(index)) {
+        if (index_manager->isFree(index)) {
             InstanceLogger{}.Log<ERROR, "Index {} is not reserved">(index);
             return;
         }
@@ -112,11 +114,11 @@ public:
                                                                       sizeof(T));
             return;
         }
-        accessor->get(index * sizeof(T) + ptr_offset, sizeof(V), *dst);
+        accessor->get(index * sizeof(T) + ptr_offset, sizeof(V), &dst);
     }
 
     void change(unsigned index, const Changer<T>& changer) const {
-        if (index_manager.isFree(index)) {
+        if (index_manager->isFree(index)) {
             InstanceLogger{}.Log<ERROR, "Index {} is not reserved">(index);
             return;
         }
@@ -128,7 +130,7 @@ public:
 
     template <IsBufferViewMapData V>
     void change(unsigned index, const Changer<V>& changer, unsigned ptr_offset) const {
-        if (index_manager.isFree(index)) {
+        if (index_manager->isFree(index)) {
             InstanceLogger{}.Log<ERROR, "Index {} is not reserved">(index);
             return;
         }

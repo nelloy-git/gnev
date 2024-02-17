@@ -31,7 +31,7 @@ BufferAccessorMappedCoherent::BufferAccessorMappedCoherent(Ref<Buffer>& buffer)
                                                     GL_MAP_COHERENT_BIT));
 }
 
-Ref<Buffer>& BufferAccessorMappedCoherent::getBuffer() const { return buffer; }
+const Ref<Buffer>& BufferAccessorMappedCoherent::getBuffer() const { return buffer; }
 
 BufferAccessorMappedCoherent::~BufferAccessorMappedCoherent() { buffer->unmap(); }
 

@@ -22,10 +22,11 @@
 #include "image/ImageLoaderStb.hpp"
 #include "material/pbr/MaterialStorage_PBR.hpp"
 #include "mesh/3d/QuadMesh_3D.hpp"
+#include "mesh/Mesh.hpp"
+#include "mesh/SubMesh.hpp"
 #include "shader/ProgramBuilder.hpp"
 #include "transform/3d/TransformFactory_3D.hpp"
 #include "view/Camera.hpp"
-#include "mesh/Mesh.hpp"
 
 #define GLFW_INCLUDE_NONE
 #include "GLFW/glfw3.h"
@@ -216,6 +217,30 @@ int main(int argc, const char** argv) {
     new_mesh->bindAttribute(program->getAttributeLoc("inUV"), 1);
     new_mesh->bindAttribute(program->getAttributeLoc("inIds"), 2);
 
+    SubMesh<VertGLdata_3D> submesh{new_mesh, 6, 4};
+    submesh.setIndex(0, 0);
+    submesh.setIndex(1, 1);
+    submesh.setIndex(2, 2);
+    submesh.setIndex(3, 3);
+    submesh.setIndex(4, 2);
+    submesh.setIndex(5, 1);
+    submesh.setVertex(0,
+                      VertGLdata_3D{{-1, 0, -1},
+                                    {0, 0},
+                                    {material_gravel->getData()->getIndex(), 0, 0, 0}});
+    submesh.setVertex(1,
+                      VertGLdata_3D{{-1, 0, 1},
+                                    {0, 1},
+                                    {material_gravel->getData()->getIndex(), 0, 0, 0}});
+    submesh.setVertex(2,
+                      VertGLdata_3D{{1, 0, -1},
+                                    {1, 0},
+                                    {material_gravel->getData()->getIndex(), 0, 0, 0}});
+    submesh.setVertex(3,
+                      VertGLdata_3D{{1, 0, 1},
+                                    {1, 1},
+                                    {material_gravel->getData()->getIndex(), 0, 0, 0}});
+
     wnd.setKeyCB([&close_window,
                   &cam](GlfwWindow& window, int key, int scancode, int action, int mods) {
         static constexpr float speed = 0.1;
@@ -291,7 +316,7 @@ int main(int argc, const char** argv) {
         wnd.swapBuffers();
 
         gl::Ctx::Get().glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        mesh->draw();
+        // mesh->draw();
         new_mesh->draw();
     }
 

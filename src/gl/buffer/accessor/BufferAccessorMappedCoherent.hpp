@@ -9,14 +9,14 @@ public:
     BufferAccessorMappedCoherent(Ref<Buffer>& buffer);
     ~BufferAccessorMappedCoherent();
 
-    Ref<Buffer>& getBuffer() const override;
+    const Ref<Buffer>& getBuffer() const override;
 
     void set(GLintptr offset, GLintptr size, const void* data) override;
     void get(GLintptr offset, GLintptr size, void* data) override;
     void change(GLintptr offset, GLintptr size, const Changer& changer) override;
 
 private:
-    Ref<Buffer>& buffer;
+    Ref<Buffer> buffer;
     GLbyte* map;
 };
 

@@ -158,8 +158,7 @@ void Ctx::glDrawElements(GLenum mode,
                          const void* indices) const {
     Log()->Func(fmt::Enum{mode, fmt::Enum::Group::DrawElements},
                 count,
-                type,
-                count,
+                fmt::Enum{type},
                 indices);
     glad->DrawElements(mode, count, type, indices);
 }

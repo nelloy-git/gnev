@@ -22,7 +22,7 @@ BufferAccessorSubData::BufferAccessorSubData(Ref<Buffer>& buffer)
     }
 }
 
-Ref<Buffer>& BufferAccessorSubData::getBuffer() const { return buffer; }
+const Ref<Buffer>& BufferAccessorSubData::getBuffer() const { return buffer; }
 
 void BufferAccessorSubData::set(GLintptr offset, GLintptr size, const void* src) {
     buffer->setSubData(offset, size, src);

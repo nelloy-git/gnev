@@ -15,7 +15,7 @@ public:
 
     virtual ~IBufferAccessor() = default;
 
-    virtual Ref<gl::Buffer>& getBuffer() const = 0;
+    virtual const Ref<gl::Buffer>& getBuffer() const = 0;
 
     virtual void set(GLintptr offset, GLintptr size, const void* data) = 0;
     virtual void get(GLintptr offset, GLintptr size, void* data) = 0;

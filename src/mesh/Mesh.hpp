@@ -22,7 +22,25 @@ public:
          Ref<gl::BufferViewMap<Vertex>> vertex_view)
         : vao{MakeSharable<gl::VertexArray>()}
         , index_view{index_view}
-        , vertex_view{vertex_view} {}
+        , vertex_view{vertex_view} {
+        vao->setElementBuffer(index_view->getBufferAccessor()->getBuffer());
+        vao->setVertexBuffer(BUFFER_BINDING,
+                             vertex_view->getBufferAccessor()->getBuffer(),
+                             0,
+                             sizeof(Vertex));
+    }
+
+    std::optional<Ref<IndexGroup>> reserveIndices(unsigned count) {
+        return index_view->reserve(count);
+    }
+
+    std::optional<Ref<IndexGroup>> reserveVertices(unsigned count) {
+        return vertex_view->reserve(count);
+    }
+
+    Ref<gl::BufferViewMap<unsigned>>& getIndexView() { return index_view; }
+
+    Ref<gl::BufferViewMap<Vertex>> getVertexView() { return vertex_view; }
 
     void bindAttribute(GLuint shader_loc, GLuint attrib_loc) {
         static constexpr base::VertexInfo VERT_INFO = Vertex::info;
@@ -45,7 +63,7 @@ public:
         vao->bind();
         gl::Ctx::Get().glDrawElements(GL_TRIANGLES,
                                       index_view->getCount(),
-                                      base::IndexEnum<VertGLindex_3D>,
+                                      base::IndexEnum<unsigned>,
                                       0);
     }
 
