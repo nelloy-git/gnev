@@ -1,7 +1,8 @@
 #pragma once
 
 #include "gl/VertexArray.hpp"
-#include "gl/buffer/view/BufferViewMap.hpp"
+#include "gl/buffer/BufferAllocator.hpp"
+#include "gl/buffer/IBufferAccessor.hpp"
 #include "mesh/base/Index.hpp"
 #include "mesh/base/Vertex.hpp"
 
@@ -10,37 +11,29 @@ namespace gnev {
 template <base::IsVertex Vertex>
 class EXPORT Mesh {
 public:
+    friend class SubMesh;
+
     static constexpr GLuint BUFFER_BINDING = 0;
 
-    static Ref<Mesh> MakeDynamicStorage(GLuint capacity) {
-        auto index_view = gl::BufferViewMap<unsigned>::MakeDynamicStorage(capacity);
-        auto vertex_view = gl::BufferViewMap<Vertex>::MakeDynamicStorage(capacity);
-        return MakeSharable<Mesh>(index_view, vertex_view);
+    Mesh(const std::unique_ptr<gl::IBufferAccessor>&& index_accessor,
+         const std::unique_ptr<gl::IBufferAccessor>&& vertex_accessor)
+        : vao{std::make_unique<gl::VertexArray>()}
+        , index_allocator{index_accessor->getBuffer().getSize() / sizeof(unsigned)}
+        , index_accessor{index_accessor}
+        , vertex_allocator{vertex_accessor->getBuffer().getSize() / sizeof(Vertex)}
+        , vertex_accessor{vertex_accessor} {
+            
+        vao->setElementBuffer(index_accessor->getBuffer());
+        vao->setVertexBuffer(BUFFER_BINDING, vao->getBuffer(), 0, sizeof(Vertex));
+
+        index_allocator
+            .setFreeCallback([&index_accessor =
+                                  *index_accessor](gl::BufferAllocator::Mem mem) {
+                index_accessor.set(mem.offset * sizeof(unsigned),
+                                   mem.size * sizeof(unsigned),
+                                   nullptr);
+            });
     }
-
-    Mesh(Ref<gl::BufferViewMap<unsigned>> index_view,
-         Ref<gl::BufferViewMap<Vertex>> vertex_view)
-        : vao{MakeSharable<gl::VertexArray>()}
-        , index_view{index_view}
-        , vertex_view{vertex_view} {
-        vao->setElementBuffer(index_view->getBufferAccessor()->getBuffer());
-        vao->setVertexBuffer(BUFFER_BINDING,
-                             vertex_view->getBufferAccessor()->getBuffer(),
-                             0,
-                             sizeof(Vertex));
-    }
-
-    std::optional<Ref<IndexGroup>> reserveIndices(unsigned count) {
-        return index_view->reserve(count);
-    }
-
-    std::optional<Ref<IndexGroup>> reserveVertices(unsigned count) {
-        return vertex_view->reserve(count);
-    }
-
-    Ref<gl::BufferViewMap<unsigned>>& getIndexView() { return index_view; }
-
-    Ref<gl::BufferViewMap<Vertex>> getVertexView() { return vertex_view; }
 
     void bindAttribute(GLuint shader_loc, GLuint attrib_loc) {
         static constexpr base::VertexInfo VERT_INFO = Vertex::info;
@@ -61,15 +54,16 @@ public:
 
     void draw() const {
         vao->bind();
-        gl::Ctx::Get().glDrawElements(GL_TRIANGLES,
-                                      index_view->getCount(),
-                                      base::IndexEnum<unsigned>,
-                                      0);
+        gl::Ctx::Get().glDrawElements(GL_TRIANGLES, , base::IndexEnum<unsigned>, 0);
     }
 
 private:
-    Ref<gl::VertexArray> vao;
-    Ref<gl::BufferViewMap<unsigned>> index_view;
-    Ref<gl::BufferViewMap<Vertex>> vertex_view;
+    std::unique_ptr<gl::VertexArray> vao;
+
+    gl::BufferAllocator index_allocator;
+    std::unique_ptr<gl::IBufferAccessor> index_accessor;
+
+    gl::BufferAllocator vertex_allocator;
+    std::unique_ptr<gl::IBufferAccessor> vertex_accessor;
 };
 } // namespace gnev

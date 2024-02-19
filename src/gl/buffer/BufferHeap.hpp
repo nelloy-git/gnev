@@ -2,63 +2,37 @@
 
 #include <concepts>
 
-#include "gl/buffer/accessor/BufferAccessorSubData.hpp"
-#include "gl/buffer/accessor/IBufferAccessor.hpp"
-#include "util/IndexManager.hpp"
+#include "gl/buffer/IBufferAccessor.hpp"
+#include "gl/buffer/IBufferElementManager.hpp"
 #include "util/InstanceLogger.hpp"
 
 namespace gnev::gl {
 
 template <typename T>
-concept IsBufferViewMapData = (not std::is_pointer_v<T>);
+concept IsBufferHeapData =
+    (not std::is_pointer_v<T> and std::is_trivially_copyable_v<T>);
 
-template <IsBufferViewMapData T>
-class BufferViewMap {
+template <IsBufferHeapData T>
+class BufferViewHeap {
 public:
-    template <IsBufferViewMapData V>
+    static constexpr unsigned BlockSize = std::sizeof(T);
+
+    template <IsBufferHeapData V>
     using Changer = std::function<void(V&)>;
 
-    using FreeCallback = std::function<void(Ref<IBufferAccessor>&, const IndexGroup&)>;
-    using MoveCallback = std::function<
-        void(Ref<IBufferAccessor>&, unsigned src, unsigned dst, unsigned count)>;
+    using FreeCallback = std::function<void(const IBufferAccessor&, const BufferElementBlock&)>;
+    using MoveCallback = std::function<void(const IBufferAccessor&, unsigned src, unsigned dst, unsigned count)>;
 
-    static Ref<BufferViewMap<T>> MakeDynamicStorage(unsigned capacity) {
-        auto buffer = MakeSharable<gl::Buffer>();
-        buffer->initStorage(capacity * sizeof(T), nullptr, GL_DYNAMIC_STORAGE_BIT);
-        auto accessor = MakeSharable<gl::BufferAccessorSubData>(buffer);
-        return MakeSharable<BufferViewMap<T>>(accessor);
-    }
-
-    BufferViewMap(const Ref<IBufferAccessor>& accessor)
+    BufferViewHeap(const std::shared_ptr<IBufferAccessor>& accessor,
+                  const std::shared_ptr<IBufferElementManager>& manager)
         : accessor{accessor}
-        , index_manager(IndexManager::Make(accessor->getBuffer()->getSize() /
-                                           sizeof(T))) {}
+        , manager{manager} {}
 
-    static void DefaultFreeCallback(Ref<IBufferAccessor>& accessor,
-                                    const IndexGroup& group) {}
-
-    Ref<IBufferAccessor>& getBufferAccessor(){
-        return accessor;
+    auto reserve(unsigned count) {
+        return manager->reserve(count);
     }
 
-    // callback can cleanup data or whatever
-    auto reserve(unsigned count,
-                 const FreeCallback& free_callback = &DefaultFreeCallback) {
-        auto wrapper = [this, free_callback](const IndexGroup& group) {
-            free_callback(accessor, group);
-        };
-        return index_manager->reserve(count, wrapper);
-    }
-
-    static void DefaultMoveCallback(Ref<IBufferAccessor>& accessor,
-                                    unsigned src,
-                                    unsigned dst,
-                                    unsigned count) {
-        auto buffer = accessor->getBuffer();
-        buffer->copyTo(buffer, src * sizeof(T), dst * sizeof(T), count * sizeof(T));
-    }
-
-    void optimize(const MoveCallback& move_callback = &DefaultMoveCallback) {
+    void optimize() {
         auto wrapper = [this, move_callback](unsigned src, unsigned dst, unsigned count) {
             move_callback(accessor, src, dst, count);
         };
@@ -75,8 +49,24 @@ public:
         accessor->set(index * sizeof(T), sizeof(T), &value);
     }
 
-    template <IsBufferViewMapData V>
-    void set(unsigned index, const V& value, unsigned ptr_offset) {
+    template <IsBufferHeapData V>
+    void setSub(unsigned index, const V& value, unsigned ptr_offset) {
+        if (index_manager->isFree(index)) {
+            InstanceLogger{}.Log<ERROR, "Index {} is not reserved">(index);
+            return;
+        }
+        if (ptr_offset + sizeof(V) >= sizeof(T)) {
+            InstanceLogger{}
+                .Log<ERROR,
+                     "ptr_offset + sizeof(V) >= sizeof(T) ({} > {})">(ptr_offset +
+                                                                          sizeof(V),
+                                                                      sizeof(T));
+            return;
+        }
+        accessor->set(index * sizeof(T) + ptr_offset, sizeof(V), &value);
+    }
+
+    void setSubGroup(IndexGroup group, unsigned first, unsigned count, const T* values) {
         if (index_manager->isFree(index)) {
             InstanceLogger{}.Log<ERROR, "Index {} is not reserved">(index);
             return;
@@ -100,7 +90,7 @@ public:
         accessor->get(index * sizeof(T), sizeof(T), &dst);
     }
 
-    template <IsBufferViewMapData V>
+    template <IsBufferHeapData V>
     void get(unsigned index, V& dst, unsigned ptr_offset) const {
         if (index_manager->isFree(index)) {
             InstanceLogger{}.Log<ERROR, "Index {} is not reserved">(index);
@@ -128,7 +118,7 @@ public:
         accessor->change(index * sizeof(T), sizeof(T), wrapper);
     }
 
-    template <IsBufferViewMapData V>
+    template <IsBufferHeapData V>
     void change(unsigned index, const Changer<V>& changer, unsigned ptr_offset) const {
         if (index_manager->isFree(index)) {
             InstanceLogger{}.Log<ERROR, "Index {} is not reserved">(index);
@@ -150,7 +140,7 @@ public:
 
 private:
     Ref<IBufferAccessor> accessor;
-    Ref<IndexManager> index_manager;
+    Ref<IBufferElementManager> manager;
 };
 
 } // namespace gnev::gl

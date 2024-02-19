@@ -1,12 +1,12 @@
-#include "gl/buffer/accessor/BufferAccessorMappedCoherent.hpp"
+#include "gl/buffer/BufferAccessorMappedCoherent.hpp"
 
 #include "gl/fmt/BitFlags.hpp"
 #include "util/InstanceLogger.hpp"
 
 namespace gnev::gl {
 
-BufferAccessorMappedCoherent::BufferAccessorMappedCoherent(Ref<Buffer>& buffer)
-    : buffer(buffer) {
+BufferAccessorMappedCoherent::BufferAccessorMappedCoherent(std::unique_ptr<Buffer>&& buffer)
+    : buffer{std::move(buffer)} {
 
     if (not buffer->isStorage()) {
         InstanceLogger{}.Log<ERROR, "Buffer<{}> is not storage">(buffer->handle());
@@ -31,7 +31,7 @@ BufferAccessorMappedCoherent::BufferAccessorMappedCoherent(Ref<Buffer>& buffer)
                                                     GL_MAP_COHERENT_BIT));
 }
 
-const Ref<Buffer>& BufferAccessorMappedCoherent::getBuffer() const { return buffer; }
+const Buffer& BufferAccessorMappedCoherent::getBuffer() const { return *buffer; }
 
 BufferAccessorMappedCoherent::~BufferAccessorMappedCoherent() { buffer->unmap(); }
 

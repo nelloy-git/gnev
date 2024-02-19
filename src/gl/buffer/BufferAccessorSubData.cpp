@@ -1,12 +1,12 @@
-#include "gl/buffer/accessor/BufferAccessorSubData.hpp"
+#include "gl/buffer/BufferAccessorSubData.hpp"
 
 #include "gl/fmt/BitFlags.hpp"
 #include "util/InstanceLogger.hpp"
 
 namespace gnev::gl {
 
-BufferAccessorSubData::BufferAccessorSubData(Ref<Buffer>& buffer)
-    : buffer(buffer) {
+BufferAccessorSubData::BufferAccessorSubData(std::unique_ptr<Buffer>&& buffer)
+    : buffer{std::move(buffer)} {
 
     if (buffer->isStorage()) {
         GLbitfield storage_flags = buffer->getStorageFlags();
@@ -22,7 +22,7 @@ BufferAccessorSubData::BufferAccessorSubData(Ref<Buffer>& buffer)
     }
 }
 
-const Ref<Buffer>& BufferAccessorSubData::getBuffer() const { return buffer; }
+const Buffer& BufferAccessorSubData::getBuffer() const { return *buffer; }
 
 void BufferAccessorSubData::set(GLintptr offset, GLintptr size, const void* src) {
     buffer->setSubData(offset, size, src);
