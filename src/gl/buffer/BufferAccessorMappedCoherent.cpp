@@ -5,7 +5,8 @@
 
 namespace gnev::gl {
 
-BufferAccessorMappedCoherent::BufferAccessorMappedCoherent(std::unique_ptr<Buffer>&& buffer)
+BufferAccessorMappedCoherent::BufferAccessorMappedCoherent(std::unique_ptr<Buffer>&&
+                                                               buffer)
     : buffer{std::move(buffer)} {
 
     if (not buffer->isStorage()) {
@@ -47,6 +48,12 @@ void BufferAccessorMappedCoherent::change(GLintptr offset,
                                           GLintptr size,
                                           const Changer& changer) {
     changer(map + offset, size);
+}
+
+void BufferAccessorMappedCoherent::copy(GLintptr src_offset,
+                                        GLintptr dst_offset,
+                                        GLintptr size) {
+    std::memcpy(map + dst_offset, map + src_offset, size);
 }
 
 } // namespace gnev::gl

@@ -19,6 +19,7 @@ public:
     virtual void set(GLintptr offset, GLintptr size, const void* data) = 0;
     virtual void get(GLintptr offset, GLintptr size, void* data) = 0;
     virtual void change(GLintptr offset, GLintptr size, const Changer& changer) = 0;
+    virtual void copy(GLintptr src_offset, GLintptr dst_offset, GLintptr size) = 0;
 };
 
 } // namespace gnev::gl

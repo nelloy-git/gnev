@@ -1,6 +1,6 @@
 #pragma once
 
-#include "gl/buffer/IndexMapViewElem.hpp"
+#include "gl/buffer/HeapBufferRange.hpp"
 #include "gl/texture/IndexMapViewElem.hpp"
 #include "material/pbr/MaterialDataGL_PBR.hpp"
 
@@ -11,8 +11,6 @@ class MaterialStorage_PBR;
 class EXPORT Material_PBR {
 public:
     using DataGL = MaterialDataGL_PBR;
-    using DataView = gl::buffer::IndexMapView<DataGL>;
-    using DataElem = gl::buffer::WeakIndexMapViewElem<DataGL>;
 
     using TexView = gl::texture::IndexMapView;
     using TexElem = gl::texture::WeakIndexMapViewElem;
@@ -22,7 +20,7 @@ public:
 
     WeakRef<MaterialStorage_PBR> getWeakStorage() const;
     Ref<MaterialStorage_PBR> getStorage() const;
-    Ref<DataElem> getData() const;
+    gl::HeapBufferRange<DataGL>& getData() const;
 
     void setTex(MaterialTexType_PBR type, Ptr<TexElem> tex);
     Ptr<TexElem> getTex(MaterialTexType_PBR type) const;
@@ -36,7 +34,7 @@ public:
 private:
     WeakRef<MaterialStorage_PBR> weak_storage;
 
-    Ref<DataElem> data;
+    std::unique_ptr<gl::HeapBufferRange<DataGL>> data;
     std::array<Ptr<TexElem>, MaterialDataGL_PBR::TexSize> tex;
 };
 

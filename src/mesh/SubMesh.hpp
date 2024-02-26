@@ -26,7 +26,9 @@ public:
                                                                          indices.size);
             return;
         }
-        mesh->index_accessor->set((indices.offset + pos) * sizeof(unsigned), sizeof(unsigned), value);
+        mesh->index_accessor->set((indices.offset + pos) * sizeof(unsigned),
+                                  sizeof(unsigned),
+                                  value);
     }
 
     void setVertex(unsigned pos, const Vertex& value) {
@@ -35,12 +37,14 @@ public:
                                                                           vertices.size);
             return;
         }
-        mesh->vertex_accessor->set((vertices.offset + pos) * sizeof(Vertex), sizeof(Vertex), value);
+        mesh->vertex_accessor->set((vertices.offset + pos) * sizeof(Vertex),
+                                   sizeof(Vertex),
+                                   value);
     }
 
 private:
     std::shared_ptr<Mesh<Vertex>> mesh;
-    gl::BufferAllocator::Mem indices;
-    gl::BufferAllocator::Mem vertices;
+    gl::BufferAllocator::MemBlock indices;
+    gl::BufferAllocator::MemBlock vertices;
 };
 } // namespace gnev

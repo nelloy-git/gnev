@@ -100,7 +100,8 @@
         "gnev",
         "Lsizei",
         "mipmaps",
-        "MULTISAMPLE"
+        "MULTISAMPLE",
+        "Subbuffer"
     ],
     "cmake.configureOnOpen": false
 }
