@@ -101,7 +101,7 @@ GLint Program::getResourceIndex(GLenum interface, const GLchar* name) const {
 }
 
 void Program::bindShaderStorageBlockBuffer(const GLchar* storage_block_name,
-                                           const Ref<Buffer>& buffer) {
+                                           const std::shared_ptr<Buffer>& buffer) {
     Log()->Func(fmt::String{storage_block_name}, buffer->handle());
     bindShaderStorageBlockBuffer(getResourceIndex(GL_SHADER_STORAGE_BLOCK,
                                                   storage_block_name),
@@ -109,65 +109,65 @@ void Program::bindShaderStorageBlockBuffer(const GLchar* storage_block_name,
 }
 
 void Program::bindShaderStorageBlockBuffer(GLuint storage_block_index,
-                                           const Ref<Buffer>& buffer) {
-    Log()->Func(storage_block_index, buffer->handle());
-    std::optional<GLuint> binding_index_opt =
-        shader_storage_blocks->set(storage_block_index, buffer.getPtr());
-    if (not binding_index_opt) {
-        Log()->ERROR("No free binds left");
-        return;
-    }
-    Ctx::Get().glShaderStorageBlockBinding(handle(),
-                                           storage_block_index,
-                                           binding_index_opt.value());
-    Ctx::Get().glBindBufferBase(GL_SHADER_STORAGE_BUFFER,
-                                binding_index_opt.value(),
-                                buffer->handle());
+                                           const std::shared_ptr<Buffer>& buffer) {
+    // Log()->Func(storage_block_index, buffer->handle());
+    // std::optional<GLuint> binding_index_opt =
+    //     shader_storage_blocks->set(storage_block_index, buffer);
+    // if (not binding_index_opt) {
+    //     Log()->ERROR("No free binds left");
+    //     return;
+    // }
+    // Ctx::Get().glShaderStorageBlockBinding(handle(),
+    //                                        storage_block_index,
+    //                                        binding_index_opt.value());
+    // Ctx::Get().glBindBufferBase(GL_SHADER_STORAGE_BUFFER,
+    //                             binding_index_opt.value(),
+    //                             buffer->handle());
 }
 
 void Program::bindShaderUniformBlockBuffer(const GLchar* uniform_block_name,
-                                           const Ref<Buffer>& buffer) {
+                                           const std::shared_ptr<Buffer>& buffer) {
     Log()->Func(fmt::String{uniform_block_name}, buffer->handle());
     bindShaderUniformBlockBuffer(getResourceIndex(GL_UNIFORM_BLOCK, uniform_block_name),
                                  buffer);
 }
 
 void Program::bindShaderUniformBlockBuffer(GLuint uniform_block_index,
-                                           const Ref<Buffer>& buffer) {
-    Log()->Func(uniform_block_index, buffer->handle());
-    std::optional<GLuint> binding_index_opt =
-        shader_uniform_blocks->set(uniform_block_index, buffer.getPtr());
-    if (not binding_index_opt) {
-        Log()->ERROR("No free binds left");
-        return;
-    }
+                                           const std::shared_ptr<Buffer>& buffer) {
+    // Log()->Func(uniform_block_index, buffer->handle());
+    // std::optional<GLuint> binding_index_opt =
+    //     shader_uniform_blocks->set(uniform_block_index, buffer);
+    // if (not binding_index_opt) {
+    //     Log()->ERROR("No free binds left");
+    //     return;
+    // }
 
-    Ctx::Get().glUniformBlockBinding(handle(),
-                                     uniform_block_index,
-                                     binding_index_opt.value());
-    Ctx::Get().glBindBufferBase(GL_UNIFORM_BUFFER,
-                                binding_index_opt.value(),
-                                buffer->handle());
+    // Ctx::Get().glUniformBlockBinding(handle(),
+    //                                  uniform_block_index,
+    //                                  binding_index_opt.value());
+    // Ctx::Get().glBindBufferBase(GL_UNIFORM_BUFFER,
+    //                             binding_index_opt.value(),
+    //                             buffer->handle());
 }
 
 void Program::bindShaderTextureSampler(const GLchar* texture_sampler_name,
-                                       const Ref<Texture>& texture) {
+                                       const std::shared_ptr<Texture>& texture) {
     Log()->Func(fmt::String{texture_sampler_name}, texture->handle());
     bindShaderTextureSampler(getUniformLoc(texture_sampler_name), texture);
 }
 
 void Program::bindShaderTextureSampler(GLuint texture_sampler_index,
-                                       const Ref<Texture>& texture) {
-    Log()->Func(texture_sampler_index, texture->handle());
-    std::optional<GLuint> binding_index_opt =
-        shader_texture_samplers->set(texture_sampler_index, texture.getPtr());
-    if (not binding_index_opt) {
-        Log()->ERROR("No free binds left");
-        return;
-    }
-    Ctx::Get().glActiveTexture(GL_TEXTURE0 + binding_index_opt.value());
-    Ctx::Get().glUniform1i(texture_sampler_index, binding_index_opt.value());
-    Ctx::Get().glBindTexture(GL_TEXTURE_2D_ARRAY, texture->handle());
+                                       const std::shared_ptr<Texture>& texture) {
+    // Log()->Func(texture_sampler_index, texture->handle());
+    // std::optional<GLuint> binding_index_opt =
+    //     shader_texture_samplers->set(texture_sampler_index, texture);
+    // if (not binding_index_opt) {
+    //     Log()->ERROR("No free binds left");
+    //     return;
+    // }
+    // Ctx::Get().glActiveTexture(GL_TEXTURE0 + binding_index_opt.value());
+    // Ctx::Get().glUniform1i(texture_sampler_index, binding_index_opt.value());
+    // Ctx::Get().glBindTexture(GL_TEXTURE_2D_ARRAY, texture->handle());
 }
 
 GLuint Program::getMaxShaderStorageBufferBindings() {

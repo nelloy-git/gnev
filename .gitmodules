@@ -22,3 +22,9 @@
 [submodule "3rdparty/quill"]
 	path = 3rdparty/quill
 	url = https://github.com/odygrd/quill.git
+[submodule "3rdparty/boost"]
+	path = 3rdparty/boost
+	url = https://github.com/boostorg/boost.git
+[submodule "3rdparty/boost_pp"]
+	path = 3rdparty/boost_pp
+	url = https://github.com/boostorg/preprocessor.git

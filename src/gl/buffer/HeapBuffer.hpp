@@ -27,14 +27,22 @@ public:
 
     HeapBuffer(std::unique_ptr<IBufferAccessor>&& accessor)
         : accessor{std::move(accessor)}
-        , allocator{accessor->getBuffer().getSize() / sizeof(T)} {}
+        , allocator{unsigned(accessor->getBuffer().getSize() / sizeof(T))} {}
+
+    IBufferAccessor& getAccessor(){
+        return *accessor;
+    }
+
+    const BufferRangeAllocator& getAllocator() const {
+        return allocator;
+    }
 
     std::optional<HeapBufferRange<T>> allocate(unsigned size) {
         auto range = allocator.allocate(size);
         if (not range.has_value()){
             return std::nullopt;
         }
-        return HeapBufferRange<T>{accessor, range};
+        return HeapBufferRange<T>{accessor, range.value()};
     }
 
     void setFreeCallback(const FreeCallback& callback) {

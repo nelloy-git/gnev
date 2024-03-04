@@ -88,6 +88,8 @@ public:
         accessor->set((range.getOffset() + pos) * sizeof(T) + offset, sizeof(V), src);
     }
 
+    
+
 private:
     std::weak_ptr<IBufferAccessor> weak_accessor;
     gl::BufferRange range;

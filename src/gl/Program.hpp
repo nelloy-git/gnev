@@ -31,19 +31,19 @@ public:
     GLint getResourceIndex(GLenum interface, const GLchar* name) const;
 
     void bindShaderStorageBlockBuffer(const GLchar* storage_block_name,
-                                      const Ref<Buffer>& buffer);
+                                      const std::shared_ptr<Buffer>& buffer);
     void bindShaderStorageBlockBuffer(GLuint storage_block_index,
-                                      const Ref<Buffer>& buffer);
+                                      const std::shared_ptr<Buffer>& buffer);
 
     void bindShaderUniformBlockBuffer(const GLchar* uniform_block_name,
-                                      const Ref<Buffer>& buffer);
+                                      const std::shared_ptr<Buffer>& buffer);
     void bindShaderUniformBlockBuffer(GLuint uniform_block_index,
-                                      const Ref<Buffer>& buffer);
+                                      const std::shared_ptr<Buffer>& buffer);
 
     void bindShaderTextureSampler(const GLchar* texture_sampler_name,
-                                  const Ref<Texture>& texture);
+                                  const std::shared_ptr<Texture>& texture);
     void bindShaderTextureSampler(GLuint texture_block_index,
-                                  const Ref<Texture>& texture);
+                                  const std::shared_ptr<Texture>& texture);
 
 private:
     std::unique_ptr<ProgramBinding<Buffer>> shader_storage_blocks;

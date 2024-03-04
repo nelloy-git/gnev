@@ -1,7 +1,7 @@
 #pragma once
 
 #include "gl/VertexArray.hpp"
-#include "gl/buffer/BufferAllocator.hpp"
+#include "gl/buffer/HeapBuffer.hpp"
 #include "gl/buffer/IBufferAccessor.hpp"
 #include "mesh/base/Index.hpp"
 #include "mesh/base/Vertex.hpp"
@@ -16,24 +16,20 @@ public:
 
     static constexpr GLuint BUFFER_BINDING = 0;
 
-    Mesh(const std::unique_ptr<gl::IBufferAccessor>&& index_accessor,
-         const std::unique_ptr<gl::IBufferAccessor>&& vertex_accessor)
+    Mesh(std::unique_ptr<gl::IBufferAccessor>&& index_accessor,
+         std::unique_ptr<gl::IBufferAccessor>&& vertex_accessor)
         : vao{std::make_unique<gl::VertexArray>()}
-        , index_allocator{index_accessor->getBuffer().getSize() / sizeof(unsigned)}
-        , index_accessor{std::move(index_accessor)}
-        , vertex_allocator{vertex_accessor->getBuffer().getSize() / sizeof(Vertex)}
-        , vertex_accessor{std::move(vertex_accessor)} {
+        , indices{std::move(index_accessor)}
+        , vertices{std::move(vertex_accessor)}
+    {
 
         vao->setElementBuffer(index_accessor->getBuffer());
-        vao->setVertexBuffer(BUFFER_BINDING, vao->getBuffer(), 0, sizeof(Vertex));
+        vao->setVertexBuffer(BUFFER_BINDING,
+                             vertices.getAccessor().getBuffer(),
+                             0,
+                             sizeof(Vertex));
 
-        index_allocator
-            .setFreeCallback([&index_accessor =
-                                  *index_accessor](gl::BufferAllocator::MemBlock mem) {
-                index_accessor.set(mem.offset * sizeof(unsigned),
-                                   mem.size * sizeof(unsigned),
-                                   nullptr);
-            });
+        // TODO free callbacks
     }
 
     void bindAttribute(GLuint shader_loc, GLuint attrib_loc) {
@@ -55,16 +51,16 @@ public:
 
     void draw() const {
         vao->bind();
-        gl::Ctx::Get().glDrawElements(GL_TRIANGLES, , base::IndexEnum<unsigned>, 0);
+        gl::Ctx::Get().glDrawElements(GL_TRIANGLES,
+                                      indices.getAllocator().getMaxUsedCapacity(),
+                                      base::IndexEnum<unsigned>,
+                                      0);
     }
 
 private:
     std::unique_ptr<gl::VertexArray> vao;
 
-    gl::BufferRangeAllocator index_allocator;
-    std::unique_ptr<gl::IBufferAccessor> index_accessor;
-
-    gl::BufferRangeAllocator vertex_allocator;
-    std::unique_ptr<gl::IBufferAccessor> vertex_accessor;
+    gl::HeapBuffer<unsigned> indices;
+    gl::HeapBuffer<Vertex> vertices;
 };
 } // namespace gnev

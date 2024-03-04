@@ -10,6 +10,7 @@
                 "test/manual",
                 "test/shared",
                 "sample",
+                "3rdparty/boost_pp/include",
                 "3rdparty/glfw/include",
                 "3rdparty/json/include",
                 "3rdparty/glad/include",

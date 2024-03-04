@@ -11,7 +11,7 @@ Transform::Transform(const Mat4x4& mat, const gl::HeapBufferRange<GL>& range)
     : mat{mat}
     , gl{range} {
     auto initial = Initial;
-    initial.mat_index = mat.getIndex();
+    initial.index.mat = mat.getIndex();
     gl.set(0, &initial);
 }
 
@@ -25,12 +25,12 @@ void Transform::setParent(const std::optional<Transform>& parent) {
 
 unsigned Transform::getParentIndex() const {
     unsigned parent_index;
-    gl.getSub(0, &parent_index, offsetof(Transform::GL, parent_index));
+    gl.getSub(0, &parent_index, offsetof(Transform::GL, index) + offsetof(decltype(GL::index), parent));
     return parent_index;
 }
 
 void Transform::setParentIndex(unsigned parent_index) {
-    gl.setSub(0, &parent_index, offsetof(Transform::GL, parent_index));
+    gl.setSub(0, &parent_index, offsetof(Transform::GL, index) + offsetof(decltype(GL::index), parent));
 }
 
 glm::vec3 Transform::getPosition() const { return position; }

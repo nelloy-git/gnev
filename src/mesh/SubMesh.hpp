@@ -1,6 +1,7 @@
 #pragma once
 
-#include "mesh/Mesh.hpp"
+#include "mesh/base/Vertex.hpp"
+#include "gl/buffer/HeapBufferRange.hpp"
 #include "util/InstanceLogger.hpp"
 
 namespace gnev {
@@ -8,43 +9,23 @@ namespace gnev {
 template <base::IsVertex Vertex>
 class SubMesh {
 public:
-    SubMesh(const std::shared_ptr<Mesh<Vertex>>& mesh,
-            unsigned index_count,
-            unsigned vertex_count)
-        : mesh{mesh}
-        , indices{mesh->index_allocator->alloc(index_count)}
-        , vertices{mesh->vertex_allocator->alloc(vertex_count)} {}
+    SubMesh(const gl::HeapBufferRange<unsigned>& indices,
+            const gl::HeapBufferRange<Vertex>& vertices)
+        : indices{indices}
+        , vertices{vertices} {}
 
-    SubMesh::~SubMesh() {
-        mesh->index_allocator->free(indices);
-        mesh->vertex_alloctor->free(vertices);
-    }
+    virtual ~SubMesh() = default;
 
     void setIndex(unsigned pos, unsigned value) {
-        if (pos >= indices.size) {
-            InstanceLogger{}.Log<ERROR, "pos >= indices.size ({} > {})">(pos,
-                                                                         indices.size);
-            return;
-        }
-        mesh->index_accessor->set((indices.offset + pos) * sizeof(unsigned),
-                                  sizeof(unsigned),
-                                  value);
+        indices.set(pos, &value);
     }
 
     void setVertex(unsigned pos, const Vertex& value) {
-        if (pos >= vertices.size) {
-            InstanceLogger{}.Log<ERROR, "pos >= vertices.size ({} > {})">(pos,
-                                                                          vertices.size);
-            return;
-        }
-        mesh->vertex_accessor->set((vertices.offset + pos) * sizeof(Vertex),
-                                   sizeof(Vertex),
-                                   value);
+        vertices.set(pos, &value);
     }
 
 private:
-    std::shared_ptr<Mesh<Vertex>> mesh;
-    gl::BufferAllocator::MemBlock indices;
-    gl::BufferAllocator::MemBlock vertices;
+    gl::HeapBufferRange<unsigned> indices;
+    gl::HeapBufferRange<Vertex> vertices;
 };
 } // namespace gnev

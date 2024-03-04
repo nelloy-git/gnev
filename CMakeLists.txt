@@ -10,6 +10,7 @@ add_subdirectory(./3rdparty/json)
 add_subdirectory(./3rdparty/gtest)
 add_subdirectory(./3rdparty/quill)
 
+
 add_compile_definitions(GLWPP_DEBUG)
 
 if (WIN32)
@@ -23,6 +24,7 @@ endif (WIN32)
 include_directories(./src)
 include_directories(./sample)
 include_directories(./3rdparty/bimap)
+include_directories(./3rdparty/boost_pp/include)
 include_directories(./3rdparty/glad/include)
 include_directories(./3rdparty/glfw/include)
 include_directories(./3rdparty/json/include)
@@ -32,8 +34,8 @@ include_directories(./3rdparty/quill/quill/include)
 include_directories(./3rdparty/stb)
 include_directories(./3rdparty/thread_pool/include())
 include_directories(./3rdparty/VLD/include)
-link_directories(./3rdparty/VLD/lib/Win64)
 
+link_directories(./3rdparty/VLD/lib/Win64)
 
 file(GLOB_RECURSE SRC_FILES "src/**.cpp")
 add_library (${PROJECT_NAME} SHARED

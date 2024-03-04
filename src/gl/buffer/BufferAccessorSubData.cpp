@@ -41,4 +41,10 @@ void BufferAccessorSubData::change(GLintptr offset,
     set(offset, size, data);
 }
 
+void BufferAccessorSubData::copy(GLintptr src_offset,
+                                 GLintptr dst_offset,
+                                 GLintptr size) {
+    buffer->copyTo(*buffer, src_offset, dst_offset, size);
+}
+
 } // namespace gnev::gl
