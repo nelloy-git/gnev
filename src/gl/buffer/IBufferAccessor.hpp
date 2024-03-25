@@ -13,8 +13,8 @@ public:
     using Changer = std::function<void(void*, GLintptr size)>;
 
     virtual ~IBufferAccessor() = default;
-
-    virtual const gl::Buffer& getBuffer() const = 0;
+    
+    virtual void bindBuffer(Buffer& buffer);
 
     virtual void set(GLintptr offset, GLintptr size, const void* data) = 0;
     virtual void get(GLintptr offset, GLintptr size, void* data) = 0;

@@ -6,7 +6,7 @@
 
 namespace gnev::gl::texture {
 
-class EXPORT IndexMapView : public IndexStorage {
+class EXPORT IndexMapView : public IndexManager {
 public:
     using Changer = Accessor3d::Changer;
 

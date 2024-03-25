@@ -23,11 +23,11 @@ public:
             binds.freeIndex(binding);
         }
 
-        if (not obj.has_value()){
+        if (not obj.has_value()) {
             return std::nullopt;
         }
 
-        auto binding_index_opt = binds.useIndex();
+        auto binding_index_opt = binds.reserveIndex();
         if (not binding_index_opt) {
             return std::nullopt;
         }
@@ -36,7 +36,7 @@ public:
     }
 
 private:
-    IndexStorage binds;
+    IndexManager binds;
     std::unordered_map<unsigned int, std::pair<unsigned int, T>> map;
 };
 

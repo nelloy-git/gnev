@@ -22,7 +22,7 @@
 //
 
 #include "GlfwWindow.hpp"
-#include "MaterialPbrStorage.hpp"
+// #include "MaterialPbrStorage.hpp"
 #include "gl/Ctx.hpp"
 #include "gl/Program.hpp"
 #include "gl/Sampler.hpp"
@@ -36,11 +36,22 @@
 
 //
 
-#include "gl/ReflStruct.hpp"
-
-static constexpr auto name = gnev::TestRefl::Meta::FieldByName<"field_1">::I;
+#include "gl/container/BufferArray.hpp"
+#include "gl/container/BufferRawAccessorGpuSide.hpp"
 
 using namespace gnev;
+
+GNEV_REFL_STRUCT_DECLARE(TestReflStructNested_1,
+                         ((alignas(16)) int)a,
+                         ((alignas(16))std::array<int, 3>)b);
+
+GNEV_REFL_STRUCT_DECLARE(TestReflStructNested_2,
+                         ((alignas(16)) int)a,
+                         ((alignas(16))std::array<int, 3>)b);
+                         
+GNEV_REFL_STRUCT_DECLARE(TestReflStruct,
+                         ((alignas(32))TestReflStructNested_1)nested_1,
+                         ((alignas(32))TestReflStructNested_1)nested_2);
 
 void readTextFile(std::string& dst, const std::filesystem::path& path) {
     std::cout << "Loading shader " << path.string().c_str() << std::endl;
@@ -108,47 +119,47 @@ Ref<base::ImageLoaderResult> loadImg(ImageLoaderStb& loader,
     return result;
 }
 
-MaterialPbr
-createMaterial(MaterialPbrStorage& storage,
-               ImageLoaderStb& loader,
-               const std::filesystem::path& albedo,
-               const std::optional<std::filesystem::path>& normal = std::nullopt,
-               const std::optional<std::filesystem::path>& specular = std::nullopt) {
-    static constexpr ImageInfo store_info{.width = 64,
-                                          .height = 64,
-                                          .format = TextureFormat::RGBA,
-                                          .type = TextureType::UNSIGNED_BYTE};
+// MaterialPbr
+// createMaterial(MaterialPbrStorage& storage,
+//                ImageLoaderStb& loader,
+//                const std::filesystem::path& albedo,
+//                const std::optional<std::filesystem::path>& normal = std::nullopt,
+//                const std::optional<std::filesystem::path>& specular = std::nullopt) {
+//     static constexpr ImageInfo store_info{.width = 64,
+//                                           .height = 64,
+//                                           .format = TextureFormat::RGBA,
+//                                           .type = TextureType::UNSIGNED_BYTE};
 
-    auto material_opt = storage.create();
-    if (not material_opt.has_value()) {
-        throw std::runtime_error("No space");
-    }
-    auto material = material_opt.value();
+//     auto material_opt = storage.create();
+//     if (not material_opt.has_value()) {
+//         throw std::runtime_error("No space");
+//     }
+//     auto material = material_opt.value();
 
-    // auto albedo_tex = MakeSharable<
-    //     gl::texture::WeakIndexMapViewElem>(storage
-    //                                            .getTexView(MaterialPbr::TexType::Albedo));
-    // albedo_tex->set(loadImg(loader, albedo, store_info)->image);
-    // material.setTex(MaterialPbr::TexType::Albedo, albedo_tex);
+//     auto albedo_tex = MakeSharable<
+//         gl::texture::WeakIndexMapViewElem>(storage
+//                                                .getTexView(MaterialPbr::TexType::Albedo));
+//     albedo_tex->set(loadImg(loader, albedo, store_info)->image);
+//     material.setTex(MaterialPbr::TexType::Albedo, albedo_tex);
 
-    // if (normal.has_value()) {
-    //     auto normal_tex = MakeSharable<
-    //         gl::texture::WeakIndexMapViewElem>(storage.getTexView(MaterialPbr::TexType::
-    //                                                                   Normal));
-    //     normal_tex->set(loadImg(loader, normal.value(), store_info)->image);
-    //     material.setTex(MaterialPbr::TexType::Normal, normal_tex);
-    // }
+//     if (normal.has_value()) {
+//         auto normal_tex = MakeSharable<
+//             gl::texture::WeakIndexMapViewElem>(storage.getTexView(MaterialPbr::TexType::
+//                                                                       Normal));
+//         normal_tex->set(loadImg(loader, normal.value(), store_info)->image);
+//         material.setTex(MaterialPbr::TexType::Normal, normal_tex);
+//     }
 
-    // if (specular.has_value()) {
-    //     auto specular_tex = MakeSharable<
-    //         gl::texture::WeakIndexMapViewElem>(storage.getTexView(MaterialPbr::TexType::
-    //                                                                   Metallic));
-    //     specular_tex->set(loadImg(loader, specular.value(), store_info)->image);
-    //     material.setTex(MaterialPbr::TexType::Metallic, specular_tex);
-    // }
+//     if (specular.has_value()) {
+//         auto specular_tex = MakeSharable<
+//             gl::texture::WeakIndexMapViewElem>(storage.getTexView(MaterialPbr::TexType::
+//                                                                       Metallic));
+//         specular_tex->set(loadImg(loader, specular.value(), store_info)->image);
+//         material.setTex(MaterialPbr::TexType::Metallic, specular_tex);
+//     }
 
-    return material;
-}
+//     return material;
+// }
 
 struct PointLight {
     alignas(16) glm::vec3 pos = {0, 1, 0};
@@ -159,10 +170,22 @@ struct PointLight {
 };
 
 int main(int argc, const char** argv) {
+
     // auto current_dir = std::filesystem::current_path();
 
-    // bool close_window = false;
-    // GlfwWindow wnd(1024, 768);
+    bool close_window = false;
+    GlfwWindow wnd(1024, 768);
+
+    auto buffer = std::make_unique<gl::Buffer>();
+    buffer->initStorage(100, nullptr, GL_DYNAMIC_STORAGE_BIT);
+    auto accessor = std::make_unique<gl::BufferRawAccessorGpuSide>();
+    gl::BufferArray<TestReflStruct> arr{std::move(buffer), std::move(accessor)};
+
+    arr[0].accessor.set(TestReflStruct{});
+    arr[0].accessor.set<&TestReflStruct::nested_1>(TestReflStructNested_1{});
+
+    // using Nested = ReflStructDeduceMeta<TestReflStruct, 0, 0>;
+    // using Child = DeduceReflStructChildFieldMeta<TestReflStruct, 0>;
 
     // Ref<gl::Program> program = buildProgram();
     // program->use();

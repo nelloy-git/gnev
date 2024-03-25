@@ -17,7 +17,7 @@ Ref<IndexMapView> IndexMapView::MakeArray2D(GLuint img_levels,
 }
 
 IndexMapView::IndexMapView(const Ref<Accessor3d>& accessor)
-    : IndexStorage(accessor->texture->getDepth(0))
+    : IndexManager(accessor->texture->getDepth(0))
     , accessor(accessor) {}
 
 void IndexMapView::set(GLuint index, const Image& src) {

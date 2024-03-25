@@ -4,12 +4,10 @@
 
 namespace gnev::gl {
 
-class EXPORT BufferAccessorMappedCoherent : public IBufferAccessor {
+class EXPORT BufferRawAccessorMappedCoherent : public IBufferAccessor {
 public:
-    BufferAccessorMappedCoherent(std::unique_ptr<Buffer>&& buffer);
-    ~BufferAccessorMappedCoherent();
-
-    const Buffer& getBuffer() const override;
+    BufferRawAccessorMappedCoherent(Buffer& buffer);
+    ~BufferRawAccessorMappedCoherent();
 
     void set(GLintptr offset, GLintptr size, const void* data) override;
     void get(GLintptr offset, GLintptr size, void* data) override;
@@ -17,7 +15,6 @@ public:
     void copy(GLintptr src_offset, GLintptr dst_offset, GLintptr size) override;
 
 private:
-    std::unique_ptr<Buffer> buffer;
     GLbyte* map;
 };
 

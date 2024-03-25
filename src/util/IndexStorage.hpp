@@ -8,16 +8,15 @@
 
 namespace gnev {
 
-class EXPORT IndexStorage {
+class EXPORT IndexManager {
 public:
     using Index = unsigned int;
 
     // [first, first + capacity)
-    IndexStorage(unsigned int capacity,
-                 Index first = 0);
-    virtual ~IndexStorage() = default;
+    IndexManager(unsigned int capacity, Index first = 0);
+    virtual ~IndexManager() = default;
 
-    std::optional<Index> useIndex();
+    std::optional<Index> reserveIndex();
     bool freeIndex(Index index);
     bool isUsed(Index index) const;
     unsigned int countFree() const;
@@ -30,7 +29,7 @@ private:
     const unsigned int first;
     const unsigned int last;
 
-    Index current;
+    Index current_max;
     std::list<Index> unused;
 };
 

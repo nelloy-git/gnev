@@ -1,23 +1,29 @@
 #pragma once
 
-#include "gl/buffer/HeapBufferRange.hpp"
-#include "glm/glm.hpp"
-#include "Mat4x4.hpp"
+#include "gl/ReflStruct.hpp"
+#include "gl/buffer/ManagedBuffer.hpp"
+#include "glm/mat4x4.hpp"
 
 namespace gnev {
 
+GNEV_REFL_STRUCT_DECLARE(Mat4x4GL, ((alignas(64))glm::mat4x4)mat);
+
+class Mat4x4 : public gl::ManagedSubBuffer<Mat4x4GL> {
+public:
+    Mat4x4(const gl::ManagedSubBuffer<Mat4x4GL>& parent)
+        : gl::ManagedSubBuffer<Mat4x4GL>{parent} {}
+
+    std::size_t getIndex() const { return getOffset() / sizeof(Mat4x4GL); }
+};
+
 class EXPORT Mat4x4Storage {
 public:
-    Mat4x4Storage(std::unique_ptr<gl::IBufferAccessor>&& accessor);
-    // Coherent storage
-    Mat4x4Storage(unsigned capacity);
+    Mat4x4Storage(std::unique_ptr<gl::ManagedBuffer>&& buffer);
     virtual ~Mat4x4Storage() = default;
 
     std::optional<Mat4x4> create();
 
 private:
-    gl::HeapBuffer<Mat4x4::GL> heap_buffer;
-
-    static std::unique_ptr<gl::IBufferAccessor> initCoherentAccessor(unsigned capacity);
+    std::unique_ptr<gl::ManagedBuffer>&& buffer;
 };
 } // namespace gnev

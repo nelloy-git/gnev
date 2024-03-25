@@ -32,7 +32,7 @@ Ref<GLuint> WeakIndexMapViewElem::initIndexGuard(const WeakRef<IndexMapView>& we
         throw std::runtime_error("");
     }
 
-    auto index_opt = view_opt.value()->useIndex();
+    auto index_opt = view_opt.value()->reserveIndex();
     if (not index_opt.has_value()) {
         throw std::runtime_error("");
     }

@@ -4,22 +4,21 @@
 
 namespace gnev {
 
-using Index = IndexStorage::Index;
+using Index = IndexManager::Index;
 
-IndexStorage::IndexStorage(unsigned int capacity,
-                           Index first)
+IndexManager::IndexManager(unsigned int capacity, Index first)
     : first(first)
     , last(first + capacity)
-    , current(first) {}
+    , current_max(first) {}
 
-std::optional<Index> IndexStorage::useIndex() {
+std::optional<Index> IndexManager::reserveIndex() {
     std::lock_guard lg{m};
 
     if (unused.empty()) {
-        if (current == last) {
+        if (current_max == last) {
             return std::nullopt;
         }
-        return current++;
+        return current_max++;
     } else {
         Index index = unused.front();
         unused.pop_front();
@@ -27,7 +26,7 @@ std::optional<Index> IndexStorage::useIndex() {
     }
 }
 
-bool IndexStorage::freeIndex(Index index) {
+bool IndexManager::freeIndex(Index index) {
     std::lock_guard lg{m};
 
     // out of range
@@ -35,7 +34,7 @@ bool IndexStorage::freeIndex(Index index) {
         return false;
     }
 
-    if (index >= current) {
+    if (index >= current_max) {
         return false;
     }
 
@@ -48,32 +47,30 @@ bool IndexStorage::freeIndex(Index index) {
     return true;
 }
 
-bool IndexStorage::isUsed(Index index) const {
+bool IndexManager::isUsed(Index index) const {
     std::lock_guard lg{m};
-    if (index >= current) {
+    if (index >= current_max) {
         return false;
     }
     auto iter = std::find(unused.begin(), unused.end(), index);
     return iter == unused.end();
 }
 
-unsigned int IndexStorage::countFree() const {
+unsigned int IndexManager::countFree() const {
     std::lock_guard lg{m};
-    return last - current + unused.size();
+    return last - current_max + unused.size();
 }
 
-unsigned int IndexStorage::countUsed() const {
+unsigned int IndexManager::countUsed() const {
     std::lock_guard lg{m};
-    return current - (first + unused.size());
+    return current_max - (first + unused.size());
 }
 
-unsigned int IndexStorage::getCapacity() const {
-    return last - first;
-}
+unsigned int IndexManager::getCapacity() const { return last - first; }
 
-unsigned int IndexStorage::getMaxUsed() const {
+unsigned int IndexManager::getMaxUsed() const {
     std::lock_guard lg{m};
-    return current;
+    return current_max;
 }
 
 } // namespace gnev
