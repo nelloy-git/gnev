@@ -1,7 +1,7 @@
 #pragma once
 
 #include <list>
-#include <mutex>
+#include <memory>
 #include <optional>
 
 #include "util/Export.hpp"
@@ -16,16 +16,18 @@ public:
     IndexManager(unsigned int capacity, Index first = 0);
     virtual ~IndexManager() = default;
 
+    static std::shared_ptr<unsigned>
+    makeIndexGuard(const std::shared_ptr<IndexManager>& index_manager);
+
     std::optional<Index> reserveIndex();
     bool freeIndex(Index index);
-    bool isUsed(Index index) const;
+    bool isInUse(Index index) const;
     unsigned int countFree() const;
     unsigned int countUsed() const;
     unsigned int getCapacity() const;
     unsigned int getMaxUsed() const;
 
 private:
-    mutable std::mutex m;
     const unsigned int first;
     const unsigned int last;
 

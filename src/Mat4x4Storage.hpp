@@ -1,29 +1,37 @@
 #pragma once
 
-#include "gl/ReflStruct.hpp"
-#include "gl/buffer/ManagedBuffer.hpp"
+#include <memory>
+
+#include "gl/container/BufferReflAccessor.hpp"
+#include "gl/container/BufferReflArray.hpp"
 #include "glm/mat4x4.hpp"
+#include "util/Export.hpp"
+#include "util/IndexManager.hpp"
+#include "util/refl/Struct.hpp"
 
 namespace gnev {
 
-GNEV_REFL_STRUCT_DECLARE(Mat4x4GL, ((alignas(64))glm::mat4x4)mat);
-
-class Mat4x4 : public gl::ManagedSubBuffer<Mat4x4GL> {
-public:
-    Mat4x4(const gl::ManagedSubBuffer<Mat4x4GL>& parent)
-        : gl::ManagedSubBuffer<Mat4x4GL>{parent} {}
-
-    std::size_t getIndex() const { return getOffset() / sizeof(Mat4x4GL); }
-};
+GNEV_REFL_STRUCT(Mat4x4_Refl, (alignas(16))(glm::mat4x4)(mat));
 
 class EXPORT Mat4x4Storage {
 public:
-    Mat4x4Storage(std::unique_ptr<gl::ManagedBuffer>&& buffer);
+    Mat4x4Storage(std::unique_ptr<gl::BufferReflArray<Mat4x4_Refl>>&& array);
     virtual ~Mat4x4Storage() = default;
 
-    std::optional<Mat4x4> create();
+    std::optional<unsigned> reserveIndex();
+    bool freeIndex(unsigned index);
+    bool isInUse(unsigned index) const;
+
+    std::shared_ptr<unsigned> makeIndexGuard();
+
+    gl::BufferReflAccessor<Mat4x4_Refl> operator[](unsigned i);
+    const gl::BufferReflAccessor<Mat4x4_Refl> operator[](unsigned i) const;
+    gl::BufferReflAccessor<Mat4x4_Refl> at(unsigned i);
+    const gl::BufferReflAccessor<Mat4x4_Refl> at(unsigned i) const;
 
 private:
-    std::unique_ptr<gl::ManagedBuffer>&& buffer;
+    std::shared_ptr<IndexManager> manager;
+    std::unique_ptr<gl::BufferReflArray<Mat4x4_Refl>> array;
 };
+
 } // namespace gnev

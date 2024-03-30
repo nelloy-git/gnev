@@ -1,6 +1,7 @@
-#include "util/IndexStorage.hpp"
+#include "util/IndexManager.hpp"
 
 #include <algorithm>
+#include <memory>
 
 namespace gnev {
 
@@ -11,9 +12,24 @@ IndexManager::IndexManager(unsigned int capacity, Index first)
     , last(first + capacity)
     , current_max(first) {}
 
-std::optional<Index> IndexManager::reserveIndex() {
-    std::lock_guard lg{m};
+std::shared_ptr<unsigned>
+IndexManager::makeIndexGuard(const std::shared_ptr<IndexManager>& index_manager) {
+    auto index = index_manager->reserveIndex();
+    if (not index.has_value()) {
+        return nullptr;
+    }
 
+    auto deleter = [weak_manager = std::weak_ptr<IndexManager>{index_manager}](unsigned* p) {
+        auto index_manager = weak_manager.lock();
+        if (index_manager){
+            index_manager->freeIndex(*p);
+        }
+        delete p;
+    };
+    return std::shared_ptr<unsigned>{new unsigned{index.value()}, deleter};
+}
+
+std::optional<Index> IndexManager::reserveIndex() {
     if (unused.empty()) {
         if (current_max == last) {
             return std::nullopt;
@@ -27,8 +43,6 @@ std::optional<Index> IndexManager::reserveIndex() {
 }
 
 bool IndexManager::freeIndex(Index index) {
-    std::lock_guard lg{m};
-
     // out of range
     if (index < first or index >= last) {
         return false;
@@ -47,8 +61,7 @@ bool IndexManager::freeIndex(Index index) {
     return true;
 }
 
-bool IndexManager::isUsed(Index index) const {
-    std::lock_guard lg{m};
+bool IndexManager::isInUse(Index index) const {
     if (index >= current_max) {
         return false;
     }
@@ -57,20 +70,15 @@ bool IndexManager::isUsed(Index index) const {
 }
 
 unsigned int IndexManager::countFree() const {
-    std::lock_guard lg{m};
     return last - current_max + unused.size();
 }
 
 unsigned int IndexManager::countUsed() const {
-    std::lock_guard lg{m};
     return current_max - (first + unused.size());
 }
 
 unsigned int IndexManager::getCapacity() const { return last - first; }
 
-unsigned int IndexManager::getMaxUsed() const {
-    std::lock_guard lg{m};
-    return current_max;
-}
+unsigned int IndexManager::getMaxUsed() const { return current_max; }
 
 } // namespace gnev

@@ -1,3 +1,7 @@
+#include "Mat4x4Storage.hpp"
+#include "gl/container/BufferRawAccessorSubData.hpp"
+#include "gl/container/BufferReflArray.hpp"
+#include "util/Logger.hpp"
 #ifdef WIN32
 #include <vld.h>
 #endif
@@ -24,8 +28,8 @@
 #include "GlfwWindow.hpp"
 // #include "MaterialPbrStorage.hpp"
 #include "gl/Ctx.hpp"
-#include "gl/Program.hpp"
-#include "gl/Sampler.hpp"
+// #include "gl/Program.hpp"
+// #include "gl/Sampler.hpp"
 #include "image/ImageLoaderStb.hpp"
 #include "material/pbr/MaterialStorage_PBR.hpp"
 #include "mesh/3d/QuadMesh_3D.hpp"
@@ -36,22 +40,9 @@
 
 //
 
-#include "gl/container/BufferArray.hpp"
-#include "gl/container/BufferRawAccessorGpuSide.hpp"
+#include "Mat4x4Storage.hpp"
 
 using namespace gnev;
-
-GNEV_REFL_STRUCT_DECLARE(TestReflStructNested_1,
-                         ((alignas(16)) int)a,
-                         ((alignas(16))std::array<int, 3>)b);
-
-GNEV_REFL_STRUCT_DECLARE(TestReflStructNested_2,
-                         ((alignas(16)) int)a,
-                         ((alignas(16))std::array<int, 3>)b);
-                         
-GNEV_REFL_STRUCT_DECLARE(TestReflStruct,
-                         ((alignas(32))TestReflStructNested_1)nested_1,
-                         ((alignas(32))TestReflStructNested_1)nested_2);
 
 void readTextFile(std::string& dst, const std::filesystem::path& path) {
     std::cout << "Loading shader " << path.string().c_str() << std::endl;
@@ -177,12 +168,36 @@ int main(int argc, const char** argv) {
     GlfwWindow wnd(1024, 768);
 
     auto buffer = std::make_unique<gl::Buffer>();
-    buffer->initStorage(100, nullptr, GL_DYNAMIC_STORAGE_BIT);
-    auto accessor = std::make_unique<gl::BufferRawAccessorGpuSide>();
-    gl::BufferArray<TestReflStruct> arr{std::move(buffer), std::move(accessor)};
+    buffer->initStorage(100 * sizeof(Mat4x4_Refl), nullptr, GL_DYNAMIC_STORAGE_BIT);
+    auto accessor = std::make_unique<gl::BufferRawAccessorSubData>();
 
-    arr[0].accessor.set(TestReflStruct{});
-    arr[0].accessor.set<&TestReflStruct::nested_1>(TestReflStructNested_1{});
+    Mat4x4Storage mat_storage{
+        std::make_unique<gl::BufferReflArray<Mat4x4_Refl>>(std::move(buffer),
+                                                           std::move(accessor))};
+
+    auto index = mat_storage.makeIndexGuard();
+    mat_storage[*index].set<&Mat4x4_Refl::mat>(glm::mat4{1.f});
+
+    glm::mat4 mat{2.f};
+    mat_storage[*index].get<&Mat4x4_Refl::mat>(&mat);
+    gnev::Logger::DEBUG<"mat_storage[{}]:\n{}\t{}\t{}\t{}\n{}\t{}\t{}\t{}\n{}\t{}\t{}\t{}"
+                        "\n{}\t{}\t{}\t{}">(*index,
+                                            mat[0][0],
+                                            mat[1][0],
+                                            mat[2][0],
+                                            mat[3][0],
+                                            mat[0][1],
+                                            mat[1][1],
+                                            mat[2][1],
+                                            mat[3][1],
+                                            mat[0][2],
+                                            mat[1][2],
+                                            mat[2][2],
+                                            mat[3][2],
+                                            mat[0][3],
+                                            mat[1][3],
+                                            mat[2][3],
+                                            mat[3][3]);
 
     // using Nested = ReflStructDeduceMeta<TestReflStruct, 0, 0>;
     // using Child = DeduceReflStructChildFieldMeta<TestReflStruct, 0>;

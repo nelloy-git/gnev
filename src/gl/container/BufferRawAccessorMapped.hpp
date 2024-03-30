@@ -2,13 +2,17 @@
 
 #include <memory>
 
+#include "gl/Buffer.hpp"
 #include "gl/container/IBufferRawAccessor.hpp"
+#include "gl/enum/BufferMapRangeAccess.hpp"
 
 namespace gnev::gl {
 
-class EXPORT BufferRawAccessorSubData : public IBufferRawAccessor {
+class EXPORT BufferRawAccessorMapped : public IBufferRawAccessor {
 public:
-    BufferRawAccessorSubData(std::unique_ptr<Buffer>&& buffer = nullptr);
+    BufferRawAccessorMapped(BufferMapRangeAccess access,
+                            std::unique_ptr<Buffer>&& buffer = nullptr);
+    ~BufferRawAccessorMapped();
 
     Buffer& getBuffer() override;
     const Buffer& getBuffer() const override;
@@ -23,6 +27,8 @@ public:
 
 private:
     std::unique_ptr<Buffer> buffer;
+    BufferMapRangeAccess access;
+    GLbyte* map = nullptr;
 };
 
 } // namespace gnev::gl

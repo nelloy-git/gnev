@@ -1,6 +1,8 @@
 #pragma once
 
 #include "gl/Handler.hpp"
+#include "gl/enum/BufferMapRangeAccess.hpp"
+#include "gl/enum/BufferStorageFlags.hpp"
 
 namespace gnev::gl {
 
@@ -15,7 +17,7 @@ public:
     void bindBase(GLenum target, GLuint index) const;
     void bindRange(GLenum target, GLuint index, GLintptr offset, GLsizeiptr size) const;
     void initData(GLsizeiptr size, const void* data, GLenum usage);
-    void initStorage(GLsizeiptr size, const void* data, GLbitfield flags);
+    void initStorage(GLsizeiptr size, const void* data, BufferStorageFlags flags);
     void setSubData(GLintptr offset, GLsizeiptr size, const void* data);
     void getSubData(GLintptr offset, GLsizeiptr size, void* data) const;
     void copyTo(Buffer& writeBuffer,
@@ -25,10 +27,10 @@ public:
 
     GLint getSize() const;
     bool isStorage() const;
-    GLbitfield getStorageFlags() const;
+    BufferStorageFlags getStorageFlags() const;
 
     void* map(GLenum access);
-    void* mapRange(GLintptr offset, GLsizeiptr length, GLbitfield access);
+    void* mapRange(GLintptr offset, GLsizeiptr length, BufferMapRangeAccess access);
     void flushRange(GLintptr offset, GLsizeiptr length);
     void unmap();
 

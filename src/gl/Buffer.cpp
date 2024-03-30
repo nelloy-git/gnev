@@ -1,5 +1,6 @@
 #include "gl/Buffer.hpp"
 
+#include "gl/enum/BufferStorageFlags.hpp"
 #include "gl/fmt/BitFlags.hpp"
 #include "gl/fmt/Enum.hpp"
 #include "gl/logger/HandlerLogger.hpp"
@@ -8,7 +9,7 @@ namespace gnev::gl {
 
 Buffer::Buffer()
     : Handler(createHandle(), &deleteHandle) {
-        Log()->Func();
+    Log()->Func();
 }
 
 Buffer::~Buffer() { Log()->Func(); }
@@ -36,9 +37,9 @@ void Buffer::initData(GLsizeiptr size, const void* data, GLenum usage) {
     Ctx::Get().glNamedBufferData(handle(), size, data, usage);
 }
 
-void Buffer::initStorage(GLsizeiptr size, const void* data, GLbitfield flags) {
-    Log()->Func(size, data, fmt::BitFlags{flags, fmt::BitFlags::Group::glBufferStorage});
-    Ctx::Get().glNamedBufferStorage(handle(), size, data, flags);
+void Buffer::initStorage(GLsizeiptr size, const void* data, BufferStorageFlags flags) {
+    Log()->Func(size, data, flags);
+    Ctx::Get().glNamedBufferStorage(handle(), size, data, static_cast<GLenum>(flags));
 }
 
 void Buffer::setSubData(GLintptr offset, GLsizeiptr size, const void* data) {
@@ -79,9 +80,9 @@ bool Buffer::isStorage() const {
     return is_storage == GL_TRUE;
 }
 
-GLbitfield Buffer::getStorageFlags() const {
+BufferStorageFlags Buffer::getStorageFlags() const {
     Log()->Func();
-    GLbitfield flags;
+    BufferStorageFlags flags;
     Ctx::Get().glGetNamedBufferParameteriv(handle(),
                                            GL_BUFFER_STORAGE_FLAGS,
                                            reinterpret_cast<GLint*>(&flags));
@@ -93,9 +94,12 @@ void* Buffer::map(GLenum access) {
     return Ctx::Get().glMapNamedBuffer(handle(), access);
 }
 
-void* Buffer::mapRange(GLintptr offset, GLsizeiptr length, GLbitfield access) {
-    Log()->Func(offset, length, fmt::Enum{access});
-    return Ctx::Get().glMapNamedBufferRange(handle(), offset, length, access);
+void* Buffer::mapRange(GLintptr offset, GLsizeiptr length, BufferMapRangeAccess access) {
+    Log()->Func(offset, length, access);
+    return Ctx::Get().glMapNamedBufferRange(handle(),
+                                            offset,
+                                            length,
+                                            static_cast<GLenum>(access));
 }
 
 void Buffer::flushRange(GLintptr offset, GLsizeiptr length) {

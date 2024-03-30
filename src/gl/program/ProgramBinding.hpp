@@ -2,8 +2,7 @@
 
 #include <unordered_map>
 
-#include "util/IndexStorage.hpp"
-#include "util/Ref.hpp"
+#include "util/IndexManager.hpp"
 
 namespace gnev::gl {
 
