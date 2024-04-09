@@ -9,11 +9,13 @@
 #include "gl/fmt/Enum.hpp"
 #include "gl/logger/CtxLogger.hpp"
 
-using namespace gnev::gl;
+#ifdef WIN32
+#include <windows.h>
+#endif
+
+namespace gnev::gl {
 
 #ifdef WIN32
-
-#include <windows.h>
 
 namespace {
 
@@ -35,7 +37,14 @@ void freeTlsCtx(unsigned long* tls_index) {
 
 std::unique_ptr<unsigned long, void (*)(unsigned long*)> Ctx::tls_index{nullptr, nullptr};
 
-void Ctx::Init(LoadFunc load_func) {
+#else
+
+thread_local std::unique_ptr<Ctx> Ctx::thread_ctx = nullptr;
+
+#endif
+
+void Ctx::Init(LoadFunc load_func, quill::Logger* quill_logger) {
+#ifdef WIN32
     if (!tls_index) {
         auto index_value = TlsAlloc();
         if (index_value == TLS_OUT_OF_INDEXES) {
@@ -61,78 +70,77 @@ void Ctx::Init(LoadFunc load_func) {
     if (!saved) {
         throw std::runtime_error("TlsSetValue error");
     }
+#else
+    if (thread_ctx) {
+        throw std::runtime_error("");
+    }
+    thread_ctx = std::unique_ptr<Ctx>(new Ctx(load_func));
+    Ctx* p_ctx = thread_ctx.get();
+#endif
 
-    gnev::Logger::init();
-    gnev::Logger::INFO<"Logger initialized">();
+    p_ctx->logger.setQuillLogger(quill_logger);
+    p_ctx->logger.INFO<"Logger initialized">();
 }
 
-bool Ctx::IsInited() { return tls_index && (TlsGetValue(*tls_index) != 0); }
+bool Ctx::IsInited() {
+#ifdef WIN32
+    return tls_index && (TlsGetValue(*tls_index) != 0);
+#else
+    return thread_ctx.get();
+#endif
+}
 
 Ctx& Ctx::Get() {
+#ifdef WIN32
     auto tls_ptr = TlsGetValue(*tls_index);
     if (tls_ptr == 0) {
         throw std::runtime_error("TlsGetValue error");
     }
 
     return *static_cast<Ctx*>(tls_ptr);
-}
-
 #else
-
-thread_local std::unique_ptr<Ctx> Ctx::thread_ctx = nullptr;
-
-void Ctx::Init(LoadFunc load_func) {
-    if (thread_ctx) {
-        throw std::runtime_error("");
-    }
-    gnev::Logger::init();
-    thread_ctx = std::unique_ptr<Ctx>(new Ctx(load_func));
-    gnev::Logger::INFO<"Logger initialized">();
-}
-
-bool Ctx::IsInited() { return thread_ctx.get(); }
-
-Ctx& Ctx::Get() {
     if (!thread_ctx) {
         throw std::runtime_error("");
     }
     return *thread_ctx;
-}
 #endif
+}
 
 Ctx::Ctx(LoadFunc load_func)
     : glad(std::make_unique<GladGLContext>()) {
     gladLoadGLContext(glad.get(), load_func);
 }
 
+const gnev::Logger& Ctx::log() const { return logger; }
+
 void Ctx::glActiveTexture(GLenum texture) const {
-    Log()->Func(fmt::Enum{texture});
+    ctxLog().Func(texture);
     glad->ActiveTexture(texture);
 }
 
 void Ctx::glClear(GLbitfield mask) const {
-    Log()->Func(fmt::BitFlags{mask, fmt::BitFlags::Group::glClear});
+    ctxLog().Func(fmt::BitFlags{mask, fmt::BitFlags::Group::glClear});
     glad->Clear(mask);
 }
 
 void Ctx::glClearColor(GLfloat red, GLfloat green, GLfloat blue, GLfloat alpha) const {
-    Log()->Func(red, green, blue, alpha);
+    ctxLog().Func(red, green, blue, alpha);
     glad->ClearColor(red, green, blue, alpha);
 }
 
 void Ctx::glGetIntegerv(GLenum pname, GLint* params) const {
-    Log()->Func(fmt::Enum{pname}, static_cast<void*>(params));
+    ctxLog().Func(fmt::Enum{pname}, static_cast<void*>(params));
     glad->GetIntegerv(pname, params);
-    Log()->Ptr(static_cast<void*>(params), *params);
+    ctxLog().Ptr(static_cast<void*>(params), *params);
 }
 
 void Ctx::glEnable(GLenum pname) const {
-    Log()->Func(fmt::Enum{pname});
+    ctxLog().Func(fmt::Enum{pname});
     glad->Enable(pname);
 }
 
 void Ctx::glDebugMessageCallback(GLDEBUGPROC callback, const void* userParam) const {
-    Log()->Func(reinterpret_cast<const void*>(callback), userParam);
+    ctxLog().Func(static_cast<void*>(callback), userParam);
     glad->DebugMessageCallback(callback, userParam);
 }
 
@@ -142,13 +150,12 @@ void Ctx::glDebugMessageControl(GLenum source,
                                 GLsizei count,
                                 const GLuint* ids,
                                 GLboolean enabled) const {
-    Log()->Func(fmt::Enum{source},
-                fmt::Enum{type},
-                fmt::Enum{severity},
-                count,
-                static_cast<const void*>(ids),
-                std::vector(ids, ids + count),
-                enabled);
+    ctxLog().Func(fmt::Enum{source},
+                  fmt::Enum{type},
+                  fmt::Enum{severity},
+                  count,
+                  static_cast<const void*>(ids),
+                  enabled);
     glad->DebugMessageControl(source, type, severity, count, ids, enabled);
 }
 
@@ -156,31 +163,31 @@ void Ctx::glDrawElements(GLenum mode,
                          GLsizei count,
                          GLenum type,
                          const void* indices) const {
-    Log()->Func(fmt::Enum{mode, fmt::Enum::Group::DrawElements},
-                count,
-                fmt::Enum{type},
-                indices);
+    ctxLog().Func(fmt::Enum{mode, fmt::Enum::Group::DrawElements},
+                  count,
+                  fmt::Enum{type},
+                  indices);
     glad->DrawElements(mode, count, type, indices);
 }
 
 void Ctx::glCreateBuffers(GLsizei n, GLuint* buffers) const {
-    Log()->Func(n, static_cast<const void*>(buffers));
+    ctxLog().Func(n, static_cast<const void*>(buffers));
     glad->CreateBuffers(n, buffers);
-    Log()->Ptr(static_cast<const void*>(buffers), std::vector(buffers, buffers + n));
+    ctxLog().Ptr(static_cast<const void*>(buffers), std::vector(buffers, buffers + n));
 }
 
 void Ctx::glDeleteBuffers(GLsizei n, GLuint* buffers) const {
-    Log()->Func(n, std::vector(buffers, buffers + n));
+    ctxLog().Func(n, std::vector(buffers, buffers + n));
     glad->DeleteBuffers(n, buffers);
 }
 
 void Ctx::glBindBuffer(GLenum target, GLuint buffer) const {
-    Log()->Func(fmt::Enum{target}, buffer);
+    ctxLog().Func(fmt::Enum{target}, buffer);
     glad->BindBuffer(target, buffer);
 }
 
 void Ctx::glBindBufferBase(GLenum target, GLuint index, GLuint buffer) const {
-    Log()->Func(fmt::Enum{target}, index, buffer);
+    ctxLog().Func(fmt::Enum{target}, index, buffer);
     glad->BindBufferBase(target, index, buffer);
 }
 
@@ -189,7 +196,7 @@ void Ctx::glBindBufferRange(GLenum target,
                             GLuint buffer,
                             GLintptr offset,
                             GLsizeiptr size) const {
-    Log()->Func(fmt::Enum{target}, index, buffer, offset, size);
+    ctxLog().Func(fmt::Enum{target}, index, buffer, offset, size);
     glad->BindBufferRange(target, index, buffer, offset, size);
 }
 
@@ -197,7 +204,7 @@ void Ctx::glNamedBufferData(GLuint buffer,
                             GLsizeiptr size,
                             const void* data,
                             GLenum usage) const {
-    Log()->Func(buffer, size, data, fmt::Enum{usage});
+    ctxLog().Func(buffer, size, data, fmt::Enum{usage});
     glad->NamedBufferData(buffer, size, data, usage);
 }
 
@@ -205,10 +212,10 @@ void Ctx::glNamedBufferStorage(GLuint buffer,
                                GLsizeiptr size,
                                const void* data,
                                GLbitfield flags) const {
-    Log()->Func(buffer,
-                size,
-                data,
-                fmt::BitFlags{flags, fmt::BitFlags::Group::glBufferStorage});
+    ctxLog().Func(buffer,
+                  size,
+                  data,
+                  fmt::BitFlags{flags, fmt::BitFlags::Group::glBufferStorage});
     glad->NamedBufferStorage(buffer, size, data, flags);
 }
 
@@ -216,7 +223,7 @@ void Ctx::glNamedBufferSubData(GLuint buffer,
                                GLintptr offset,
                                GLsizeiptr size,
                                const void* data) const {
-    Log()->Func(buffer, offset, size, data);
+    ctxLog().Func(buffer, offset, size, data);
     glad->NamedBufferSubData(buffer, offset, size, data);
 }
 
@@ -224,7 +231,7 @@ void Ctx::glGetNamedBufferSubData(GLuint buffer,
                                   GLintptr offset,
                                   GLsizeiptr size,
                                   void* data) const {
-    Log()->Func(buffer, offset, size, data);
+    ctxLog().Func(buffer, offset, size, data);
     glad->GetNamedBufferSubData(buffer, offset, size, data);
 }
 
@@ -233,20 +240,20 @@ void Ctx::glCopyNamedBufferSubData(GLuint readBuffer,
                                    GLintptr readOffset,
                                    GLintptr writeOffset,
                                    GLsizeiptr size) const {
-    Log()->Func(readBuffer, writeBuffer, readOffset, writeOffset, size);
+    ctxLog().Func(readBuffer, writeBuffer, readOffset, writeOffset, size);
     glad->CopyNamedBufferSubData(readBuffer, writeBuffer, readOffset, writeOffset, size);
 }
 
 void Ctx::glGetNamedBufferParameteriv(GLuint buffer, GLenum pname, GLint* params) const {
-    Log()->Func(buffer, fmt::Enum{pname}, static_cast<void*>(params));
+    ctxLog().Func(buffer, fmt::Enum{pname}, static_cast<void*>(params));
     glad->GetNamedBufferParameteriv(buffer, pname, params);
-    Log()->Ptr(static_cast<void*>(params), *params);
+    ctxLog().Ptr(static_cast<void*>(params), *params);
 }
 
 void* Ctx::glMapNamedBuffer(GLuint buffer, GLenum access) const {
-    Log()->Func(buffer, fmt::Enum{access}, CALL);
+    ctxLog().Func(buffer, fmt::Enum{access}, "call");
     void* map = glad->MapNamedBuffer(buffer, access);
-    Log()->Func(buffer, fmt::Enum{access}, map);
+    ctxLog().Func(buffer, fmt::Enum{access}, map);
     return map;
 }
 
@@ -254,33 +261,33 @@ void* Ctx::glMapNamedBufferRange(GLuint buffer,
                                  GLintptr offset,
                                  GLsizeiptr length,
                                  GLbitfield access) const {
-    Log()->Func(buffer, offset, length, access, CALL);
+    ctxLog().Func(buffer, offset, length, access, "call");
     void* map = glad->MapNamedBufferRange(buffer, offset, length, access);
-    Log()->Func(buffer, offset, length, access, map);
+    ctxLog().Func(buffer, offset, length, access, map);
     return map;
 }
 
 void Ctx::glFlushMappedNamedBufferRange(GLuint buffer,
                                         GLintptr offset,
                                         GLsizeiptr length) const {
-    Log()->Func(buffer, offset, length);
+    ctxLog().Func(buffer, offset, length);
     glad->FlushMappedNamedBufferRange(buffer, offset, length);
 }
 
 void Ctx::glUnmapNamedBuffer(GLuint buffer) const {
-    Log()->Func(buffer);
+    ctxLog().Func(buffer);
     glad->UnmapNamedBuffer(buffer);
 }
 
 GLuint Ctx::glCreateShader(GLenum type) const {
-    Log()->Func(fmt::Enum{type}, CALL);
+    ctxLog().Func(fmt::Enum{type}, "call");
     GLuint shader = glad->CreateShader(type);
-    Log()->Func(fmt::Enum{type}, shader);
+    ctxLog().Func(fmt::Enum{type}, shader);
     return shader;
 }
 
 void Ctx::glDeleteShader(GLuint shader) const {
-    Log()->Func(shader);
+    ctxLog().Func(shader);
     glad->DeleteShader(shader);
 }
 
@@ -288,174 +295,177 @@ void Ctx::glShaderSource(GLuint shader,
                          GLsizei count,
                          const GLchar* const* string,
                          const GLint* length) const {
-    Log()->Func(shader,
-                count,
-                std::vector<std::string>(string, string + count),
-                std::vector(length, length + count));
+    ctxLog().Func(shader,
+                  count,
+                  std::vector<std::string>(string, string + count),
+                  std::vector(length, length + count));
     glad->ShaderSource(shader, count, string, length);
 }
 
 void Ctx::glCompileShader(GLuint shader) const {
-    Log()->Func(shader);
+    ctxLog().Func(shader);
     glad->CompileShader(shader);
 }
 
 void Ctx::glGetShaderiv(GLuint shader, GLenum pname, GLint* params) const {
-    Log()->Func(shader, fmt::Enum{pname}, static_cast<void*>(params));
+    ctxLog().Func(shader, fmt::Enum{pname}, static_cast<void*>(params));
     glad->GetShaderiv(shader, pname, params);
-    Log()->Ptr(static_cast<void*>(params), *params);
+    ctxLog().Ptr(static_cast<void*>(params), *params);
 }
 
 void Ctx::glGetShaderInfoLog(GLuint shader,
                              GLsizei bufSize,
                              GLsizei* length,
                              GLchar* infoLog) const {
-    Log()->Func(shader, bufSize, static_cast<void*>(length), static_cast<void*>(infoLog));
+    ctxLog().Func(shader,
+                  bufSize,
+                  static_cast<void*>(length),
+                  static_cast<void*>(infoLog));
     glad->GetShaderInfoLog(shader, bufSize, length, infoLog);
-    Log()->Ptr(static_cast<void*>(length), *length);
-    Log()->Ptr(static_cast<void*>(infoLog), fmt::CharPtr{infoLog});
+    ctxLog().Ptr(static_cast<void*>(length), *length);
+    ctxLog().Ptr(static_cast<void*>(infoLog), fmt::CharPtr{infoLog});
 }
 
 GLuint Ctx::glCreateProgram() const {
-    Log()->Func(CALL);
+    ctxLog().Func("call");
     GLuint program = glad->CreateProgram();
-    Log()->Func(program);
+    ctxLog().Func(program);
     return program;
 }
 
 void Ctx::glDeleteProgram(GLuint program) const {
-    Log()->Func(program);
+    ctxLog().Func(program);
     glad->DeleteProgram(program);
 }
 
 void Ctx::glAttachShader(GLuint program, GLuint shader) const {
-    Log()->Func(program, shader);
+    ctxLog().Func(program, shader);
     glad->AttachShader(program, shader);
 }
 
 void Ctx::glValidateProgram(GLuint program) const {
-    Log()->Func(program);
+    ctxLog().Func(program);
     glad->ValidateProgram(program);
 }
 
 void Ctx::glLinkProgram(GLuint program) const {
-    Log()->Func(program);
+    ctxLog().Func(program);
     glad->LinkProgram(program);
 }
 
 void Ctx::glUseProgram(GLuint program) const {
-    Log()->Func(program);
+    ctxLog().Func(program);
     glad->UseProgram(program);
 }
 
 void Ctx::glGetProgramiv(GLuint program, GLenum pname, GLint* params) const {
-    Log()->Func(program, fmt::Enum{pname}, static_cast<const void*>(params));
+    ctxLog().Func(program, fmt::Enum{pname}, static_cast<const void*>(params));
     glad->GetProgramiv(program, pname, params);
-    Log()->Ptr(static_cast<const void*>(params), *params);
+    ctxLog().Ptr(static_cast<const void*>(params), *params);
 }
 
 void Ctx::glGetProgramInfoLog(GLuint program,
                               GLsizei bufSize,
                               GLsizei* length,
                               GLchar* infoLog) const {
-    Log()->Func(program,
-                bufSize,
-                static_cast<void*>(length),
-                static_cast<void*>(infoLog));
+    ctxLog().Func(program,
+                  bufSize,
+                  static_cast<void*>(length),
+                  static_cast<void*>(infoLog));
     glad->GetProgramInfoLog(program, bufSize, length, infoLog);
-    Log()->Ptr(static_cast<void*>(length), *length);
-    Log()->Ptr(static_cast<void*>(infoLog), fmt::CharPtr{infoLog});
+    ctxLog().Ptr(static_cast<void*>(length), *length);
+    ctxLog().Ptr(static_cast<void*>(infoLog), fmt::CharPtr{infoLog});
 }
 
 void Ctx::glUniform1i(GLint location, GLint v0) const {
-    Log()->Func(location, v0);
+    ctxLog().Func(location, v0);
     glad->Uniform1i(location, v0);
 }
 
 GLint Ctx::glGetUniformBlockIndex(GLuint program, const GLchar* uniformBlockName) const {
-    Log()->Func(program, fmt::CharPtr{uniformBlockName}, CALL);
+    ctxLog().Func(program, fmt::CharPtr{uniformBlockName}, "call");
     GLint index = glad->GetUniformBlockIndex(program, uniformBlockName);
-    Log()->Func(program, fmt::CharPtr{uniformBlockName}, index);
+    ctxLog().Func(program, fmt::CharPtr{uniformBlockName}, index);
     return index;
 }
 
 void Ctx::glUniformBlockBinding(GLuint program,
                                 GLuint uniformBlockIndex,
                                 GLuint uniformBlockBinding) const {
-    Log()->Func(program, uniformBlockIndex, uniformBlockBinding);
+    ctxLog().Func(program, uniformBlockIndex, uniformBlockBinding);
     glad->UniformBlockBinding(program, uniformBlockIndex, uniformBlockBinding);
 }
 
 GLint Ctx::glGetProgramResourceIndex(GLuint program,
                                      GLenum programInterface,
                                      const GLchar* name) const {
-    Log()->Func(program, fmt::Enum{programInterface}, fmt::CharPtr{name}, CALL);
+    ctxLog().Func(program, fmt::Enum{programInterface}, fmt::CharPtr{name}, "call");
     GLint index = glad->GetProgramResourceIndex(program, programInterface, name);
-    Log()->Func(program, fmt::Enum{programInterface}, fmt::CharPtr{name}, index);
+    ctxLog().Func(program, fmt::Enum{programInterface}, fmt::CharPtr{name}, index);
     return index;
 }
 
 void Ctx::glShaderStorageBlockBinding(GLuint program,
                                       GLuint storageBlockIndex,
                                       GLuint storageBlockBinding) const {
-    Log()->Func(program, storageBlockIndex, storageBlockBinding);
+    ctxLog().Func(program, storageBlockIndex, storageBlockBinding);
     glad->ShaderStorageBlockBinding(program, storageBlockIndex, storageBlockBinding);
 }
 
 GLint Ctx::glGetAttribLocation(GLuint program, const GLchar* name) const {
-    Log()->Func(program, fmt::CharPtr{name}, CALL);
+    ctxLog().Func(program, fmt::CharPtr{name}, "call");
     GLint loc = glad->GetAttribLocation(program, name);
-    Log()->Func(program, fmt::CharPtr{name}, loc);
+    ctxLog().Func(program, fmt::CharPtr{name}, loc);
     return loc;
 }
 
 GLint Ctx::glGetUniformLocation(GLuint program, const GLchar* name) const {
-    Log()->Func(program, fmt::CharPtr{name}, CALL);
+    ctxLog().Func(program, fmt::CharPtr{name}, "call");
     GLint loc = glad->GetUniformLocation(program, name);
-    Log()->Func(program, fmt::CharPtr{name}, loc);
+    ctxLog().Func(program, fmt::CharPtr{name}, loc);
     return loc;
 }
 
 void Ctx::glCreateTextures(GLenum target, GLsizei n, GLuint* textures) const {
-    Log()->Func(n, static_cast<void*>(textures));
+    ctxLog().Func(n, static_cast<void*>(textures));
     glad->CreateTextures(target, n, textures);
-    Log()->Ptr(static_cast<void*>(textures), std::vector(textures, textures + n));
+    ctxLog().Ptr(static_cast<void*>(textures), std::vector(textures, textures + n));
 }
 
 void Ctx::glDeleteTextures(GLsizei n, GLuint* textures) const {
-    Log()->Func(n, std::vector(textures, textures + n));
+    ctxLog().Func(n, std::vector(textures, textures + n));
     glad->DeleteTextures(n, textures);
 }
 
 void Ctx::glBindTexture(GLenum target, GLuint texture) const {
-    Log()->Func(fmt::Enum{target}, texture);
+    ctxLog().Func(fmt::Enum{target}, texture);
     glad->BindTexture(target, texture);
 }
 
 void Ctx::glTextureParameteri(GLuint texture, GLenum pname, GLint param) const {
-    Log()->Func(texture, fmt::Enum{pname}, param);
+    ctxLog().Func(texture, fmt::Enum{pname}, param);
     glad->TextureParameteri(texture, pname, param);
 }
 
 void Ctx::glGetTextureParameteriv(GLuint texture, GLenum pname, GLint* param) const {
-    Log()->Func(texture, fmt::Enum{pname}, static_cast<const void*>(param));
+    ctxLog().Func(texture, fmt::Enum{pname}, static_cast<const void*>(param));
     glad->GetTextureParameteriv(texture, pname, param);
-    Log()->Ptr(static_cast<const void*>(param), *param);
+    ctxLog().Ptr(static_cast<const void*>(param), *param);
 }
 
 void Ctx::glGetTextureLevelParameteriv(GLuint texture,
                                        GLint level,
                                        GLenum pname,
                                        GLint* param) const {
-    Log()->Func(texture, level, fmt::Enum{pname}, static_cast<const void*>(param));
+    ctxLog().Func(texture, level, fmt::Enum{pname}, static_cast<const void*>(param));
     glad->GetTextureLevelParameteriv(texture, level, pname, param);
-    Log()->Ptr(static_cast<const void*>(param), *param);
+    ctxLog().Ptr(static_cast<const void*>(param), *param);
 }
 
 void Ctx::glTextureParameterfv(GLuint texture, GLenum pname, const GLfloat* param) const {
-    Log()->Func(texture, fmt::Enum{pname}, static_cast<const void*>(param));
+    ctxLog().Func(texture, fmt::Enum{pname}, static_cast<const void*>(param));
     glad->TextureParameterfv(texture, pname, param);
-    Log()->Ptr(static_cast<const void*>(param), param[0]);
+    ctxLog().Ptr(static_cast<const void*>(param), param[0]);
 }
 
 void Ctx::glTexImage3D(GLenum target,
@@ -468,16 +478,16 @@ void Ctx::glTexImage3D(GLenum target,
                        GLenum format,
                        GLenum type,
                        const void* pixels) const {
-    Log()->Func(fmt::Enum{target},
-                level,
-                internalformat,
-                width,
-                height,
-                depth,
-                border,
-                fmt::Enum{format},
-                fmt::Enum{type},
-                pixels);
+    ctxLog().Func(fmt::Enum{target},
+                  level,
+                  internalformat,
+                  width,
+                  height,
+                  depth,
+                  border,
+                  fmt::Enum{format},
+                  fmt::Enum{type},
+                  pixels);
     glad->TexImage3D(target,
                      level,
                      internalformat,
@@ -496,7 +506,7 @@ void Ctx::glTextureStorage3D(GLuint texture,
                              GLsizei width,
                              GLsizei height,
                              GLsizei depth) const {
-    Log()->Func(texture, levels, fmt::Enum{internalformat}, width, height, depth);
+    ctxLog().Func(texture, levels, fmt::Enum{internalformat}, width, height, depth);
     glad->TextureStorage3D(texture, levels, internalformat, width, height, depth);
 }
 
@@ -511,17 +521,17 @@ void Ctx::glTextureSubImage3D(GLuint texture,
                               GLenum format,
                               GLenum type,
                               const void* pixels) const {
-    Log()->Func(texture,
-                level,
-                xoffset,
-                yoffset,
-                zoffset,
-                width,
-                height,
-                depth,
-                fmt::Enum{format},
-                fmt::Enum{type},
-                pixels);
+    ctxLog().Func(texture,
+                  level,
+                  xoffset,
+                  yoffset,
+                  zoffset,
+                  width,
+                  height,
+                  depth,
+                  fmt::Enum{format},
+                  fmt::Enum{type},
+                  pixels);
     glad->TextureSubImage3D(texture,
                             level,
                             xoffset,
@@ -536,7 +546,7 @@ void Ctx::glTextureSubImage3D(GLuint texture,
 }
 
 void Ctx::glGenerateTextureMipmap(GLuint texture) const {
-    Log()->Func(texture);
+    ctxLog().Func(texture);
     glad->GenerateTextureMipmap(texture);
 }
 
@@ -555,21 +565,21 @@ void Ctx::glCopyImageSubData(GLuint srcName,
                              GLsizei srcWidth,
                              GLsizei srcHeight,
                              GLsizei srcDepth) const {
-    Log()->Func(srcName,
-                fmt::Enum{srcTarget},
-                srcLevel,
-                srcX,
-                srcY,
-                srcZ,
-                dstName,
-                fmt::Enum{dstTarget},
-                dstLevel,
-                dstX,
-                dstY,
-                dstZ,
-                srcWidth,
-                srcHeight,
-                srcDepth);
+    ctxLog().Func(srcName,
+                  fmt::Enum{srcTarget},
+                  srcLevel,
+                  srcX,
+                  srcY,
+                  srcZ,
+                  dstName,
+                  fmt::Enum{dstTarget},
+                  dstLevel,
+                  dstX,
+                  dstY,
+                  dstZ,
+                  srcWidth,
+                  srcHeight,
+                  srcDepth);
     glad->CopyImageSubData(srcName,
                            srcTarget,
                            srcLevel,
@@ -599,18 +609,18 @@ void Ctx::glGetTextureSubImage(GLuint texture,
                                GLenum type,
                                GLsizei bufSize,
                                void* pixels) const {
-    Log()->Func(texture,
-                level,
-                xoffset,
-                yoffset,
-                zoffset,
-                width,
-                height,
-                depth,
-                fmt::Enum{format},
-                fmt::Enum{type},
-                bufSize,
-                pixels);
+    ctxLog().Func(texture,
+                  level,
+                  xoffset,
+                  yoffset,
+                  zoffset,
+                  width,
+                  height,
+                  depth,
+                  fmt::Enum{format},
+                  fmt::Enum{type},
+                  bufSize,
+                  pixels);
     glad->GetTextureSubImage(texture,
                              level,
                              xoffset,
@@ -626,55 +636,55 @@ void Ctx::glGetTextureSubImage(GLuint texture,
 }
 
 void Ctx::glCreateSamplers(GLsizei n, GLuint* samplers) const {
-    Log()->Func(n, static_cast<const void*>(samplers));
+    ctxLog().Func(n, static_cast<const void*>(samplers));
     glad->CreateSamplers(n, samplers);
-    Log()->Ptr(static_cast<const void*>(samplers), std::vector(samplers, samplers + n));
+    ctxLog().Ptr(static_cast<const void*>(samplers), std::vector(samplers, samplers + n));
 }
 
 void Ctx::glDeleteSamplers(GLsizei n, GLuint* samplers) const {
-    Log()->Func(n, std::vector(samplers, samplers + n));
+    ctxLog().Func(n, std::vector(samplers, samplers + n));
     glad->DeleteSamplers(n, samplers);
 }
 
 void Ctx::glBindSampler(GLuint unit, GLuint sampler) const {
-    Log()->Func(unit, sampler);
+    ctxLog().Func(unit, sampler);
     glad->BindSampler(unit, sampler);
 }
 
 void Ctx::glSamplerParameteri(GLuint sampler, GLuint pname, GLint param) const {
-    Log()->Func(sampler, fmt::Enum{pname}, param);
+    ctxLog().Func(sampler, fmt::Enum{pname}, param);
     glad->SamplerParameteri(sampler, pname, param);
 }
 
 void Ctx::glSamplerParameterf(GLuint sampler, GLuint pname, GLfloat param) const {
-    Log()->Func(sampler, fmt::Enum{pname}, param);
+    ctxLog().Func(sampler, fmt::Enum{pname}, param);
     glad->SamplerParameterf(sampler, pname, param);
 }
 
 void Ctx::glSamplerParameterfv(GLuint sampler, GLuint pname, const GLfloat* param) const {
-    Log()->Func(sampler, fmt::Enum{pname}, static_cast<const void*>(param), *param);
+    ctxLog().Func(sampler, fmt::Enum{pname}, static_cast<const void*>(param), *param);
     glad->SamplerParameterfv(sampler, pname, param);
-    Log()->Ptr(static_cast<const void*>(param), param[0]);
+    ctxLog().Ptr(static_cast<const void*>(param), param[0]);
 }
 
 void Ctx::glCreateVertexArrays(GLsizei n, GLuint* arrays) const {
-    Log()->Func(n, static_cast<const void*>(arrays));
+    ctxLog().Func(n, static_cast<const void*>(arrays));
     glad->CreateVertexArrays(n, arrays);
-    Log()->Ptr(static_cast<const void*>(arrays), std::vector(arrays, arrays + n));
+    ctxLog().Ptr(static_cast<const void*>(arrays), std::vector(arrays, arrays + n));
 }
 
 void Ctx::glDeleteVertexArrays(GLsizei n, GLuint* arrays) const {
-    Log()->Func(n, std::vector(arrays, arrays + n));
+    ctxLog().Func(n, std::vector(arrays, arrays + n));
     glad->DeleteVertexArrays(n, arrays);
 }
 
 void Ctx::glBindVertexArray(GLuint vaobj) const {
-    Log()->Func(vaobj);
+    ctxLog().Func(vaobj);
     glad->BindVertexArray(vaobj);
 }
 
 void Ctx::glVertexArrayElementBuffer(GLuint vaobj, GLuint buffer) const {
-    Log()->Func(vaobj, buffer);
+    ctxLog().Func(vaobj, buffer);
     glad->VertexArrayElementBuffer(vaobj, buffer);
 }
 
@@ -683,14 +693,14 @@ void Ctx::glVertexArrayVertexBuffer(GLuint vaobj,
                                     GLuint buffer,
                                     GLintptr offset,
                                     GLsizei stride) const {
-    Log()->Func(vaobj, bindingindex, buffer, offset, stride);
+    ctxLog().Func(vaobj, bindingindex, buffer, offset, stride);
     glad->VertexArrayVertexBuffer(vaobj, bindingindex, buffer, offset, stride);
 }
 
 void Ctx::glVertexArrayAttribBinding(GLuint vaobj,
                                      GLuint attribindex,
                                      GLuint bindingindex) const {
-    Log()->Func(vaobj, attribindex, bindingindex);
+    ctxLog().Func(vaobj, attribindex, bindingindex);
     glad->VertexArrayAttribBinding(vaobj, attribindex, bindingindex);
 }
 
@@ -700,7 +710,7 @@ void Ctx::glVertexArrayAttribFormat(GLuint vaobj,
                                     GLenum type,
                                     GLboolean normalized,
                                     GLuint relativeoffset) const {
-    Log()->Func(vaobj, attribindex, size, fmt::Enum{type}, normalized, relativeoffset);
+    ctxLog().Func(vaobj, attribindex, size, fmt::Enum{type}, normalized, relativeoffset);
     glad->VertexArrayAttribFormat(vaobj,
                                   attribindex,
                                   size,
@@ -712,20 +722,20 @@ void Ctx::glVertexArrayAttribFormat(GLuint vaobj,
 void Ctx::glVertexArrayBindingDivisor(GLuint vaobj,
                                       GLuint bindingindex,
                                       GLuint divisor) const {
-    Log()->Func(vaobj, bindingindex, divisor);
+    ctxLog().Func(vaobj, bindingindex, divisor);
     glad->VertexArrayBindingDivisor(vaobj, bindingindex, divisor);
 }
 
 void Ctx::glEnableVertexArrayAttrib(GLuint vaobj, GLuint index) const {
-    Log()->Func(vaobj, index);
+    ctxLog().Func(vaobj, index);
     glad->EnableVertexArrayAttrib(vaobj, index);
 }
 
 void Ctx::glDisableVertexArrayAttrib(GLuint vaobj, GLuint index) const {
-    Log()->Func(vaobj, index);
+    ctxLog().Func(vaobj, index);
     glad->DisableVertexArrayAttrib(vaobj, index);
 }
 
-std::unique_ptr<CtxLogger> Ctx::Log(const SrcLoc& src_loc) const {
-    return std::make_unique<CtxLogger>(src_loc);
-}
+CtxLogger Ctx::ctxLog(const SrcLoc& src_loc) const { return CtxLogger{logger, src_loc}; }
+
+} // namespace gnev::gl

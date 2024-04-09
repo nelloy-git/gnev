@@ -21,18 +21,19 @@ void BufferRawAccessorSubData::resetBuffer(std::unique_ptr<Buffer>&& buffer_) {
     buffer = std::move(buffer_);
     if (buffer and buffer->isStorage()) {
         auto storage_flags = buffer->getStorageFlags();
-        if ((storage_flags & DYNAMIC_STORAGE_BIT) != EMPTY) {
-            Logger::WARNING<
-                "Buffer<{}> can not be used correctly (StorageFlags = {})">(buffer
-                                                                                ->handle(),
-                                                                            storage_flags);
+        if ((storage_flags & DYNAMIC_STORAGE_BIT) == EMPTY) {
+            Ctx::Get()
+                .log()
+                .WARNING<"Buffer<{}> can not be used correctly (StorageFlags = {})">(
+                    buffer->handle(),
+                    storage_flags);
         }
     }
 }
 
 bool BufferRawAccessorSubData::set(unsigned offset, unsigned size, const void* src) {
     if (not buffer) {
-        Logger::WARNING<"Buffer pointer is empty">();
+        Ctx::Get().log().WARNING<"Buffer pointer is empty">();
         return false;
     }
     buffer->setSubData(offset, size, src);
@@ -41,7 +42,7 @@ bool BufferRawAccessorSubData::set(unsigned offset, unsigned size, const void* s
 
 bool BufferRawAccessorSubData::get(unsigned offset, unsigned size, void* dst) {
     if (not buffer) {
-        Logger::WARNING<"Buffer pointer is empty">();
+        Ctx::Get().log().WARNING<"Buffer pointer is empty">();
         return false;
     }
     buffer->getSubData(offset, size, dst);
@@ -52,7 +53,7 @@ bool BufferRawAccessorSubData::change(unsigned offset,
                                       unsigned size,
                                       const Changer& changer) {
     if (not buffer) {
-        Logger::WARNING<"Buffer pointer is empty">();
+        Ctx::Get().log().WARNING<"Buffer pointer is empty">();
         return false;
     }
     void* data = std::malloc(size);
@@ -66,7 +67,7 @@ bool BufferRawAccessorSubData::copy(unsigned src_offset,
                                     unsigned dst_offset,
                                     unsigned size) {
     if (not buffer) {
-        Logger::WARNING<"Buffer pointer is empty">();
+        Ctx::Get().log().WARNING<"Buffer pointer is empty">();
         return false;
     }
     buffer->copyTo(*buffer, src_offset, dst_offset, size);

@@ -8,11 +8,11 @@
 #include "GLFW/glfw3native.h"
 #include "gl/Debug.hpp"
 
-OpenGLContext::OpenGLContext(unsigned int width, unsigned int height, bool visible)
+OpenGLContext::OpenGLContext(unsigned int width, unsigned int height, bool visible, quill::Logger* logger)
     : window(createWindow(width, height, visible)) {
 
     if (!gnev::gl::Ctx::IsInited()) {
-        gnev::gl::Ctx::Init(glfwGetProcAddress);
+        gnev::gl::Ctx::Init(glfwGetProcAddress, logger);
     }
     auto& ctx = gnev::gl::Ctx::Get();
 

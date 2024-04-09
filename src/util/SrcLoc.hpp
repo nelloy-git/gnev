@@ -67,7 +67,7 @@ private:
     }
 
     consteval std::size_t getArgsStart() const {
-        return std_function_name.find_last_of('(');
+        return std_function_name.find_first_of('(');
     };
 
     consteval std::string_view initFullFuncName() const {

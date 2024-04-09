@@ -160,44 +160,75 @@ struct PointLight {
     alignas(16) glm::vec3 specular = {1.0f, 1.0f, 1.0f};
 };
 
-int main(int argc, const char** argv) {
+std::shared_ptr<quill::Handler> initLoggerFileHandler(const quill::fs::path& path,
+                                                      quill::LogLevel level) {
+    auto handler = quill::file_handler(path, []() {
+        quill::FileHandlerConfig cfg;
+        cfg.set_open_mode('w');
+        return cfg;
+    }());
+    handler->set_pattern("%(ascii_time) [%(thread)] %(logger_name:<9) %(level_name:<12)"
+                         "%(message)",              // format
+                         "%H:%M:%S.%Qms",           // timestamp format
+                         quill::Timezone::GmtTime); // timestamp's timezone
+    handler->set_log_level(level);
+    return handler;
+}
 
+quill::Logger* initLogger() {
+    auto logger =
+        quill::create_logger("gnev",
+                             initLoggerFileHandler("gnev.log", quill::LogLevel::TraceL3));
+    logger->set_log_level(quill::LogLevel::TraceL3);
+    return logger;
+}
+
+int main(int argc, const char** argv) {
     // auto current_dir = std::filesystem::current_path();
+    // Log::init();
 
     bool close_window = false;
-    GlfwWindow wnd(1024, 768);
+    GlfwWindow wnd(1024, 768, initLogger());
+    quill::start();
 
     auto buffer = std::make_unique<gl::Buffer>();
-    buffer->initStorage(100 * sizeof(Mat4x4_Refl), nullptr, GL_DYNAMIC_STORAGE_BIT);
-    auto accessor = std::make_unique<gl::BufferRawAccessorSubData>();
+    buffer->initStorage(100 * sizeof(Mat4x4_Refl),
+                        nullptr,
+                        gl::BufferStorageFlags::DYNAMIC_STORAGE_BIT);
+    auto accessor = std::make_unique<gl::BufferRawAccessorSubData>(std::move(buffer));
+    auto refl_array =
+        std::make_unique<gl::BufferReflArray<Mat4x4_Refl>>(std::move(accessor));
 
-    Mat4x4Storage mat_storage{
-        std::make_unique<gl::BufferReflArray<Mat4x4_Refl>>(std::move(buffer),
-                                                           std::move(accessor))};
+    Mat4x4Storage mat_storage{std::move(refl_array)};
 
     auto index = mat_storage.makeIndexGuard();
     mat_storage[*index].set<&Mat4x4_Refl::mat>(glm::mat4{1.f});
 
     glm::mat4 mat{2.f};
     mat_storage[*index].get<&Mat4x4_Refl::mat>(&mat);
-    gnev::Logger::DEBUG<"mat_storage[{}]:\n{}\t{}\t{}\t{}\n{}\t{}\t{}\t{}\n{}\t{}\t{}\t{}"
-                        "\n{}\t{}\t{}\t{}">(*index,
-                                            mat[0][0],
-                                            mat[1][0],
-                                            mat[2][0],
-                                            mat[3][0],
-                                            mat[0][1],
-                                            mat[1][1],
-                                            mat[2][1],
-                                            mat[3][1],
-                                            mat[0][2],
-                                            mat[1][2],
-                                            mat[2][2],
-                                            mat[3][2],
-                                            mat[0][3],
-                                            mat[1][3],
-                                            mat[2][3],
-                                            mat[3][3]);
+    // static constexpr gnev::CtString fmt{
+    //     "mat_storage[{}]:\n{}\t{}\t{}\t{}\n{}\t{}\t{}\t{}\n{}\t{}\t{}\t{}"
+    //     "\n{}\t{}\t{}\t{}"};
+    // gnev::Logger::DEBUG<fmt>(*index,
+    //                          mat[0][0],
+    //                          mat[1][0],
+    //                          mat[2][0],
+    //                          mat[3][0],
+    //                          mat[0][1],
+    //                          mat[1][1],
+    //                          mat[2][1],
+    //                          mat[3][1],
+    //                          mat[0][2],
+    //                          mat[1][2],
+    //                          mat[2][2],
+    //                          mat[3][2],
+    //                          mat[0][3],
+    //                          mat[1][3],
+    //                          mat[2][3],
+    //                          mat[3][3]);
+    // static constexpr gnev::CtString fmt{
+    //     "mat_storage[{}]"};
+    gl::Ctx::Get().log().CRITICAL<"DEBUG">();
 
     // using Nested = ReflStructDeduceMeta<TestReflStruct, 0, 0>;
     // using Child = DeduceReflStructChildFieldMeta<TestReflStruct, 0>;

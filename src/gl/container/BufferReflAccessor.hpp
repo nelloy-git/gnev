@@ -23,7 +23,7 @@ public:
     bool set(const T& value) { return accessor->set(base_offset, sizeof(T), &value); }
 
     template <auto FirstFieldKey, auto... FieldKeys>
-    bool set(const ReflMeta<T, FirstFieldKey, FieldKeys...>::Type& value) {
+    bool set(const typename ReflMeta<T, FirstFieldKey, FieldKeys...>::Type& value) {
         static constexpr std::size_t Offset =
             GetReflOffset<T, FirstFieldKey, FieldKeys...>();
         return accessor->set(base_offset + Offset, sizeof(value), &value);

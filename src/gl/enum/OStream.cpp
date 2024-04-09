@@ -13,11 +13,11 @@
 
 namespace gnev {
 
-std::string_view format_as(gl::BufferMapRangeAccess value) {
+std::string_view gl::format_as(gl::BufferMapRangeAccess value) {
     return magic_enum::enum_name(value);
 }
 
-std::string_view format_as(gl::BufferStorageFlags value) {
+std::string_view gl::format_as(gl::BufferStorageFlags value) {
     return magic_enum::enum_name(value);
 }
 

@@ -36,7 +36,7 @@ public:
 
 private:
     IndexManager binds;
-    std::unordered_map<unsigned int, std::pair<unsigned int, T>> map;
+    std::unordered_map<unsigned int, std::pair<unsigned int, std::shared_ptr<T>>> map;
 };
 
 } // namespace gnev::gl

@@ -4,8 +4,8 @@
 #include "GLFW/glfw3.h"
 #include "OpenGLContext.hpp"
 
-GlfwWindow::GlfwWindow(unsigned int width, unsigned int height)
-    : OpenGLContext(width, height, true) {
+GlfwWindow::GlfwWindow(unsigned int width, unsigned int height, quill::Logger* logger)
+    : OpenGLContext(width, height, true, logger) {
     glfwSetWindowUserPointer(&getWindow(), this);
 
     glfwSetKeyCallback(&getWindow(), glfwKeyCallback);

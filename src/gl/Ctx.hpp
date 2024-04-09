@@ -5,6 +5,7 @@
 
 #include "glad/gl.h"
 #include "util/Export.hpp"
+#include "util/Logger.hpp"
 #include "util/SrcLoc.hpp"
 
 struct GladGLContext;
@@ -18,12 +19,14 @@ public:
     using ApiProc = void (*)(void);
     using LoadFunc = ApiProc (*)(const char*);
 
-    static void Init(LoadFunc load_func);
+    static void Init(LoadFunc load_func, quill::Logger* quill_logger);
     static bool IsInited();
     static Ctx& Get();
     virtual ~Ctx() = default;
 
 public:
+    const Logger& log() const;
+
     // Global
 
     void glActiveTexture(GLenum texture) const;
@@ -232,10 +235,6 @@ public:
     void glEnableVertexArrayAttrib(GLuint vaobj, GLuint index) const;
     void glDisableVertexArrayAttrib(GLuint vaobj, GLuint index) const;
 
-protected:
-    static constexpr std::string_view CALL{"Call"};
-    std::unique_ptr<CtxLogger> Log(const SrcLoc& src_loc = SrcLoc::Current()) const;
-
 private:
 #ifdef WIN32
     static std::unique_ptr<unsigned long, void (*)(unsigned long*)> tls_index;
@@ -246,6 +245,9 @@ private:
     Ctx(LoadFunc load_func);
 
     std::unique_ptr<GladGLContext> glad;
+    Logger logger;
+
+    CtxLogger ctxLog(const SrcLoc& src_loc = SrcLoc::Current()) const;
 };
 
 } // namespace gnev::gl

@@ -52,12 +52,59 @@ struct CtString {
 
     consteval auto end() const { return array.end(); }
 
-    template <std::size_t S>
-    consteval auto operator=(const CtString<S>& other) const {
-        std::array<char, Size + S - 1> res = {};
-        std::copy(array.begin(), array.end(), res.begin());
-        std::copy(other.array.begin(), other.array.end(), res.begin() + length);
-        return CtString{res};
+    template <std::size_t OtherSize>
+    consteval CtString<Size + OtherSize - 1>
+    operator+(const CtString<OtherSize>& other) const {
+        std::array<char, Size + OtherSize - 1> arr{};
+
+        std::copy(this->begin(), this->end() - 1, arr.begin());
+        std::copy(other.begin(), other.end() - 1, arr.begin() + Size - 1);
+        arr.back() = '\0';
+
+        return CtString<Size + OtherSize - 1>{arr};
+    }
+
+    template <std::size_t N>
+        requires(N == 0)
+    consteval CtString<1> repeat() const {
+        return CtString<1>("");
+    }
+
+    template <std::size_t N>
+        requires(N > 0)
+    consteval CtString<N*(Size - 1) + 1> repeat() const {
+        std::array<char, N*(Size - 1) + 1> arr{};
+
+        for (std::size_t i = 0; i < N - 1; ++i) {
+            auto offset = i * (Size - 1);
+            std::copy(this->begin(), this->end() - 1, arr.begin() + offset);
+        }
+        arr.back() = '\0';
+
+        return CtString<N*(Size - 1) + 1>{arr};
+    }
+
+    template <std::size_t N, std::size_t SepSize>
+        requires(N == 0)
+    consteval CtString<1> repeatSep(CtString<SepSize> sep) const {
+        return CtString<1>("");
+    }
+
+    template <std::size_t N, std::size_t SepSize>
+        requires(N > 0)
+    consteval CtString<N*(Size - 1) + (N - 1) * (SepSize - 1) + 1>
+    repeatSep(CtString<SepSize> sep) const {
+        std::array<char, N*(Size - 1) + (N - 1) * (SepSize - 1) + 1> arr{};
+
+        for (std::size_t i = 0; i < N - 1; ++i) {
+            auto offset = i * ((Size - 1) + (SepSize - 1));
+            std::copy(this->begin(), this->end() - 1, arr.begin() + offset);
+            std::copy(sep.begin(), sep.end() - 1, arr.begin() + offset + Size - 1);
+        }
+        std::copy(this->begin(), this->end() - 1, arr.end() - Size);
+        arr.back() = '\0';
+
+        return CtString<N*(Size - 1) + (N - 1) * (SepSize - 1) + 1>{arr};
     }
 
     template <std::size_t S>
@@ -97,7 +144,8 @@ private:
         if (term == std::end(str)) {
             throw std::logic_error("CtString supports nullterm strings only");
         }
-        return std::min<std::size_t>(std::min(Size, S), std::distance(std::begin(str), term + 1));
+        return std::min<std::size_t>(std::min(Size, S),
+                                     std::distance(std::begin(str), term + 1));
     }
 
     template <std::size_t S>
@@ -113,7 +161,8 @@ private:
         if (term == std::end(str)) {
             throw std::logic_error("CtString supports nullterm strings only");
         }
-        return std::min<std::size_t>(std::min(Size, S), std::distance(std::begin(str), term) + 1);
+        return std::min<std::size_t>(std::min(Size, S),
+                                     std::distance(std::begin(str), term) + 1);
     }
 
     template <std::size_t S>

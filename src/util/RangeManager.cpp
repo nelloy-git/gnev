@@ -31,6 +31,7 @@ std::optional<Range> RangeManager::reserveRange(unsigned size) {
 
 bool RangeManager::freeRange(Range range) {
     insertFreeRange(range);
+    return true;
 }
 
 void RangeManager::insertFreeRange(Range range){

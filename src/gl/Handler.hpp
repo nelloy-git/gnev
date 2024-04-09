@@ -22,7 +22,7 @@ public:
     inline GLuint handle() const { return *_handle; };
 
 protected:
-    std::unique_ptr<HandlerLogger> Log(const SrcLoc& src_loc = SrcLoc::Current()) const;
+    HandlerLogger Log(const SrcLoc& src_loc = SrcLoc::Current()) const;
 
 private:
     std::unique_ptr<GLuint, void (*)(GLuint*)> _handle;

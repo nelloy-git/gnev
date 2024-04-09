@@ -11,7 +11,8 @@ class EXPORT OpenGLContext {
 public:
     OpenGLContext(unsigned int width = WINDOW_SIZE,
                   unsigned int height = WINDOW_SIZE,
-                  bool visible = false);
+                  bool visible = false,
+                  quill::Logger* logger = nullptr);
     virtual ~OpenGLContext();
 
     static const gnev::gl::Ctx& getCtx();
