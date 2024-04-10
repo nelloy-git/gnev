@@ -1,96 +1,52 @@
 #pragma once
 
-#include "util/Export.hpp"
-#include "util/Logger.hpp"
-#include "util/SrcLoc.hpp"
+#include "gl/logger/CtxLogger.hpp"
 
 namespace gnev::gl {
 
-class EXPORT HandlerLogger {
-    static constexpr CtString SignatureCS{"{}<{}>::{}"};
-    template <std::size_t ArgsN>
-    static constexpr CtString ArgsCS =
-        CtString{"("} + CtStringRepeatSep<CtString{"{}"}, CtString{", "}, ArgsN>() +
-        CtString{")"};
-    template <bool HasRes>
-    static constexpr CtString ResCS = []() {
-        if constexpr (HasRes)
-            return CtString{" -> {}"};
-        else
-            return CtString{""};
-    }();
-
-    template <std::size_t ArgsN, bool HasRes>
-    static constexpr CtString Pattern = []() {
-        if constexpr (ArgsN >= 1) {
-            return SignatureCS + ArgsCS < HasRes ? ArgsN - 1 : ArgsN > +ResCS<HasRes>;
-        } else {
-            return SignatureCS + ArgsCS<0> + ResCS<false>;
-        }
-    }();
-
-    static constexpr CtString MsgFmt = SignatureCS + CtString{" => \"{}\""};
-
+class EXPORT HandlerLogger : public CtxLogger {
 public:
-    HandlerLogger(const Logger& logger, unsigned int handle, const SrcLoc& src_loc)
-        : logger{logger}
-        , handle{handle}
-        , src_loc{src_loc} {}
+    // static constexpr CtString MsgFmt = SignatureCS + CtString{" => \"{}\""};
+    template <std::size_t ArgsN, bool HasResult>
+    static constexpr CtString HandleFuncFmt =
+        CtString{"{}<{}>::"} + FuncFmt<ArgsN, HasResult>;
 
-    template <typename... Args>
-    void Func(Args&&... args) const {
-        // static constexpr std::size_t ArgsN = sizeof...(Args);
-        // static constexpr auto Fmt = Pattern<ArgsN, false>;
-        // logger.L2<Fmt>(src_loc.class_name,
-        //                handle,
-        //                src_loc.short_func_name,
-        //                std::forward<Args>(args)...);
+    HandlerLogger(CtxLogger&& logger, unsigned int handle)
+        : CtxLogger{std::move(logger)}
+        , handle{handle} {}
+
+    template <LogLevel Level, typename... Args>
+    void logFunc(Args&&... args) const {
+        static constexpr std::size_t ArgsN = sizeof...(Args);
+
+        if (src_loc.non_void_return) {
+            static constexpr CtString Fmt =
+                HandleFuncFmt<(ArgsN > 0 ? ArgsN - 1 : 0), true>;
+            logger.log<Level, Fmt>(src_loc.class_name,
+                                   handle,
+                                   src_loc.short_func_name,
+                                   std::forward<Args>(args)...);
+        } else {
+            static constexpr CtString Fmt = HandleFuncFmt<ArgsN, false>;
+            logger.log<Level, Fmt>(src_loc.class_name,
+                                   handle,
+                                   src_loc.short_func_name,
+                                   std::forward<Args>(args)...);
+        }
     }
 
-    void DEBUG(auto&& msg) const {
-        // static constexpr auto Fmt = MsgFmt;
-        // logger.DEBUG<Fmt>(src_loc.class_name,
-        //                   handle,
-        //                   src_loc.short_func_name,
-        //                   std::forward<decltype(msg)>(msg));
-    }
+    static constexpr CtString MsgFmt = CtString{"{}<{}>::{} => \"{}\""};
 
-    void INFO(auto&& msg) const {
-        // static constexpr auto Fmt = MsgFmt;
-        // logger.INFO<Fmt>(src_loc.class_name,
-        //                  handle,
-        //                  src_loc.short_func_name,
-        //                  std::forward<decltype(msg)>(msg));
-    }
-
-    void WARNING(auto&& msg) const {
-        // static constexpr auto Fmt = MsgFmt;
-        // logger.WARNING<Fmt>(src_loc.class_name,
-        //                     handle,
-        //                     src_loc.short_func_name,
-        //                     std::forward<decltype(msg)>(msg));
-    }
-
-    void ERROR(auto&& msg) const {
-        // static constexpr auto Fmt = MsgFmt;
-        // logger.ERROR<Fmt>(src_loc.class_name,
-        //                   handle,
-        //                   src_loc.short_func_name,
-        //                   std::forward<decltype(msg)>(msg));
-    }
-
-    void CRITICAL(auto&& msg) const {
-        // static constexpr auto Fmt = MsgFmt;
-        // logger.CRITICAL<Fmt>(src_loc.class_name,
-        //                      handle,
-        //                      src_loc.short_func_name,
-        //                      std::forward<decltype(msg)>(msg));
+    template <LogLevel Level>
+    void logMsg(auto&& msg) const {
+        log<Level, MsgFmt>(src_loc.class_name,
+                           handle,
+                           src_loc.short_func_name,
+                           std::forward<decltype(msg)>(msg));
     }
 
 private:
-    const Logger& logger;
     const unsigned int handle;
-    const SrcLoc& src_loc;
 };
 
 } // namespace gnev::gl

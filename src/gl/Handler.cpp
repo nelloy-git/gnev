@@ -14,8 +14,8 @@ Handler::Handler(GLuint* handle, void (*deleter)(GLuint*))
     }
 }
 
-HandlerLogger Handler::Log(const SrcLoc& src_loc) const {
-    return HandlerLogger(Ctx::Get().log(), *_handle, src_loc);
+HandlerLogger Handler::getLogger(const SrcLoc& src_loc) const {
+    return HandlerLogger{std::move(Ctx::Get().getLogger(src_loc)), *_handle};
 }
 
 } // namespace gnev::gl

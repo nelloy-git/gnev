@@ -16,44 +16,44 @@ using enum Result::Message;
 Ref<base::ImageLoaderResult> ImageLoaderStb::load(const std::filesystem::path& path,
                                                   const ImageInfo& read_info,
                                                   const ImageInfo& store_info) {
-    gl::Ctx::Get().log().DEBUG<"Start loading image {}">(path);
+    // gl::Ctx::Get().log().DEBUG<"Start loading image {}">(path);
 
     std::promise<bool> done;
     auto result =
         MakeSharable<ImageLoaderStbResult>(done.get_future(), Image{read_info, 1});
 
-    if (not validateReadInfo(read_info, result)) {
-        gl::Ctx::Get().log().DEBUG<"Failed loading image {}">(path);
-        done.set_value(false);
-        return result;
-    }
+    // if (not validateReadInfo(read_info, result)) {
+    //     gl::Ctx::Get().log().DEBUG<"Failed loading image {}">(path);
+    //     done.set_value(false);
+    //     return result;
+    // }
 
-    if (not validateStoreInfo(store_info, result)) {
-        gl::Ctx::Get().log().DEBUG<"Failed loading image {}">(path);
-        done.set_value(false);
-        return result;
-    }
+    // if (not validateStoreInfo(store_info, result)) {
+    //     gl::Ctx::Get().log().DEBUG<"Failed loading image {}">(path);
+    //     done.set_value(false);
+    //     return result;
+    // }
 
-    if (read_info.format != store_info.format or read_info.type != store_info.type) {
-        gl::Ctx::Get().log().DEBUG<"Failed loading image {}">(path);
-        done.set_value(false);
-        return result;
-    }
+    // if (read_info.format != store_info.format or read_info.type != store_info.type) {
+    //     gl::Ctx::Get().log().DEBUG<"Failed loading image {}">(path);
+    //     done.set_value(false);
+    //     return result;
+    // }
 
-    auto img_opt = stbLoad(path, read_info, result);
-    if (not img_opt.has_value()) {
-        gl::Ctx::Get().log().DEBUG<"Failed loading image {}">(path);
-        done.set_value(false);
-        return result;
-    }
+    // auto img_opt = stbLoad(path, read_info, result);
+    // if (not img_opt.has_value()) {
+    //     gl::Ctx::Get().log().DEBUG<"Failed loading image {}">(path);
+    //     done.set_value(false);
+    //     return result;
+    // }
 
-    Image img = stbResize(img_opt.value(), store_info, result);
+    // Image img = stbResize(img_opt.value(), store_info, result);
 
-    result->image = img;
-    result->messages.push_back(Done);
-    done.set_value(true);
+    // result->image = img;
+    // result->messages.push_back(Done);
+    // done.set_value(true);
 
-    gl::Ctx::Get().log().DEBUG<"Succeed loading image {}">(path);
+    // gl::Ctx::Get().log().DEBUG<"Succeed loading image {}">(path);
     return result;
 }
 
@@ -145,13 +145,13 @@ std::optional<Image> ImageLoaderStb::stbLoad(const std::filesystem::path& path,
         stbi_load(path.string().c_str(), &w, &h, &c, getComponents(read_info)),
         &stbi_image_free};
 
-    gl::Ctx::Get().log().DEBUG<"original image {}x{}x{} [{}, {}, {}, {}...]">(w,
-                                                                        h,
-                                                                        c,
-                                                                        ptr[0],
-                                                                        ptr[1],
-                                                                        ptr[2],
-                                                                        ptr[3]);
+    // gl::Ctx::Get().log().DEBUG<"original image {}x{}x{} [{}, {}, {}, {}...]">(w,
+    //                                                                     h,
+    //                                                                     c,
+    //                                                                     ptr[0],
+    //                                                                     ptr[1],
+    //                                                                     ptr[2],
+    //                                                                     ptr[3]);
 
     auto received_info = read_info;
     if (received_info.width == 0) {
@@ -182,10 +182,10 @@ Image ImageLoaderStb::stbResize(const Image& image,
         return image;
     }
 
-    gl::Ctx::Get().log().DEBUG<"resize {}x{} -> {}x{}">(image.info.width,
-                                                  image.info.height,
-                                                  store_info.width,
-                                                  store_info.height);
+    // gl::Ctx::Get().log().DEBUG<"resize {}x{} -> {}x{}">(image.info.width,
+    //                                               image.info.height,
+    //                                               store_info.width,
+    //                                               store_info.height);
     Image resized{store_info, getBufferSize(store_info)};
     stbir_resize(image.data.get<GLubyte>(),
                  image.info.width,

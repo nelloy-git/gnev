@@ -4,6 +4,8 @@
 #include "gl/fmt/Enum.hpp"
 #include "gl/logger/HandlerLogger.hpp"
 
+using enum gnev::LogLevel;
+
 namespace gnev::gl {
 
 Ref<Sampler> Sampler::MakeNearestRepeat() {
@@ -17,39 +19,39 @@ Ref<Sampler> Sampler::MakeNearestRepeat() {
 
 Sampler::Sampler()
     : Handler(createHandle(), &deleteHandle) {
-    Log().Func();
+    getLogger().logFunc<L2>();
 }
 
-Sampler::~Sampler() { Log().Func(); }
+Sampler::~Sampler() { getLogger().logFunc<L2>(); }
 
 void Sampler::bind(GLuint unit) {
-    Log().Func(unit);
+    getLogger().logFunc<L2>(unit);
     Ctx::Get().glBindSampler(unit, handle());
 }
 
 void Sampler::setWrapS(TextureWrapS wrap) {
-    Log().Func(wrap);
+    getLogger().logFunc<L2>(wrap);
     Ctx::Get().glSamplerParameteri(handle(),
                                    GL_TEXTURE_WRAP_S,
                                    static_cast<GLenum>(wrap));
 }
 
 void Sampler::setWrapT(TextureWrapT wrap) {
-    Log().Func(wrap);
+    getLogger().logFunc<L2>(wrap);
     Ctx::Get().glSamplerParameteri(handle(),
                                    GL_TEXTURE_WRAP_T,
                                    static_cast<GLenum>(wrap));
 }
 
 void Sampler::setMinFilter(TextureMinFilter filter) {
-    Log().Func(filter);
+    getLogger().logFunc<L2>(filter);
     Ctx::Get().glSamplerParameteri(handle(),
                                    GL_TEXTURE_MIN_FILTER,
                                    static_cast<GLenum>(filter));
 }
 
 void Sampler::setMagFilter(TextureMagFilter filter) {
-    Log().Func(filter);
+    getLogger().logFunc<L2>(filter);
     Ctx::Get().glSamplerParameteri(handle(),
                                    GL_TEXTURE_MAG_FILTER,
                                    static_cast<GLenum>(filter));

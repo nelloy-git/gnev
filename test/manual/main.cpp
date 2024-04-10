@@ -228,7 +228,7 @@ int main(int argc, const char** argv) {
     //                          mat[3][3]);
     // static constexpr gnev::CtString fmt{
     //     "mat_storage[{}]"};
-    gl::Ctx::Get().log().CRITICAL<"DEBUG">();
+    gl::Ctx::Get().getLogger().log<LogLevel::CRITICAL, "DEBUG">();
 
     // using Nested = ReflStructDeduceMeta<TestReflStruct, 0, 0>;
     // using Child = DeduceReflStructChildFieldMeta<TestReflStruct, 0>;

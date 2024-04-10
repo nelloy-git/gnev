@@ -12,8 +12,7 @@ class HandlerLogger;
 
 class EXPORT Handler {
 public:
-    Handler(GLuint* handle,
-            void (*deleter)(GLuint*));
+    Handler(GLuint* handle, void (*deleter)(GLuint*));
     Handler(const Handler&) = delete;
     Handler(Handler&&) = default;
 
@@ -22,7 +21,7 @@ public:
     inline GLuint handle() const { return *_handle; };
 
 protected:
-    HandlerLogger Log(const SrcLoc& src_loc = SrcLoc::Current()) const;
+    HandlerLogger getLogger(const SrcLoc& src_loc = SrcLoc::Current()) const;
 
 private:
     std::unique_ptr<GLuint, void (*)(GLuint*)> _handle;

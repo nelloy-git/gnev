@@ -9,83 +9,60 @@
 
 namespace gnev {
 
+enum class LogLevel {
+    L3,
+    L2,
+    L1,
+    DEBUG,
+    INFO,
+    WARNING,
+    ERROR,
+    CRITICAL
+};
+
 class Logger final {
 public:
-    enum class Level {
-        L3,
-        L2,
-        L1,
-        DEBUG,
-        INFO,
-        WARNING,
-        ERROR,
-        CRITICAL
-    };
-
     Logger();
     ~Logger() = default;
 
     void setQuillLogger(quill::Logger* quill_logger);
     quill::Logger* getQuillLogger();
 
-    template <CtString Fmt, typename... Args>
-    inline void L3(Args&&... args) const {
-        QUILL_LOG_TRACE_L3(quill_logger.load(), Fmt.array.data(), std::forward<Args>(args)...);
-    }
-
-    template <CtString Fmt, typename... Args>
-    inline void L2(Args&&... args) const {
-        QUILL_LOG_TRACE_L2(quill_logger.load(), Fmt.array.data(), std::forward<Args>(args)...);
-    }
-
-    template <CtString Fmt, typename... Args>
-    inline void L1(Args&&... args) const {
-        QUILL_LOG_TRACE_L1(quill_logger.load(), Fmt.array.data(), std::forward<Args>(args)...);
-    }
-
-    template <CtString Fmt, typename... Args>
-    inline void DEBUG(Args&&... args) const {
-        QUILL_LOG_DEBUG(quill_logger.load(), Fmt.array.data(), std::forward<Args>(args)...);
-    }
-
-    template <CtString Fmt, typename... Args>
-    inline void INFO(Args&&... args) const {
-        QUILL_LOG_INFO(quill_logger.load(), Fmt.array.data(), std::forward<Args>(args)...);
-    }
-
-    template <CtString Fmt, typename... Args>
-    inline void WARNING(Args&&... args) const {
-        QUILL_LOG_WARNING(quill_logger.load(), Fmt.array.data(), std::forward<Args>(args)...);
-    }
-
-    template <CtString Fmt, typename... Args>
-    inline void ERROR(Args&&... args) const {
-        QUILL_LOG_ERROR(quill_logger.load(), Fmt.array.data(), std::forward<Args>(args)...);
-    }
-
-    template <CtString Fmt, typename... Args>
-    inline void CRITICAL(Args&&... args) const {
-        QUILL_LOG_CRITICAL(quill_logger.load(), Fmt.array.data(), std::forward<Args>(args)...);
-    }
-
-    template<Level lvl, CtString Fmt, typename... Args>
+    template <LogLevel Level, CtString Fmt, typename... Args>
     inline void log(Args&&... args) const {
-        if constexpr (lvl == L3){
-            L3<Fmt>(std::forward<Args>(args)...);
-        } else if constexpr (lvl == L2){
-            L2<Fmt>(std::forward<Args>(args)...);
-        } else if constexpr (lvl == L1){
-            L1<Fmt>(std::forward<Args>(args)...);
-        } else if constexpr (lvl == DEBUG){
-            DEBUG<Fmt>(std::forward<Args>(args)...);
-        } else if constexpr (lvl == INFO){
-            INFO<Fmt>(std::forward<Args>(args)...);
-        } else if constexpr (lvl == WARNING){
-            WARNING<Fmt>(std::forward<Args>(args)...);
-        } else if constexpr (lvl == ERROR){
-            ERROR<Fmt>(std::forward<Args>(args)...);
-        } else if constexpr (lvl == CRITICAL){
-            CRITICAL<Fmt>(std::forward<Args>(args)...);
+        using enum LogLevel;
+        if constexpr (Level == L3) {
+            QUILL_LOG_TRACE_L3(quill_logger.load(),
+                               Fmt.array.data(),
+                               std::forward<Args>(args)...);
+        } else if constexpr (Level == L2) {
+            QUILL_LOG_TRACE_L2(quill_logger.load(),
+                               Fmt.array.data(),
+                               std::forward<Args>(args)...);
+        } else if constexpr (Level == L1) {
+            QUILL_LOG_TRACE_L1(quill_logger.load(),
+                               Fmt.array.data(),
+                               std::forward<Args>(args)...);
+        } else if constexpr (Level == DEBUG) {
+            QUILL_LOG_DEBUG(quill_logger.load(),
+                            Fmt.array.data(),
+                            std::forward<Args>(args)...);
+        } else if constexpr (Level == INFO) {
+            QUILL_LOG_INFO(quill_logger.load(),
+                           Fmt.array.data(),
+                           std::forward<Args>(args)...);
+        } else if constexpr (Level == WARNING) {
+            QUILL_LOG_WARNING(quill_logger.load(),
+                              Fmt.array.data(),
+                              std::forward<Args>(args)...);
+        } else if constexpr (Level == ERROR) {
+            QUILL_LOG_ERROR(quill_logger.load(),
+                            Fmt.array.data(),
+                            std::forward<Args>(args)...);
+        } else if constexpr (Level == CRITICAL) {
+            QUILL_LOG_CRITICAL(quill_logger.load(),
+                               Fmt.array.data(),
+                               std::forward<Args>(args)...);
         }
     }
 

@@ -3,6 +3,7 @@
 #include <memory>
 #include <stdexcept>
 
+#include "gl/logger/CtxLogger.hpp"
 #include "glad/gl.h"
 #include "util/Export.hpp"
 #include "util/Logger.hpp"
@@ -25,7 +26,7 @@ public:
     virtual ~Ctx() = default;
 
 public:
-    const Logger& log() const;
+    CtxLogger getLogger(const SrcLoc& src_loc = SrcLoc::Current()) const;
 
     // Global
 
@@ -247,7 +248,7 @@ private:
     std::unique_ptr<GladGLContext> glad;
     Logger logger;
 
-    CtxLogger ctxLog(const SrcLoc& src_loc = SrcLoc::Current()) const;
+    // CtxLogger getLogger(const SrcLoc& src_loc = SrcLoc::Current()) const;
 };
 
 } // namespace gnev::gl
