@@ -11,27 +11,38 @@ namespace gnev {
 class EXPORT RangeManager {
 public:
     struct Range {
-        unsigned begin;
-        unsigned size;
+        const unsigned begin;
+        const unsigned size;
     };
 
     // [first, first + capacity)
     RangeManager(unsigned capacity);
     virtual ~RangeManager() = default;
 
-    static std::shared_ptr<unsigned>
-    makeRangeGuard(const std::shared_ptr<RangeManager>& index_manager);
+    static std::shared_ptr<Range>
+    makeRangeGuard(unsigned size, const std::shared_ptr<RangeManager>& index_manager);
 
     // returns pos of first element in range
     std::optional<Range> reserveRange(unsigned size);
     bool freeRange(Range range);
-    unsigned int countFree() const;
-    unsigned int countUsed() const;
-    unsigned int getCapacity() const;
-    unsigned int getMaxUsed() const;
+    
+    unsigned countFree() const;
+    unsigned countUsed() const;
+    unsigned getCapacity() const;
+    unsigned getMaxUsed() const;
 
 private:
-    std::deque<Range> free_ranges;
+    struct InternalRange {
+        InternalRange(Range r)
+            : begin{r.begin}
+            , size{r.size} {}
+
+        unsigned begin;
+        unsigned size;
+    };
+
+    const unsigned capacity;
+    std::deque<InternalRange> free_ranges;
 
     void insertFreeRange(Range range);
 };

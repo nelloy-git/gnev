@@ -17,8 +17,6 @@ public:
                        unsigned base_offset)
         : accessor{accessor}
         , base_offset{base_offset} {}
-    BufferReflAccessor(const BufferReflAccessor&) = delete;
-    BufferReflAccessor(BufferReflAccessor&&) = delete;
 
     bool set(const T& value) { return accessor->set(base_offset, sizeof(T), &value); }
 

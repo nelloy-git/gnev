@@ -81,7 +81,7 @@ bool ImageLoaderStb::validateReadInfo(const ImageInfo& read_info,
         is_valid = false;
     }
 
-    if (read_info.type != TextureType::UNSIGNED_BYTE) {
+    if (read_info.type != gl::TextureType::UNSIGNED_BYTE) {
         result.messages.push_back(UnsupportedReadType);
         is_valid = false;
     }
@@ -108,7 +108,7 @@ bool ImageLoaderStb::validateStoreInfo(const ImageInfo& store_info,
         is_valid = false;
     }
 
-    if (store_info.type != TextureType::UNSIGNED_BYTE) {
+    if (store_info.type != gl::TextureType::UNSIGNED_BYTE) {
         result.messages.push_back(UnsupportedStoreType);
         is_valid = false;
     }
@@ -118,13 +118,13 @@ bool ImageLoaderStb::validateStoreInfo(const ImageInfo& store_info,
 
 unsigned int ImageLoaderStb::getComponents(const ImageInfo& info) const {
     switch (info.format) {
-    case TextureFormat::RED:
+    case gl::TextureFormat::RED:
         return 1;
-    case TextureFormat::RG:
+    case gl::TextureFormat::RG:
         return 2;
-    case TextureFormat::RGB:
+    case gl::TextureFormat::RGB:
         return 3;
-    case TextureFormat::RGBA:
+    case gl::TextureFormat::RGBA:
         return 4;
     default:
         return 0;

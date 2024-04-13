@@ -2,7 +2,7 @@
 
 #include "gl/Ctx.hpp"
 
-namespace gnev {
+namespace gnev::gl {
 
 enum class TextureInternalFormat : GLenum {
     R8 = GL_R8,

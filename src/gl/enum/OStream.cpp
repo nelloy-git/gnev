@@ -1,3 +1,4 @@
+#include "gl/enum/AttributeType.hpp"
 #include "gl/enum/BufferMapRangeAccess.hpp"
 #include "gl/enum/BufferStorageFlags.hpp"
 #include "gl/enum/ShaderType.hpp"
@@ -11,13 +12,15 @@
 #include "gl/enum/TextureWrapT.hpp"
 #include "magic_enum/magic_enum.hpp"
 
-namespace gnev {
+namespace gnev::gl {
 
-std::string_view gl::format_as(gl::BufferMapRangeAccess value) {
+std::string_view format_as(AttributeType value) { return magic_enum::enum_name(value); }
+
+std::string_view format_as(BufferMapRangeAccess value) {
     return magic_enum::enum_name(value);
 }
 
-std::string_view gl::format_as(gl::BufferStorageFlags value) {
+std::string_view format_as(BufferStorageFlags value) {
     return magic_enum::enum_name(value);
 }
 
@@ -45,4 +48,4 @@ std::string_view format_as(TextureWrapS value) { return magic_enum::enum_name(va
 
 std::string_view format_as(TextureWrapT value) { return magic_enum::enum_name(value); }
 
-} // namespace gnev
+} // namespace gnev::gl

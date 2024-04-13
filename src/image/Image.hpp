@@ -14,8 +14,8 @@ struct EXPORT ImageInfo {
     GLuint y = 0;
     GLuint width = 0;
     GLuint height = 0;
-    TextureFormat format;
-    TextureType type;
+    gl::TextureFormat format;
+    gl::TextureType type;
 
     GLuint calcTextureBufferSize() const;
     GLuint getBytesPerPixel() const;
@@ -32,8 +32,8 @@ struct EXPORT ImageInfo3d {
     GLuint width = 0;
     GLuint height = 0;
     GLuint depth = 0;
-    TextureFormat format;
-    TextureType type;
+    gl::TextureFormat format;
+    gl::TextureType type;
 
     GLuint calcTextureBufferSize() const;
     GLuint getBytesPerPixel() const;

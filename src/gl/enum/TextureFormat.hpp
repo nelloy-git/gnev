@@ -2,7 +2,7 @@
 
 #include "gl/Ctx.hpp"
 
-namespace gnev {
+namespace gnev::gl {
 
 enum class TextureFormat : GLenum {
     RED = GL_RED,

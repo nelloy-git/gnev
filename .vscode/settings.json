@@ -103,5 +103,5 @@
         "MULTISAMPLE",
         "Subbuffer"
     ],
-    "cmake.configureOnOpen": false
+    "cmake.configureOnOpen": false,
 }

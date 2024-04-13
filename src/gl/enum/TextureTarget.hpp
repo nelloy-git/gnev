@@ -2,7 +2,7 @@
 
 #include "gl/Ctx.hpp"
 
-namespace gnev {
+namespace gnev::gl {
 
 enum class TextureTarget : GLenum {
     TEXTURE_1D = GL_TEXTURE_1D,

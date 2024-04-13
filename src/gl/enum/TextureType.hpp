@@ -2,7 +2,7 @@
 
 #include "gl/Ctx.hpp"
 
-namespace gnev {
+namespace gnev::gl {
 
 enum class TextureType : GLenum {
     UNSIGNED_BYTE = GL_UNSIGNED_BYTE,

@@ -15,7 +15,7 @@ const std::string& ProgramBuilder::reason() const { return _reason; }
 const std::string& ProgramBuilder::help() const { return _help; }
 
 Ptr<gl::Program>
-ProgramBuilder::build(const std::unordered_map<ShaderType, std::string>& sources) {
+ProgramBuilder::build(const std::unordered_map<gl::ShaderType, std::string>& sources) {
     _reason = "";
     _help = "";
 

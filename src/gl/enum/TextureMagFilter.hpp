@@ -2,7 +2,7 @@
 
 #include "gl/Ctx.hpp"
 
-namespace gnev {
+namespace gnev::gl {
 
 enum class TextureMagFilter : GLenum {
     NEAREST = GL_NEAREST,

@@ -4,11 +4,11 @@ namespace gnev {
 
 namespace details {
 
-GLuint getComponents(TextureFormat format) {
+GLuint getComponents(gl::TextureFormat format) {
 
     GLuint bytes_per_pixel = 0;
     switch (format) {
-        using enum TextureFormat;
+        using enum gl::TextureFormat;
     case RED:
     case DEPTH_COMPONENT:
     case STENCIL_INDEX:
@@ -26,9 +26,9 @@ GLuint getComponents(TextureFormat format) {
     }
 }
 
-GLuint getBytesPerPixel(TextureType type, TextureFormat format) {
+GLuint getBytesPerPixel(gl::TextureType type, gl::TextureFormat format) {
     switch (type) {
-        using enum TextureType;
+        using enum gl::TextureType;
     case UNSIGNED_BYTE_3_3_2:
     case UNSIGNED_BYTE_2_3_3_REV:
         return sizeof(GLubyte);

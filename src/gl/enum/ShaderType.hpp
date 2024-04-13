@@ -2,7 +2,7 @@
 
 #include "gl/Ctx.hpp"
 
-namespace gnev {
+namespace gnev::gl {
 
 enum class ShaderType : GLenum {
     COMPUTE_SHADER = GL_COMPUTE_SHADER,

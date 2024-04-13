@@ -30,8 +30,8 @@
                 "GLAD_GL_IMPLEMENTATION",
                 "WIN32"
             ],
-            // "compilerPath": "D:\\VisualStudio\\VC\\Tools\\MSVC\\14.29.30037\\bin\\Hostx64\\x64\\cl.exe",
-            "compilerPath": "/usr/bin/clang",
+            "compilerPath": "D:\\VisualStudio\\VC\\Tools\\MSVC\\14.29.30037\\bin\\Hostx64\\x64\\cl.exe",
+            // "compilerPath": "/usr/bin/clang",
             "cppStandard": "c++23"
         }
     ],
