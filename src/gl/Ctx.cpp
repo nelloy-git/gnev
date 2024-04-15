@@ -139,7 +139,7 @@ void Ctx::glEnable(GLenum pname) const {
 }
 
 void Ctx::glDebugMessageCallback(GLDEBUGPROC callback, const void* userParam) const {
-    getLogger().logFunc<L3>(static_cast<void*>(callback), userParam);
+    getLogger().logFunc<L3>(reinterpret_cast<void*>(callback), userParam);
     glad->DebugMessageCallback(callback, userParam);
 }
 

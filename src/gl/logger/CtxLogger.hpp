@@ -1,5 +1,6 @@
 #pragma once
 
+#include "util/CtString.hpp"
 #include "util/Export.hpp"
 #include "util/Logger.hpp"
 #include "util/SrcLoc.hpp"
@@ -9,13 +10,11 @@ namespace gnev::gl {
 class EXPORT CtxLogger {
 public:
     template <bool HasResult>
-    static constexpr CtString FuncResFmt = CtString{" -> {}"}.repeat < HasResult ? 1
-                                                                                 : 0 > ();
+    static constexpr CtString FuncResFmt = " -> {}"_cts.repeat < HasResult ? 1 : 0 > ();
 
     template <std::size_t ArgsN, bool HasResult>
-    static constexpr CtString FuncFmt{CtString{"{}("} +
-                                      CtString{"{}"}.repeatSep<ArgsN>(CtString{", "}) +
-                                      CtString{")"} + FuncResFmt<HasResult>};
+    static constexpr CtString FuncFmt =
+        "{}("_cts + "{}"_cts.repeatSep<ArgsN>(", "_cts) + ")"_cts + FuncResFmt<HasResult>;
 
     CtxLogger(const Logger& logger, const SrcLoc& src_loc)
         : logger{logger}
@@ -40,14 +39,22 @@ public:
     }
 
     template <std::size_t ArgsN>
-    static constexpr CtString PtrFmt{CtString{"{} -> "} +
-                                     CtString{"{}"}.repeatSep<ArgsN>(CtString{", "})};
+    static constexpr CtString PtrFmt = "{} -> "_cts + "{}"_cts.repeatSep<ArgsN>(", "_cts);
 
     template <LogLevel Level, typename... Args>
     void logPtr(const void* ptr, Args&&... args) const {
         static constexpr std::size_t ArgsN = sizeof...(Args);
         static constexpr auto Fmt = PtrFmt<ArgsN>;
         logger.log<Level, Fmt>(ptr, std::forward<Args>(args)...);
+    }
+
+    static constexpr CtString MsgFmt = "{}::{} => ";
+
+    template <LogLevel Level, CtString Fmt = "\"{}\"", typename... Args>
+    void logMsg(Args&&... args) const {
+        log<Level, MsgFmt + Fmt>(src_loc.class_name,
+                                 src_loc.short_func_name,
+                                 std::forward<Args>(args)...);
     }
 
 protected:

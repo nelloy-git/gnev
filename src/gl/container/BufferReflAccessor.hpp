@@ -1,8 +1,11 @@
 #pragma once
 
+#include <cstddef>
 #include <memory>
+#include <type_traits>
 
 #include "gl/container/IBufferRawAccessor.hpp"
+#include "util/Logger.hpp"
 #include "util/Reflection.hpp"
 
 namespace gnev::gl {
@@ -13,84 +16,110 @@ static constexpr bool HasDefaultAlignmentV =
 
 template <typename T>
 concept IsReflectible =
-    pfr::is_implicitly_reflectable_v<T, void> and HasDefaultAlignmentV<T>;
+    pfr::is_implicitly_reflectable_v<T, void> and std::is_trivially_copyable_v<T> and HasDefaultAlignmentV<T>;
 
 template <IsReflectible T>
 class BufferReflAccessor {
 public:
     using Meta = refl::Meta<T>;
+    template <auto... Keys>
+    using SubType = typename Meta::template DeduceMember<Keys...>::type;
+    template <auto... Keys>
+    static constexpr std::size_t SubTypeOffset = Meta::template Offset<Keys...>();
 
     template <typename V>
     using Changer = std::function<void(V&)>;
 
     BufferReflAccessor(const std::shared_ptr<IBufferRawAccessor>& accessor,
-                       unsigned base_offset)
+                       std::size_t base_offset)
         : accessor{accessor}
         , base_offset{base_offset} {}
 
-    // bool set(const Struct& value) {
-    //     return accessor->set(base_offset, sizeof(Struct), &value);
-    // }
+    template<auto... Keys>
+        requires(sizeof...(Keys) > 0)
+    auto sub(){
+        return BufferReflAccessor<SubType<Keys...>>{accessor, base_offset + SubTypeOffset<Keys...>};
+    }
 
-    // template <auto Key, auto... Next>
-    // bool set(const refl::DeduceSubMeta<Meta, Key, Next...>& value) {
-    //     // static constexpr std::size_t Offset =
-    //     //     GetReflOffset<T, FirstFieldKey, FieldKeys...>();
-    //     return accessor->set(base_offset + Meta::template Offset<Key, Next...>(),
-    //     sizeof(value), &value);
-    // }
+    void set(const T& value) {
+        bool success = accessor->set(base_offset, sizeof(T), &value);
+        if (not success) {
+            Ctx::Get().getLogger().logMsg<LogLevel::ERROR, "Failed">();
+        }
+    }
+
+    template <auto... Keys>
+        requires(sizeof...(Keys) > 0)
+    void set(const SubType<Keys...>& value) {
+        bool success = accessor->set(base_offset + SubTypeOffset<Keys...>,
+                                     sizeof(SubType<Keys...>),
+                                     &value);
+        if (not success) {
+            Ctx::Get().getLogger().logMsg<LogLevel::ERROR, "Failed">();
+        }
+    }
 
     T get() const {
         T dst;
-        accessor->get(base_offset, sizeof(T), &dst);
+        bool success = accessor->get(base_offset, sizeof(T), &dst);
+        if (not success) {
+            Ctx::Get().getLogger().log<LogLevel::ERROR, "Failed">();
+        }
         return dst;
     }
 
     template <auto... Keys>
-    Meta::template DeduceMember<Keys...>::type get() const {
-        using R = typename Meta::template DeduceMember<Keys...>::type;
-        R dst;
-        accessor->get(base_offset, sizeof(R), &dst);
+        requires(sizeof...(Keys) > 0)
+    auto get() const {
+        SubType<Keys...> dst;
+        bool success = accessor->get(base_offset + SubTypeOffset<Keys...>,
+                                     sizeof(SubType<Keys...>),
+                                     &dst);
+        if (not success) {
+            Ctx::Get().getLogger().log<LogLevel::ERROR, "Failed">();
+        }
         return dst;
     }
 
-    // template <auto FirstFieldKey, auto... FieldKeys>
-    // bool get(ReflMeta<T, FirstFieldKey, FieldKeys...>::Type* dst) {
-    //     static constexpr std::size_t Offset =
-    //         GetReflOffset<T, FirstFieldKey, FieldKeys...>();
-    //     return accessor->get(base_offset + Offset, sizeof(*dst), dst);
-    // }
+    void change(const Changer<T>& changer) const {
+        bool success = accessor->change(base_offset, sizeof(T), changer);
+        if (not success) {
+            Ctx::Get().getLogger().logMsg<LogLevel::ERROR, "Failed">();
+        }
+    }
 
-    // bool change(const Changer<T>& changer) const {
-    //     return accessor->change(base_offset, sizeof(T), changer);
-    // }
+    template <auto... Keys>
+        requires(sizeof...(Keys) > 0)
+    void change(const Changer<SubType<Keys...>>& changer) {
+        bool success = accessor->change(base_offset + SubTypeOffset<Keys...>,
+                                        sizeof(SubType<Keys...>),
+                                        changer);
+        if (not success) {
+            Ctx::Get().getLogger().logMsg<LogLevel::ERROR, "Failed">();
+        }
+    }
 
-    // template <auto FirstFieldKey, auto... FieldKeys>
-    // bool change(const Changer<typename ReflMeta<T, FirstFieldKey, FieldKeys...>::Type>&
-    //                 changer) {
-    //     static constexpr std::size_t Offset =
-    //         GetReflOffset<T, FirstFieldKey, FieldKeys...>();
-    //     static constexpr std::size_t Size =
-    //         ReflMeta<T, FirstFieldKey, FieldKeys...>::Size;
-    //     return accessor->change(base_offset + Offset, Size, changer);
-    // }
+    void copy(const BufferReflAccessor<T>& src) {
+        bool success = accessor->copy(src.base_offset, base_offset, sizeof(T));
+        if (not success) {
+            Ctx::Get().getLogger().logMsg<LogLevel::ERROR, "Failed">();
+        }
+    }
 
-    // bool copy(const BufferReflAccessor<T>& src) {
-    //     return accessor->copy(src.base_offset, base_offset, sizeof(T));
-    // }
-
-    // template <auto FirstFieldKey, auto... FieldKeys>
-    // bool copy(const BufferReflAccessor<T>& src) {
-    //     static constexpr std::size_t Offset =
-    //         GetReflOffset<T, FirstFieldKey, FieldKeys...>();
-    //     static constexpr std::size_t Size =
-    //         ReflMeta<T, FirstFieldKey, FieldKeys...>::Size;
-    //     return accessor->copy(src.base_offset + Offset, base_offset + Offset, Size);
-    // }
+    template <auto... Keys>
+        requires(sizeof...(Keys) > 0)
+    void copy(const BufferReflAccessor<T>& src) {
+        bool success = accessor->copy(src.base_offset + SubTypeOffset<Keys...>,
+                                      base_offset + SubTypeOffset<Keys...>,
+                                      sizeof(SubType<Keys...>));
+        if (not success) {
+            Ctx::Get().getLogger().logMsg<LogLevel::ERROR, "Failed">();
+        }
+    }
 
 private:
     std::shared_ptr<IBufferRawAccessor> accessor;
-    const unsigned base_offset;
+    const std::size_t base_offset;
 };
 
 } // namespace gnev::gl

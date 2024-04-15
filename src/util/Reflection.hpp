@@ -1,6 +1,8 @@
 #pragma once
 
-#include "pfr.hpp"
+#include "pfr/core.hpp"
+#include "pfr/core_name.hpp"
+#include "pfr/traits.hpp"
 #include "util/CtString.hpp"
 
 namespace gnev::refl {
@@ -35,7 +37,7 @@ struct Meta {
                     return i;
                 }
             }
-            throw std::out_of_range("");
+            throw std::out_of_range("Key not found");
         }
 
         static constexpr std::size_t value = getIndex();
@@ -67,10 +69,8 @@ struct Meta {
     template <auto Key, auto... Next>
         requires(sizeof...(Next) > 0)
     struct DeduceMember<Key, Next...> {
-        static constexpr std::size_t I = Index::template Make<Key>().value;
-        static_assert(details::IsReflectibleV<pfr::tuple_element_t<I, T>>);
         using type =
-            Meta<pfr::tuple_element_t<I, T>>::template DeduceMember<Next...>::type;
+            Meta<typename DeduceMember<Key>::type>::template DeduceMember<Next...>::type;
     };
 
     template <std::size_t I>
@@ -95,16 +95,8 @@ struct Meta {
     template <auto Key, auto... Next>
         requires(sizeof...(Next) > 0)
     static consteval std::size_t Offset(std::size_t base = 0) {
-        using Deduced = DeduceMember<Key>;
-        using NextMeta = Meta<Deduced::type>;
-        constexpr std::size_t N = Deduced::I;
-
-        auto get_local = []<std::size_t... I>(std::index_sequence<I...>) {
-            return (sizeof(pfr::tuple_element_t<I, T>) + ... + 0);
-        };
-        std::size_t local = get_local(std::make_index_sequence<N>{});
-
-        return NextMeta::template Offset<Next...>(base + local);
+        using NextMeta = Meta<typename DeduceMember<Key>::type>;
+        return NextMeta::template Offset<Next...>(base + Offset<Key>());
     }
 };
 

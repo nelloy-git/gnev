@@ -1,5 +1,6 @@
 #include "Mat4x4Storage.hpp"
 #include "gl/container/BufferRawAccessorSubData.hpp"
+#include "gl/container/BufferReflAccessor.hpp"
 #include "gl/container/BufferReflArray.hpp"
 #include "util/Logger.hpp"
 #ifdef WIN32
@@ -15,6 +16,7 @@
 
 //
 
+#include "glm/mat4x4.hpp"
 #define GLM_ENABLE_EXPERIMENTAL
 #include "glm/gtx/rotate_vector.hpp"
 #include "glm/gtx/string_cast.hpp"
@@ -42,7 +44,6 @@
 
 #include "Mat4x4Storage.hpp"
 #include "gl/container/BufferReflList.hpp"
-#include "pfr.hpp"
 #include "util/Reflection.hpp"
 
 using namespace gnev;
@@ -208,74 +209,23 @@ int main(int argc, const char** argv) {
     GlfwWindow wnd(1024, 768, initLogger());
     quill::start();
 
-    struct A {
-        int a;
-        long long b;
-        int c;
-    };
-
-    struct B {
-        A a;
-        long b;
-    };
-
-    static constexpr auto Names = refl::Meta<A>::Names;
-
-    using Meta = refl::Meta<B>;
-
-    using S = std::make_index_sequence<0>();
-
-    static constexpr std::size_t index = Meta::KeyIndex<"a">::value;
-    static_assert(index == 0);
-    CmpTypes<Meta::MemberS<"a">, A>::value;
-    CmpTypes<Meta::MemberS<"b">, long>::value;
-
-    EqAssert<Meta::template Offset<"a"_cts, "a"_cts>(), 0>::value;
-    EqAssert<Meta::template Offset<CtString{"a"}, CtString{"b"}>(), sizeof(int)>::value;
-    EqAssert<Meta::template Offset<CtString{"a"}, CtString{"c"}>(),
-             sizeof(int) + sizeof(long long)>::value;
-
-    constexpr char const* name_a = "a";
-    CmpTypes<Meta::DeduceMember<CtString{"a"}>::type, A>::value;
-    CmpTypes<Meta::DeduceMember<CtString{"a"}, CtString{"a"}>::type, int>::value;
-    // CmpTypes<typename Meta::DeduceMember<"a", "a">::type, A>;
-
-    gl::BufferReflAccessor<B> t{nullptr, 0};
-    B full_B = t.get();
-    A full_A = t.get<CtString{"a"}>();
-    long long only_b = t.get<CtString{"a"}, CtString{"b"}>();
-
-    // CmpCtString<name_a, "a">::value;
-
-    // static_assert(name_a == CtString{"a"});
-    // static constexpr CtString name_a = std::get<0>(Meta::Names);
-
     {
-        // auto buffer = std::make_unique<gl::Buffer>();
-        // buffer->initStorage(100 * sizeof(A),
-        //                     nullptr,
-        //                     gl::BufferStorageFlags::DYNAMIC_STORAGE_BIT);
-        // auto accessor =
-        // std::make_unique<gl::BufferRawAccessorSubData>(std::move(buffer)); auto
-        // refl_array = std::make_unique<gl::BufferReflArray<A>>(std::move(accessor));
+        struct Mat {
+            glm::mat4x4 mat;
+        };
 
-        // auto elem = refl_array->at(0);
-        // auto data = elem.get();
-        // auto data_a = elem.get<0>();
-        // auto data_b = elem.get<1>();
+        auto buffer = std::make_unique<gl::Buffer>();
+        buffer->initStorage(100 * sizeof(glm::mat4x4),
+                            nullptr,
+                            gl::BufferStorageFlags::DYNAMIC_STORAGE_BIT);
+        glm::mat4x4 m;
+        auto accessor = std::make_unique<gl::BufferRawAccessorSubData>(std::move(buffer));
+        auto refl_array =
+            std::make_unique<gl::BufferReflArray<Mat>>(std::move(accessor));
 
-        // static constexpr auto F = decltype(elem)::Fields;
-
-        // Mat4x4Storage mat_storage{std::move(refl_array)};
-
-        // auto index = mat_storage.makeIndexGuard();
-
-        // refl::Struct<GlmMat4x4Meta> t;
-        // t.get<"mat">();
-        // mat_storage[*index].set<CtString{"mat"}>({glm::mat4{1.f}});
-
-        // glm::mat4 mat{2.f};
-        // mat_storage[*index].get<GlmMat4x4Meta, "mat">(&mat);
+        auto elem = refl_array->at(0);
+        auto data = elem.get();
+        auto data_a = elem.get<"mat"_cts>();
     }
     gl::Ctx::Get().getLogger().log<LogLevel::DEBUG, "NEXT">();
     // {

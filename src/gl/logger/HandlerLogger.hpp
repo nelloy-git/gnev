@@ -6,7 +6,6 @@ namespace gnev::gl {
 
 class EXPORT HandlerLogger : public CtxLogger {
 public:
-    // static constexpr CtString MsgFmt = SignatureCS + CtString{" => \"{}\""};
     template <std::size_t ArgsN, bool HasResult>
     static constexpr CtString HandleFuncFmt =
         CtString{"{}<{}>::"} + FuncFmt<ArgsN, HasResult>;
