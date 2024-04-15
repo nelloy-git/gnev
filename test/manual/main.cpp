@@ -42,41 +42,10 @@
 
 #include "Mat4x4Storage.hpp"
 #include "gl/container/BufferReflList.hpp"
-#include "util/refl/FieldMeta.hpp"
-#include "util/refl/Field.hpp"
+#include "pfr.hpp"
+#include "util/Reflection.hpp"
 
 using namespace gnev;
-
-// using RI_GlmVec3f_16 = refl::ElementInfoAligned<glm::vec3, 16>;
-
-using Int8 = refl::FieldLeafMeta<int, 8>;
-using Int16 = refl::FieldLeafMeta<int, 16>;
-
-using IntArr = refl::FieldArrayMeta<Int8, Int16>;
-
-using IntPair = refl::FieldMapMetaPair<"Int8", Int8>;
-using IntPair2 = refl::FieldMapMetaPair<"IntArr", IntArr>;
-
-using IntMap = refl::FieldMapMeta<IntPair, IntPair2>;
-
-using TestInt16 = IntMap::SubMeta<CtString{"Int8"}>;
-using TestIntArr = IntMap::SubMeta<CtString{"IntArr"}>;
-using TestIntArrInt8 = TestIntArr::SubMeta<0>;
-using TestIntArrInt16 = TestIntArr::SubMeta<1>;
-static constexpr auto S = IntMap::Size;
-
-using TestMeta = refl::FieldArrayMeta<IntArr, Int8, IntMap, IntArr>;
-using TestStruct = gnev::refl::Struct<TestMeta>;
-
-// static constexpr std::size_t TestMemSize = sizeof(TestMem);
-// static_assert(TestMemSize == TestInfo::Size);
-
-// static constexpr std::size_t offset_1 = IntMap::Offset<"Int16x2", 1>();
-
-// using Test1 = refl::MemoryInfoListElem<Int16x2, Int16>;
-// using Test1_1 = decltype(Test1::current);
-// static constexpr refl::MemoryInfoListElem<Int16, Int16> t1{};
-// static constexpr auto s1 = sizeof(t1);
 
 void readTextFile(std::string& dst, const std::filesystem::path& path) {
     std::cout << "Loading shader " << path.string().c_str() << std::endl;
@@ -217,6 +186,20 @@ quill::Logger* initLogger() {
     return logger;
 }
 
+template <auto A, auto B>
+struct EqAssert {
+    static_assert(A == B);
+    static constexpr bool value = (A == B);
+};
+
+template <typename A, typename B>
+struct CmpTypes {
+    static constexpr bool value = []() {
+        static_assert(std::is_same_v<A, B>);
+        return std::is_same_v<A, B>;
+    }();
+};
+
 int main(int argc, const char** argv) {
     // auto current_dir = std::filesystem::current_path();
     // Log::init();
@@ -225,53 +208,98 @@ int main(int argc, const char** argv) {
     GlfwWindow wnd(1024, 768, initLogger());
     quill::start();
 
-    // Field<8, int> t;
+    struct A {
+        int a;
+        long long b;
+        int c;
+    };
 
-    // TestMem t1{};
-    // auto& m1 = t1.get<0>();
-    // auto& m2 = t1.get<1>();
-    // auto& m3 = t1.get<2>();
-    // auto& m3_1 = m3.get<"Int8">();
+    struct B {
+        A a;
+        long b;
+    };
+
+    static constexpr auto Names = refl::Meta<A>::Names;
+
+    using Meta = refl::Meta<B>;
+
+    using S = std::make_index_sequence<0>();
+
+    static constexpr std::size_t index = Meta::KeyIndex<"a">::value;
+    static_assert(index == 0);
+    CmpTypes<Meta::MemberS<"a">, A>::value;
+    CmpTypes<Meta::MemberS<"b">, long>::value;
+
+    EqAssert<Meta::template Offset<"a"_cts, "a"_cts>(), 0>::value;
+    EqAssert<Meta::template Offset<CtString{"a"}, CtString{"b"}>(), sizeof(int)>::value;
+    EqAssert<Meta::template Offset<CtString{"a"}, CtString{"c"}>(),
+             sizeof(int) + sizeof(long long)>::value;
+
+    constexpr char const* name_a = "a";
+    CmpTypes<Meta::DeduceMember<CtString{"a"}>::type, A>::value;
+    CmpTypes<Meta::DeduceMember<CtString{"a"}, CtString{"a"}>::type, int>::value;
+    // CmpTypes<typename Meta::DeduceMember<"a", "a">::type, A>;
+
+    gl::BufferReflAccessor<B> t{nullptr, 0};
+    B full_B = t.get();
+    A full_A = t.get<CtString{"a"}>();
+    long long only_b = t.get<CtString{"a"}, CtString{"b"}>();
+
+    // CmpCtString<name_a, "a">::value;
+
+    // static_assert(name_a == CtString{"a"});
+    // static constexpr CtString name_a = std::get<0>(Meta::Names);
 
     {
-        auto buffer = std::make_unique<gl::Buffer>();
-        buffer->initStorage(100 * sizeof(Mat4x4_Refl),
-                            nullptr,
-                            gl::BufferStorageFlags::DYNAMIC_STORAGE_BIT);
-        auto accessor = std::make_unique<gl::BufferRawAccessorSubData>(std::move(buffer));
-        auto refl_array =
-            std::make_unique<gl::BufferReflArray<Mat4x4_Refl>>(std::move(accessor));
+        // auto buffer = std::make_unique<gl::Buffer>();
+        // buffer->initStorage(100 * sizeof(A),
+        //                     nullptr,
+        //                     gl::BufferStorageFlags::DYNAMIC_STORAGE_BIT);
+        // auto accessor =
+        // std::make_unique<gl::BufferRawAccessorSubData>(std::move(buffer)); auto
+        // refl_array = std::make_unique<gl::BufferReflArray<A>>(std::move(accessor));
 
-        Mat4x4Storage mat_storage{std::move(refl_array)};
+        // auto elem = refl_array->at(0);
+        // auto data = elem.get();
+        // auto data_a = elem.get<0>();
+        // auto data_b = elem.get<1>();
 
-        auto index = mat_storage.makeIndexGuard();
-        mat_storage[*index].set<&Mat4x4_Refl::mat>(glm::mat4{1.f});
+        // static constexpr auto F = decltype(elem)::Fields;
 
-        glm::mat4 mat{2.f};
-        mat_storage[*index].get<&Mat4x4_Refl::mat>(&mat);
+        // Mat4x4Storage mat_storage{std::move(refl_array)};
+
+        // auto index = mat_storage.makeIndexGuard();
+
+        // refl::Struct<GlmMat4x4Meta> t;
+        // t.get<"mat">();
+        // mat_storage[*index].set<CtString{"mat"}>({glm::mat4{1.f}});
+
+        // glm::mat4 mat{2.f};
+        // mat_storage[*index].get<GlmMat4x4Meta, "mat">(&mat);
     }
     gl::Ctx::Get().getLogger().log<LogLevel::DEBUG, "NEXT">();
-    {
-        auto buffer = std::make_unique<gl::Buffer>();
-        buffer->initStorage(100 * sizeof(Mat4x4_Refl),
-                            nullptr,
-                            gl::BufferStorageFlags::DYNAMIC_STORAGE_BIT);
-        auto accessor = std::make_unique<gl::BufferRawAccessorSubData>(std::move(buffer));
-        auto refl_list =
-            std::make_unique<gl::BufferReflList<Mat4x4_Refl>>(std::move(accessor));
+    // {
+    //     auto buffer = std::make_unique<gl::Buffer>();
+    //     buffer->initStorage(100 * sizeof(GlmMat4x4Meta),
+    //                         nullptr,
+    //                         gl::BufferStorageFlags::DYNAMIC_STORAGE_BIT);
+    //     auto accessor =
+    //     std::make_unique<gl::BufferRawAccessorSubData>(std::move(buffer)); auto
+    //     refl_list =
+    //         std::make_unique<gl::BufferReflList<GlmMat4x4Meta>>(std::move(accessor));
 
-        auto range1 = refl_list->reserveRange(3);
-        auto range2 = refl_list->reserveRange(2);
+    //     auto range1 = refl_list->reserveRange(3);
+    //     auto range2 = refl_list->reserveRange(2);
 
-        auto v1 = refl_list->at(*range1);
-        v1[0].set<&Mat4x4_Refl::mat>(glm::mat4{1.f});
-        v1[1].set<&Mat4x4_Refl::mat>(glm::mat4{1.f});
-        v1[2].set<&Mat4x4_Refl::mat>(glm::mat4{1.f});
+    //     auto v1 = refl_list->at(*range1);
+    //     v1[0].set<GlmMat4x4Meta, "mat">(glm::mat4{1.f});
+    //     v1[1].set<GlmMat4x4Meta, "mat">(glm::mat4{1.f});
+    //     v1[2].set<GlmMat4x4Meta, "mat">(glm::mat4{1.f});
 
-        auto v2 = refl_list->at(*range2);
-        v2[0].set<&Mat4x4_Refl::mat>(glm::mat4{1.f});
-        v2[1].set<&Mat4x4_Refl::mat>(glm::mat4{1.f});
-    }
+    //     auto v2 = refl_list->at(*range2);
+    //     v2[0].set<GlmMat4x4Meta, "mat">(glm::mat4{1.f});
+    //     v2[1].set<GlmMat4x4Meta, "mat">(glm::mat4{1.f});
+    // }
 
     // using Nested = ReflStructDeduceMeta<TestReflStruct, 0, 0>;
     // using Child = DeduceReflStructChildFieldMeta<TestReflStruct, 0>;

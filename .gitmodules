@@ -28,3 +28,6 @@
 [submodule "3rdparty/boost_pp"]
 	path = 3rdparty/boost_pp
 	url = https://github.com/boostorg/preprocessor.git
+[submodule "3rdparty/pfr"]
+	path = 3rdparty/pfr
+	url = https://github.com/apolukhin/pfr_non_boost.git

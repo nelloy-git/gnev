@@ -11,11 +11,6 @@
 namespace gnev {
 
 template <std::size_t Size>
-struct CtString;
-constexpr std::size_t DEFAULT_CTSTRING_SIZE = 128;
-using CtStrDef = CtString<DEFAULT_CTSTRING_SIZE>;
-
-template <std::size_t Size>
 struct CtString {
     consteval CtString(const char (&str)[Size])
         : length(initLength(str))
@@ -41,7 +36,7 @@ struct CtString {
         , array(initArray(str.array)) {}
 
     consteval CtString(const std::string_view& str)
-        : length(str.length())
+        : length(str.back() == '\0' ? str.length() : str.length() + 1)
         , array(initArray(str)) {}
 
     constexpr std::string_view to_string_view() const {
@@ -120,6 +115,18 @@ struct CtString {
         return true;
     }
 
+    consteval bool operator==(const std::string_view& str) const {
+        if (length != str.size() and length != (str.size() + 1)) {
+            return false;
+        }
+        for (std::size_t i = 0; i < str.size(); ++i) {
+            if (array[i] != str[i]) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     template <std::size_t S>
     consteval std::size_t count(const CtString<S>& pattern) const {
         auto this_str = to_string_view();
@@ -181,94 +188,23 @@ private:
     }
 };
 
-constexpr CtString CtStringEmpty{""};
-
-template <auto CtStr>
-consteval auto CtStringOptimize() {
-    constexpr std::size_t S = CtStr.length;
-    std::array<char, S> arr = {};
-    std::copy(CtStr.begin(), CtStr.begin() + S, arr.begin());
-    return CtString{arr};
+template <CtString R>
+consteval auto operator"" _cts() {
+    return R;
 }
 
-template <auto... CtStrs>
-consteval std::size_t CtStringConcatLength() {
-    return ((CtStrs.length - 1) + ... + 0) + 1;
-}
+template <typename T>
+struct IsCtStringHelper {
+    template <std::size_t S>
+    static constexpr std::true_type test(const CtString<S>*);
+    static constexpr std::false_type test(...);
+    using type = decltype(test(std::declval<T*>()));
+};
 
-template <auto... CtStrs, std::size_t Size = CtStringConcatLength<CtStrs...>()>
-consteval CtString<Size> CtStringConcat() {
-    std::array<char, Size> arr{};
+template <typename T>
+static constexpr bool IsCtStringV = IsCtStringHelper<T>::type::value;
 
-    std::size_t p = 0;
-    (
-        [&arr, &p]() {
-            std::copy(CtStrs.begin(), CtStrs.end() - 1, arr.begin() + p);
-            p += CtStrs.length - 1;
-        }(),
-        ...);
-    arr[Size - 1] = '\0';
-    return CtString{arr};
-}
-
-template <auto CtStr, std::size_t N>
-consteval auto CtStringRepeat() {
-    if constexpr (N == 0) {
-        return CtString<1>{""};
-    } else {
-        constexpr std::size_t L = N * (CtStr.length - 1) + 1;
-        std::array<char, L> arr = {};
-        for (int i = 0; i < N; ++i) {
-            for (int j = 0; j < CtStr.length - 1; ++j) {
-                arr[i * (CtStr.length - 1) + j] = CtStr.array.data()[j];
-            }
-        }
-        arr[L - 1] = '\0';
-        return CtString{arr};
-    }
-}
-
-template <auto CtStr, auto CtStrSep, std::size_t N>
-consteval auto CtStringRepeatSep() {
-    if constexpr (N == 0) {
-        return CtString<1>{""};
-    } else {
-        constexpr auto WithSep = CtStringConcat<CtStr, CtStrSep>();
-        constexpr auto Repeated = CtStringRepeat<WithSep, N - 1>();
-        return CtStringConcat<Repeated, CtStr>();
-    }
-}
-
-consteval std::size_t cstrLength(const char* const str) {
-    constexpr std::size_t MAX_LEN = std::string::npos;
-    if (not str) {
-        throw std::logic_error("cstrLength got nullptr");
-    }
-
-    size_t i = 0;
-    while (i <= MAX_LEN and str[i] != '\0') {
-        ++i;
-    }
-
-    return i;
-}
-
-template <std::size_t Size>
-consteval auto toCtString(const char* const str) {
-    std::array<char, Size> buffer = {};
-    std::fill(buffer.begin(), buffer.end(), '\0');
-
-    std::size_t str_length = cstrLength(str);
-    if (str_length == std::string::npos) {
-        throw std::out_of_range("str_length == std::string::npos");
-    }
-    if (Size < str_length) {
-        throw std::out_of_range("Size < str_length");
-    }
-    std::copy(str, str + str_length, buffer.begin());
-    buffer[Size - 1] = '\0';
-
-    return CtString{buffer};
-}
+template <typename T>
+concept IsCtString = IsCtStringV<T>;
 
 } // namespace gnev

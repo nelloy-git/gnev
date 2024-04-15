@@ -8,7 +8,7 @@
 
 namespace gnev::gl {
 
-template <IsReflStruct T>
+template <IsReflectible T>
 class BufferReflArray {
 public:
     BufferReflArray(std::unique_ptr<IBufferRawAccessor>&& accessor_)
