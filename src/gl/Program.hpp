@@ -4,8 +4,7 @@
 #include "gl/Handler.hpp"
 #include "gl/Shader.hpp"
 #include "gl/Texture.hpp"
-#include "gl/program/ProgramBinding.hpp"
-#include "util/Ref.hpp"
+// #include "gl/program/ProgramBinding.hpp"
 
 namespace gnev::gl {
 
@@ -46,9 +45,9 @@ public:
                                   const std::shared_ptr<Texture>& texture);
 
 private:
-    std::unique_ptr<ProgramBinding<Buffer>> shader_storage_blocks;
-    std::unique_ptr<ProgramBinding<Buffer>> shader_uniform_blocks;
-    std::unique_ptr<ProgramBinding<Texture>> shader_texture_samplers;
+    // std::unique_ptr<ProgramBinding<Buffer>> shader_storage_blocks;
+    // std::unique_ptr<ProgramBinding<Buffer>> shader_uniform_blocks;
+    // std::unique_ptr<ProgramBinding<Texture>> shader_texture_samplers;
 
     GLuint getMaxShaderStorageBufferBindings();
     GLuint getMaxUniformBufferBindings();

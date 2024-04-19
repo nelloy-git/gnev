@@ -14,7 +14,7 @@ public:
 
     template <std::size_t ArgsN, bool HasResult>
     static constexpr CtString FuncFmt =
-        "{}("_cts + "{}"_cts.repeatSep<ArgsN>(", "_cts) + ")"_cts + FuncResFmt<HasResult>;
+        "{}("_cts + "{}"_cts.repeatSep<ArgsN>(", ") + ")"_cts + FuncResFmt<HasResult>;
 
     CtxLogger(const Logger& logger, const SrcLoc& src_loc)
         : logger{logger}
@@ -39,7 +39,7 @@ public:
     }
 
     template <std::size_t ArgsN>
-    static constexpr CtString PtrFmt = "{} -> "_cts + "{}"_cts.repeatSep<ArgsN>(", "_cts);
+    static constexpr CtString PtrFmt = "{} -> "_cts + "{}"_cts.repeatSep<ArgsN>(", ");
 
     template <LogLevel Level, typename... Args>
     void logPtr(const void* ptr, Args&&... args) const {

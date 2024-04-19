@@ -2,9 +2,6 @@
 
 #include <algorithm>
 #include <array>
-#include <concepts>
-#include <limits>
-#include <source_location>
 #include <stdexcept>
 #include <string_view>
 
@@ -100,6 +97,11 @@ struct CtString {
         arr.back() = '\0';
 
         return CtString<N*(Size - 1) + (N - 1) * (SepSize - 1) + 1>{arr};
+    }
+
+    template <std::size_t N, std::size_t SepSize>
+    consteval auto repeatSep(const char (&str)[SepSize]) const {
+        return repeatSep<N>(CtString{str});
     }
 
     template <std::size_t S>

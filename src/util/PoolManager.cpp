@@ -1,35 +1,36 @@
-#include "util/RangeManager.hpp"
+#include "util/PoolManager.hpp"
 
 #include <algorithm>
+#include <cstddef>
 #include <optional>
 
 namespace gnev {
 
-using Range = RangeManager::Range;
+using Range = PoolManager::Range;
 
-RangeManager::RangeManager(unsigned capacity)
+PoolManager::PoolManager(std::size_t capacity)
     : capacity{capacity}
     , free_ranges{Range{.begin = 0, .size = capacity}} {}
 
 std::shared_ptr<Range>
-RangeManager::makeRangeGuard(unsigned size,
-                             const std::shared_ptr<RangeManager>& range_manager) {
-    auto range = range_manager->reserveRange(size);
+PoolManager::makeRangeGuard(std::size_t size,
+                            const std::shared_ptr<PoolManager>& range_manager) {
+    auto range = range_manager->reserve(size);
     if (not range.has_value()) {
         return nullptr;
     }
 
-    auto deleter = [weak_manager = std::weak_ptr<RangeManager>{range_manager}](Range* p) {
+    auto deleter = [weak_manager = std::weak_ptr<PoolManager>{range_manager}](Range* p) {
         auto index_manager = weak_manager.lock();
         if (index_manager) {
-            index_manager->freeRange(*p);
+            index_manager->free(*p);
         }
         delete p;
     };
     return std::shared_ptr<Range>{new Range{range.value()}, deleter};
 }
 
-std::optional<Range> RangeManager::reserveRange(unsigned size) {
+std::optional<Range> PoolManager::reserve(std::size_t size) {
     auto cmp = [size](InternalRange free_range) { return free_range.size >= size; };
     auto found = std::find_if(free_ranges.begin(), free_ranges.end(), cmp);
 
@@ -48,12 +49,17 @@ std::optional<Range> RangeManager::reserveRange(unsigned size) {
     return range;
 }
 
-bool RangeManager::freeRange(Range range) {
+bool PoolManager::free(Range range) {
     insertFreeRange(range);
     return true;
 }
 
-void RangeManager::insertFreeRange(Range range) {
+bool PoolManager::free(std::size_t index) {
+    insertFreeRange(Range{.begin = index, .size = 1});
+    return true;
+}
+
+void PoolManager::insertFreeRange(Range range) {
     static constexpr auto cmp = [](InternalRange free_range, Range search_for) {
         return free_range.begin < search_for.begin;
     };
@@ -95,19 +101,19 @@ void RangeManager::insertFreeRange(Range range) {
     }
 }
 
-unsigned RangeManager::countFree() const {
-    unsigned free = 0;
+std::size_t PoolManager::countFree() const {
+    std::size_t free = 0;
     for (auto& range : free_ranges) {
         free += range.size;
     }
     return free;
 }
 
-unsigned RangeManager::countUsed() const { return capacity - countFree(); }
+std::size_t PoolManager::countUsed() const { return capacity - countFree(); }
 
-unsigned RangeManager::getCapacity() const { return capacity; }
+std::size_t PoolManager::getCapacity() const { return capacity; }
 
-unsigned RangeManager::getMaxUsed() const {
+std::size_t PoolManager::getMaxUsed() const {
     if (free_ranges.size() == 0) {
         return capacity;
     }

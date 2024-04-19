@@ -1,50 +1,13 @@
-// #include "Mat4x4Storage.hpp"
+#include "Mat4x4Storage.hpp"
 
-// #include <memory>
-// #include <stdexcept>
+#include <memory>
 
-// #include "util/IndexManager.hpp"
+namespace gnev {
 
-// namespace gnev {
-
-// Mat4x4Storage::Mat4x4Storage(std::unique_ptr<gl::BufferReflArray<GlmMat4x4Meta>>&& array_)
-//     : manager{std::make_shared<IndexManager>(array_->size())}
-//     , array(std::move(array_)) {}
-
-// std::optional<unsigned> Mat4x4Storage::reserveIndex() { return manager->reserveIndex(); }
-
-// bool Mat4x4Storage::freeIndex(unsigned index) { return manager->freeIndex(index); }
-
-// bool Mat4x4Storage::isInUse(unsigned index) const {
-//     return manager->isInUse(index);
-// }
-
-// std::shared_ptr<unsigned> Mat4x4Storage::makeIndexGuard() {
-//     return IndexManager::makeIndexGuard(manager);
-// }
-
-// gl::BufferReflAccessor<GlmMat4x4Meta> Mat4x4Storage::operator[](unsigned i){
-//     return array->operator[](i);
-// }
-
-// const gl::BufferReflAccessor<GlmMat4x4Meta> Mat4x4Storage::operator[](unsigned i) const {
-//     return array->operator[](i);
-// }
-
-// gl::BufferReflAccessor<GlmMat4x4Meta> Mat4x4Storage::at(unsigned i){
-//     if (not isInUse(i)){
-//         throw std::out_of_range("");
-//     }
-//     return array->operator[](i);
-// }
-
-// const gl::BufferReflAccessor<GlmMat4x4Meta> Mat4x4Storage::at(unsigned i) const {
-//     if (not isInUse(i)){
-//         throw std::out_of_range("");
-//     }
-//     return array->operator[](i);
-// }
+Mat4x4Storage::Mat4x4Storage(std::unique_ptr<gl::IBufferRawAccessor>&& accessor, std::size_t fill_batch)
+    : gl::BufferReflManagedArray<glm::mat4x4>{std::move(accessor)} {
+        fill(glm::mat4(1.f), fill_batch);
+    }
 
 
-
-// } // namespace gnev
+} // namespace gnev

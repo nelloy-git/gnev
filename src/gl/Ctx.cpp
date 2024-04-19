@@ -176,7 +176,8 @@ void Ctx::glCreateBuffers(GLsizei n, GLuint* buffers) const {
 }
 
 void Ctx::glDeleteBuffers(GLsizei n, GLuint* buffers) const {
-    getLogger().logFunc<L3>(n, std::vector(buffers, buffers + n));
+    getLogger().logFunc<L3>(n, static_cast<const void*>(buffers));
+    getLogger().logPtr<L3>(static_cast<const void*>(buffers), std::vector(buffers, buffers + n));
     glad->DeleteBuffers(n, buffers);
 }
 

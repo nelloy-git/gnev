@@ -11,49 +11,23 @@
 namespace gnev::gl {
 
 template <typename T>
-static constexpr bool HasDefaultAlignmentV =
-    sizeof(T) == sizeof(decltype(pfr::structure_to_tuple<T>(std::declval<T>())));
+concept IsTriviallyCopyable = std::is_trivially_copyable_v<T>;
 
-template <typename T>
-concept IsReflectible =
-    pfr::is_implicitly_reflectable_v<T, void> and std::is_trivially_copyable_v<T> and HasDefaultAlignmentV<T>;
+namespace details {
 
-template <IsReflectible T>
-class BufferReflAccessor {
+template <IsTriviallyCopyable T>
+class BufferReflAccessorImpl {
 public:
-    using Meta = refl::Meta<T>;
-    template <auto... Keys>
-    using SubType = typename Meta::template DeduceMember<Keys...>::type;
-    template <auto... Keys>
-    static constexpr std::size_t SubTypeOffset = Meta::template Offset<Keys...>();
-
     template <typename V>
     using Changer = std::function<void(V&)>;
 
-    BufferReflAccessor(const std::shared_ptr<IBufferRawAccessor>& accessor,
-                       std::size_t base_offset)
+    BufferReflAccessorImpl(const std::shared_ptr<IBufferRawAccessor>& accessor,
+                           std::size_t base_offset)
         : accessor{accessor}
         , base_offset{base_offset} {}
 
-    template<auto... Keys>
-        requires(sizeof...(Keys) > 0)
-    auto sub(){
-        return BufferReflAccessor<SubType<Keys...>>{accessor, base_offset + SubTypeOffset<Keys...>};
-    }
-
     void set(const T& value) {
         bool success = accessor->set(base_offset, sizeof(T), &value);
-        if (not success) {
-            Ctx::Get().getLogger().logMsg<LogLevel::ERROR, "Failed">();
-        }
-    }
-
-    template <auto... Keys>
-        requires(sizeof...(Keys) > 0)
-    void set(const SubType<Keys...>& value) {
-        bool success = accessor->set(base_offset + SubTypeOffset<Keys...>,
-                                     sizeof(SubType<Keys...>),
-                                     &value);
         if (not success) {
             Ctx::Get().getLogger().logMsg<LogLevel::ERROR, "Failed">();
         }
@@ -68,19 +42,6 @@ public:
         return dst;
     }
 
-    template <auto... Keys>
-        requires(sizeof...(Keys) > 0)
-    auto get() const {
-        SubType<Keys...> dst;
-        bool success = accessor->get(base_offset + SubTypeOffset<Keys...>,
-                                     sizeof(SubType<Keys...>),
-                                     &dst);
-        if (not success) {
-            Ctx::Get().getLogger().log<LogLevel::ERROR, "Failed">();
-        }
-        return dst;
-    }
-
     void change(const Changer<T>& changer) const {
         bool success = accessor->change(base_offset, sizeof(T), changer);
         if (not success) {
@@ -88,38 +49,112 @@ public:
         }
     }
 
-    template <auto... Keys>
-        requires(sizeof...(Keys) > 0)
-    void change(const Changer<SubType<Keys...>>& changer) {
-        bool success = accessor->change(base_offset + SubTypeOffset<Keys...>,
-                                        sizeof(SubType<Keys...>),
-                                        changer);
-        if (not success) {
-            Ctx::Get().getLogger().logMsg<LogLevel::ERROR, "Failed">();
-        }
-    }
-
-    void copy(const BufferReflAccessor<T>& src) {
+    void copy(const BufferReflAccessorImpl<T>& src) {
         bool success = accessor->copy(src.base_offset, base_offset, sizeof(T));
         if (not success) {
             Ctx::Get().getLogger().logMsg<LogLevel::ERROR, "Failed">();
         }
     }
 
-    template <auto... Keys>
+protected:
+    std::shared_ptr<IBufferRawAccessor> accessor;
+    const std::size_t base_offset;
+};
+
+} // namespace details
+
+template <IsTriviallyCopyable T>
+class BufferReflAccessor : public details::BufferReflAccessorImpl<T> {
+public:
+    BufferReflAccessor(const std::shared_ptr<IBufferRawAccessor>& accessor,
+                       std::size_t base_offset)
+        : details::BufferReflAccessorImpl<T>{accessor, base_offset} {}
+};
+
+template <IsTriviallyCopyable T>
+    requires(refl::IsReflectable<T>)
+class BufferReflAccessor<T> : public details::BufferReflAccessorImpl<T> {
+public:
+    using Meta = refl::Meta<T>;
+
+    template <refl::Key... Keys>
+    using MemberT = Meta::template DeduceMemberInfo<Keys...>::Type::Type;
+
+    using details::BufferReflAccessorImpl<T>::get;
+    using details::BufferReflAccessorImpl<T>::set;
+    using details::BufferReflAccessorImpl<T>::change;
+    using details::BufferReflAccessorImpl<T>::copy;
+
+    BufferReflAccessor(const std::shared_ptr<IBufferRawAccessor>& accessor,
+                       std::size_t base_offset)
+        : details::BufferReflAccessorImpl<T>{accessor, base_offset} {}
+
+    template <refl::Key... Keys>
         requires(sizeof...(Keys) > 0)
-    void copy(const BufferReflAccessor<T>& src) {
-        bool success = accessor->copy(src.base_offset + SubTypeOffset<Keys...>,
-                                      base_offset + SubTypeOffset<Keys...>,
-                                      sizeof(SubType<Keys...>));
+    auto sub() {
+        return BufferReflAccessor<MemberT<Keys...>>{
+            details::BufferReflAccessorImpl<T>::accessor,
+            details::BufferReflAccessorImpl<T>::base_offset +
+                Meta::template MemberOffset<Keys...>};
+    }
+
+    template <refl::Key... Keys>
+        requires(sizeof...(Keys) > 0)
+    void set(const MemberT<Keys...>& value) {
+        bool success = details::BufferReflAccessorImpl<T>::accessor
+                           ->set(details::BufferReflAccessorImpl<T>::base_offset +
+                                     Meta::template MemberOffset<Keys...>(),
+                                 sizeof(MemberT<Keys...>),
+                                 &value);
         if (not success) {
             Ctx::Get().getLogger().logMsg<LogLevel::ERROR, "Failed">();
         }
     }
 
-private:
-    std::shared_ptr<IBufferRawAccessor> accessor;
-    const std::size_t base_offset;
+    template <refl::Key... Keys>
+        requires(sizeof...(Keys) > 0)
+    auto get() const {
+        using MemberT = Meta::template MemberType<Keys...>;
+        MemberT dst;
+        bool success = details::BufferReflAccessorImpl<T>::accessor
+                           ->get(details::BufferReflAccessorImpl<T>::base_offset +
+                                     Meta::template MemberOffset<Keys...>(),
+                                 sizeof(MemberT),
+                                 &dst);
+        if (not success) {
+            Ctx::Get().getLogger().log<LogLevel::ERROR, "Failed">();
+        }
+        return dst;
+    }
+
+    template <auto... Keys>
+        requires(sizeof...(Keys) > 0)
+    void
+    change(const details::BufferReflAccessorImpl<T>::template Changer<MemberT<Keys...>>&
+               changer) {
+        bool success = details::BufferReflAccessorImpl<T>::accessor
+                           ->change(details::BufferReflAccessorImpl<T>::base_offset +
+                                        Meta::template MemberOffset<Keys...>(),
+                                    sizeof(MemberT<Keys...>),
+                                    changer);
+        if (not success) {
+            Ctx::Get().getLogger().logMsg<LogLevel::ERROR, "Failed">();
+        }
+    }
+
+    template <auto... Keys>
+        requires(sizeof...(Keys) > 0)
+    void copy(const BufferReflAccessor<T>& src) {
+        bool success =
+            details::BufferReflAccessorImpl<T>::accessor
+                ->copy(src.base_offset + Meta::template MemberOffset<Keys...>(),
+                       details::BufferReflAccessorImpl<T>::base_offset +
+                           Meta::template MemberOffset<Keys...>(),
+                       sizeof(MemberT<Keys...>));
+        if (not success) {
+            Ctx::Get().getLogger().logMsg<LogLevel::ERROR, "Failed">();
+        }
+    }
 };
 
 } // namespace gnev::gl

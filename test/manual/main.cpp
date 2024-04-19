@@ -2,6 +2,7 @@
 #include "gl/container/BufferRawAccessorSubData.hpp"
 #include "gl/container/BufferReflAccessor.hpp"
 #include "gl/container/BufferReflArray.hpp"
+#include "glm/ext/matrix_float4x4.hpp"
 #include "util/Logger.hpp"
 #ifdef WIN32
 #include <vld.h>
@@ -43,8 +44,6 @@
 //
 
 #include "Mat4x4Storage.hpp"
-#include "gl/container/BufferReflList.hpp"
-#include "util/Reflection.hpp"
 
 using namespace gnev;
 
@@ -209,23 +208,16 @@ int main(int argc, const char** argv) {
     GlfwWindow wnd(1024, 768, initLogger());
     quill::start();
 
-    {
-        struct Mat {
-            glm::mat4x4 mat;
-        };
+    // Mat4x4Storage mat4x4_storage
 
+    {
         auto buffer = std::make_unique<gl::Buffer>();
         buffer->initStorage(100 * sizeof(glm::mat4x4),
                             nullptr,
                             gl::BufferStorageFlags::DYNAMIC_STORAGE_BIT);
-        glm::mat4x4 m;
         auto accessor = std::make_unique<gl::BufferRawAccessorSubData>(std::move(buffer));
-        auto refl_array =
-            std::make_unique<gl::BufferReflArray<Mat>>(std::move(accessor));
+        Mat4x4Storage mat4x4_storage{std::move(accessor)};
 
-        auto elem = refl_array->at(0);
-        auto data = elem.get();
-        auto data_a = elem.get<"mat"_cts>();
     }
     gl::Ctx::Get().getLogger().log<LogLevel::DEBUG, "NEXT">();
     // {

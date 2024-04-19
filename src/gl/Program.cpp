@@ -1,11 +1,9 @@
 #include "gl/Program.hpp"
 
-#include "gl/fmt/BitFlags.hpp"
 #include "gl/fmt/Enum.hpp"
 #include "gl/fmt/String.hpp"
 #include "gl/logger/HandlerLogger.hpp"
-#include "gl/program/ProgramBinding.hpp"
-#include "util/SrcLoc.hpp"
+// #include "gl/program/ProgramBinding.hpp"
 
 using enum gnev::LogLevel;
 
@@ -13,12 +11,13 @@ namespace gnev::gl {
 
 Program::Program()
     : Handler(createHandle(), &deleteHandle)
-    , shader_storage_blocks(std::make_unique<
-                            ProgramBinding<Buffer>>(getMaxShaderStorageBufferBindings()))
-    , shader_uniform_blocks(std::make_unique<
-                            ProgramBinding<Buffer>>(getMaxUniformBufferBindings()))
-    , shader_texture_samplers(std::make_unique<
-                              ProgramBinding<Texture>>(getMaxTextureImageUnits())) {
+// , shader_storage_blocks(std::make_unique<
+//                         ProgramBinding<Buffer>>(getMaxShaderStorageBufferBindings()))
+// , shader_uniform_blocks(std::make_unique<
+//                         ProgramBinding<Buffer>>(getMaxUniformBufferBindings()))
+// , shader_texture_samplers(std::make_unique<
+//                           ProgramBinding<Texture>>(getMaxTextureImageUnits()))
+{
     getLogger().logFunc<L2>();
 }
 
@@ -96,8 +95,9 @@ GLint Program::getUniformLoc(const GLchar* name) const {
 }
 
 GLint Program::getResourceIndex(GLenum interface, const GLchar* name) const {
-    getLogger().logFunc<L2>(fmt::Enum{interface, fmt::Enum::Group::GetProgramResourceIndex},
-                     fmt::String{name});
+    getLogger().logFunc<L2>(fmt::Enum{interface,
+                                      fmt::Enum::Group::GetProgramResourceIndex},
+                            fmt::String{name});
     GLint index = Ctx::Get().glGetProgramResourceIndex(handle(), interface, name);
     return index;
 }

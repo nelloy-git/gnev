@@ -12,9 +12,6 @@
 
 namespace gnev {
 
-template <typename T>
-concept IsTriviallyCopyable = std::is_trivially_copyable_v<T>;
-
 template <std::integral T = std::size_t>
 class IdGen {
 public:

@@ -1,59 +1,48 @@
-// #pragma once
+#pragma once
 
-// #include <memory>
-// #include <stdexcept>
+#include <memory>
 
-// #include "gl/container/BufferReflAccessor.hpp"
-// #include "gl/container/BufferReflArray.hpp"
-// #include "util/Export.hpp"
-// #include "util/IndexManager.hpp"
+#include "gl/container/BufferReflArray.hpp"
+#include "util/Export.hpp"
+#include "util/PoolManager.hpp"
 
-// namespace gnev::gl {
+namespace gnev::gl {
 
-// template <IsReflStruct T>
-// class EXPORT BufferReflManagedArray {
-// public:
-//     BufferReflManagedArray(std::unique_ptr<Buffer>&& buffer,
-//                            std::unique_ptr<IBufferRawAccessor>&& accessor)
-//         : manager{std::make_shared<IndexManager>(buffer->getSize() / sizeof(T))}
-//         , array(std::make_unique<gl::BufferReflArray<T>>(std::move(buffer),
-//                                                          std::move(accessor))) {}
+template <IsTriviallyCopyable T>
+class EXPORT BufferReflManagedArray : public BufferReflArray<T> {
+public:
+    using Range = PoolManager::Range;
 
-//     virtual ~BufferReflManagedArray() = default;
+    BufferReflManagedArray(std::unique_ptr<IBufferRawAccessor>&& accessor_)
+        : BufferReflArray<T>{std::move(accessor_)}
+        , manager{std::make_shared<PoolManager>(BufferReflArray<T>::capacity())} {}
 
-//     std::optional<unsigned> reserveIndex() { return manager->reserveIndex(); }
+    BufferReflManagedArray(const BufferReflManagedArray&) = delete;
+    BufferReflManagedArray(BufferReflManagedArray&&) = default;
+    virtual ~BufferReflManagedArray() = default;
 
-//     bool freeIndex(unsigned index) { return manager->freeIndex(index); }
+    inline std::optional<std::size_t> reserveIndex() {
+        return manager->reserve(1)->begin;
+    }
 
-//     bool isInUse(unsigned index) const { return manager->isInUse(index); }
+    inline std::optional<Range> reserveRange(std::size_t size) {
+        return manager->reserve(size);
+    }
 
-//     std::shared_ptr<unsigned> makeIndexGuard() {
-//         return IndexManager::makeIndexGuard(manager);
-//     }
+    inline bool free(Range range) { return manager->free(range); }
 
-//     gl::BufferReflAccessor<T> operator[](unsigned i) { return array->operator[](i); }
+    inline bool free(std::size_t index) { return manager->free(index); }
 
-//     const gl::BufferReflAccessor<T> operator[](unsigned i) const {
-//         return array->operator[](i);
-//     }
+    inline std::shared_ptr<Range> makeIndexGuard() {
+        return PoolManager::makeRangeGuard(1, manager);
+    }
 
-//     gl::BufferReflAccessor<T> at(unsigned i) {
-//         if (not isInUse(i)) {
-//             throw std::out_of_range("");
-//         }
-//         return array->operator[](i);
-//     }
+    inline std::shared_ptr<Range> makeRangeGuard(std::size_t size) {
+        return PoolManager::makeRangeGuard(size, manager);
+    }
 
-//     const gl::BufferReflAccessor<T> at(unsigned i) const {
-//         if (not isInUse(i)) {
-//             throw std::out_of_range("");
-//         }
-//         return array->operator[](i);
-//     }
+private:
+    std::shared_ptr<PoolManager> manager;
+};
 
-// private:
-//     std::shared_ptr<IndexManager> manager;
-//     std::unique_ptr<gl::BufferReflArray<T>> array;
-// };
-
-// } // namespace gnev::gl
+} // namespace gnev::gl

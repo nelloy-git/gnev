@@ -1,5 +1,9 @@
 #pragma once
 
+#include <cstddef>
+#include <limits>
+#include <utility>
+
 #include "pfr/core.hpp"
 #include "pfr/core_name.hpp"
 #include "pfr/traits.hpp"
@@ -13,91 +17,132 @@ template <typename T>
 static constexpr bool HasDefaultAlignmentV =
     sizeof(T) == sizeof(decltype(pfr::structure_to_tuple<T>(std::declval<T>())));
 
-template <typename T>
-static constexpr bool IsReflectibleV =
-    pfr::is_implicitly_reflectable_v<T, void> and HasDefaultAlignmentV<T>;
-
-template <typename T>
-concept IsReflectible = IsReflectibleV<T>;
-
 }; // namespace details
 
-template <details::IsReflectible T>
-struct Meta {
-    using Type = T;
-    using Members = decltype(pfr::structure_to_tuple(std::declval<T>()));
-    static constexpr auto Names = pfr::names_as_array<T>();
+template <typename T>
+static constexpr bool IsReflectableV = [](){
+    if constexpr (pfr::is_implicitly_reflectable_v<T, void>){
+        return details::HasDefaultAlignmentV<T>;
+    }
+    return false;
+}();
 
-    template <CtString Key>
-    struct KeyIndex {
-        static consteval std::size_t getIndex() {
+template <typename T>
+concept IsReflectable = IsReflectableV<T>;
+
+template <IsReflectable T>
+struct Meta;
+
+template <std::size_t S = 1>
+struct Key {
+    consteval Key(const Key& other)
+        : variant{other.variant}
+        , value_index{other.value_index}
+        , value_name{other.value_name} {}
+
+    consteval Key(std::size_t index)
+        : variant{Variant::Name}
+        , value_index{index}
+        , value_name{""} {}
+
+    consteval Key(const CtString<S>& name)
+        : variant{Variant::Name}
+        , value_index{std::numeric_limits<std::size_t>::max()}
+        , value_name{name} {}
+
+    consteval Key(const char (&str)[S])
+        : Key{CtString{str}} {}
+
+    template <IsReflectable T>
+    consteval std::size_t index() const {
+        if (variant == Variant::Index) {
+            return value_index;
+        } else if (variant == Variant::Name) {
+            constexpr auto Names = pfr::names_as_array<T>();
             std::size_t i = 0;
             for (i = 0; i < Names.size(); ++i) {
-                if (Key == Names[i]) {
+                if (value_name == Names[i]) {
                     return i;
                 }
             }
             throw std::out_of_range("Key not found");
+        } else {
+            throw std::out_of_range("Unknown variant");
         }
-
-        static constexpr std::size_t value = getIndex();
-    };
-
-    struct Index {
-        template <std::size_t I>
-        static consteval Index Make() {
-            return {I};
-        }
-
-        template <CtString Key>
-        static consteval Index Make() {
-            return {KeyIndex<Key>::value};
-        }
-
-        std::size_t value;
-    };
-
-    template <auto Key, auto... Next>
-    struct DeduceMember;
-
-    template <auto Key>
-    struct DeduceMember<Key> {
-        static constexpr std::size_t I = Index::template Make<Key>().value;
-        using type = pfr::tuple_element_t<I, T>;
-    };
-
-    template <auto Key, auto... Next>
-        requires(sizeof...(Next) > 0)
-    struct DeduceMember<Key, Next...> {
-        using type =
-            Meta<typename DeduceMember<Key>::type>::template DeduceMember<Next...>::type;
-    };
-
-    template <std::size_t I>
-    using MemberI = pfr::tuple_element_t<I, T>;
-
-    template <CtString Key>
-    using MemberS = MemberI<KeyIndex<Key>::value>;
-
-    template <auto Key>
-    static consteval std::size_t Offset(std::size_t base = 0) {
-        using Deduced = DeduceMember<Key>;
-        constexpr std::size_t N = Deduced::I;
-
-        auto get_local = []<std::size_t... I>(std::index_sequence<I...>) {
-            return (sizeof(pfr::tuple_element_t<I, T>) + ... + 0);
-        };
-        std::size_t local = get_local(std::make_index_sequence<N>{});
-
-        return base + local;
     }
 
-    template <auto Key, auto... Next>
+    enum class Variant {
+        Index,
+        Name
+    };
+
+    Variant variant;
+    std::size_t value_index;
+    CtString<S> value_name;
+};
+
+namespace details {
+
+template <IsReflectable T, Key K>
+static consteval std::size_t Offset(std::size_t base = 0) {
+    auto get_local = []<std::size_t... I>(std::index_sequence<I...>) {
+        return (sizeof(pfr::tuple_element_t<I, T>) + ... + 0);
+    };
+    std::size_t local = get_local(std::make_index_sequence<K.template index<T>()>{});
+
+    return base + local;
+}
+
+} // namespace details
+
+template <IsReflectable T, Key K>
+struct MemberInfo {
+    static constexpr std::size_t Index = K.template index<T>();
+    static constexpr auto Name = pfr::get_name<Index, T>();
+    static constexpr std::size_t Offset = details::Offset<T, K>();
+    using Type = pfr::tuple_element_t<Index, T>;
+};
+
+template <IsReflectable T>
+struct Meta {
+    using Type = T;
+
+    template <Key K, Key... Next>
+    struct DeduceMemberInfo;
+
+    template <Key K>
+    struct DeduceMemberInfo<K> {
+        using Type = MemberInfo<T, K>;
+    };
+
+    template <Key K, Key... Next>
+    struct DeduceMemberInfo {
+        using SubMeta = Meta<typename MemberInfo<T, K>::Type>;
+        using Type = SubMeta::template DeduceMemberInfo<Next...>::Type;
+    };
+
+    template <Key K, Key... Next>
+    using MemberInfo = DeduceMemberInfo<K, Next...>::Type;
+
+    template <Key K, Key... Next>
+    using MemberType = MemberInfo<K, Next...>::Type;
+
+    template <Key K, Key... Next>
+    using MemberMeta = Meta<MemberType<K, Next...>>;
+
+    template <Key K, Key... Next>
+    using MemberName = MemberInfo<K, Next...>::Name;
+    
+    template <Key K>
+    static consteval std::size_t MemberOffset(std::size_t base = 0){
+        return base + MemberInfo<K>::Offset;
+    };
+
+    template <Key K, Key... Next>
         requires(sizeof...(Next) > 0)
-    static consteval std::size_t Offset(std::size_t base = 0) {
-        using NextMeta = Meta<typename DeduceMember<Key>::type>;
-        return NextMeta::template Offset<Next...>(base + Offset<Key>());
-    }
+    static consteval std::size_t MemberOffset(std::size_t base = 0){
+        return MemberMeta<K>::template MemberOffset<Next...>(base + MemberOffset<K>());
+    };
 };
 
 } // namespace gnev::refl

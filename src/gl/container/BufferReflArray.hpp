@@ -1,53 +1,73 @@
 #pragma once
 
-#include <stdexcept>
+#include <vector>
 
 #include "gl/Buffer.hpp"
+#include "gl/Ctx.hpp"
 #include "gl/container/BufferReflAccessor.hpp"
 #include "gl/container/IBufferRawAccessor.hpp"
+#include "util/Logger.hpp"
 
 namespace gnev::gl {
 
-template <IsReflectible T>
+template <IsTriviallyCopyable T>
 class BufferReflArray {
 public:
     BufferReflArray(std::unique_ptr<IBufferRawAccessor>&& accessor_)
-        : cap{static_cast<unsigned>(accessor_->getBuffer().getSize() / sizeof(T))}
-        , accessor{std::move(accessor_)} {
-    }
+        : cap{initCap(accessor_->getBuffer())}
+        , accessor{std::move(accessor_)} {}
 
     BufferReflArray(const BufferReflArray&) = delete;
     BufferReflArray(BufferReflArray&&) = default;
 
     ~BufferReflArray() {}
 
-    unsigned size() const { return cap; }
+    inline std::size_t capacity() const { return cap; }
 
-    BufferReflAccessor<T> operator[](unsigned i) {
-        return {accessor, static_cast<unsigned>(i * sizeof(T))};
-    }
+    enum class FillMethod {
+        Massive,
+        Iterate
+    };
 
-    const BufferReflAccessor<T> operator[](unsigned i) const {
-        return {accessor, static_cast<unsigned>(i * sizeof(T))};
-    }
+    inline void fill(const T& val, std::size_t batch = 0) {
+        batch = batch == 0 ? capacity() : batch;
 
-    BufferReflAccessor<T> at(unsigned i) {
-        if (i >= cap) {
-            throw std::out_of_range("");
+        std::size_t iters = capacity() / batch;
+        std::vector<T> buffer{batch, val};
+        for (std::size_t i = 0; i < iters; ++i) {
+            accessor->set(0, batch * sizeof(T), buffer.data());
         }
-        return this->operator[](i);
+
+        std::size_t left = capacity() - iters * batch;
+        if (left == 0){
+            return;
+        }
+
+        std::vector<T> left_buffer{left, val};
+        accessor->set(0, left * sizeof(T), left_buffer.data());
     }
 
-    const BufferReflAccessor<T> at(unsigned i) const {
-        if (i >= cap) {
-            throw std::out_of_range("");
-        }
-        return this->operator[](i);
+    inline BufferReflAccessor<T> at(std::size_t i) {
+        return {accessor, static_cast<std::size_t>(i * sizeof(T))};
+    }
+
+    inline const BufferReflAccessor<T> at(std::size_t i) const {
+        return {accessor, static_cast<std::size_t>(i * sizeof(T))};
     }
 
 private:
-    unsigned cap;
+    std::size_t cap;
     std::shared_ptr<IBufferRawAccessor> accessor;
+
+    static std::size_t initCap(const Buffer& buffer) {
+        auto buffer_size = buffer.getSize();
+        if (buffer_size <= 0) {
+            Ctx::Get()
+                .getLogger()
+                .logMsg<LogLevel::ERROR, "Invalid size of Buffer<{}>">(buffer.handle());
+        }
+        return std::max(buffer_size, 0) / sizeof(T);
+    }
 };
 
 } // namespace gnev::gl

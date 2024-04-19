@@ -101,6 +101,7 @@
         "Lsizei",
         "mipmaps",
         "MULTISAMPLE",
+        "Reflectable",
         "Subbuffer"
     ],
     "cmake.configureOnOpen": false,

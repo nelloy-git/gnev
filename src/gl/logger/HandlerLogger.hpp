@@ -7,8 +7,7 @@ namespace gnev::gl {
 class EXPORT HandlerLogger : public CtxLogger {
 public:
     template <std::size_t ArgsN, bool HasResult>
-    static constexpr CtString HandleFuncFmt =
-        CtString{"{}<{}>::"} + FuncFmt<ArgsN, HasResult>;
+    static constexpr CtString HandleFuncFmt = "{}<{}>::"_cts + FuncFmt<ArgsN, HasResult>;
 
     HandlerLogger(CtxLogger&& logger, unsigned int handle)
         : CtxLogger{std::move(logger)}
@@ -34,7 +33,7 @@ public:
         }
     }
 
-    static constexpr CtString MsgFmt = CtString{"{}<{}>::{} => \"{}\""};
+    static constexpr CtString MsgFmt = "{}<{}>::{} => \"{}\""_cts;
 
     template <LogLevel Level>
     void logMsg(auto&& msg) const {
