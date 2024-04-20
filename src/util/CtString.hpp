@@ -56,6 +56,12 @@ struct CtString {
         return CtString<Size + OtherSize - 1>{arr};
     }
 
+    template <std::size_t OtherSize>
+    consteval CtString<Size + OtherSize - 1>
+    operator+(const char (&str)[OtherSize]) const {
+        return operator+(CtString{str});
+    }
+
     template <std::size_t N>
         requires(N == 0)
     consteval CtString<1> repeat() const {

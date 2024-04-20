@@ -8,9 +8,9 @@ BufferRawAccessorSubData::BufferRawAccessorSubData(std::unique_ptr<Buffer>&& buf
     resetBuffer(std::move(buffer));
 }
 
-Buffer& BufferRawAccessorSubData::getBuffer() { return *buffer; }
+Buffer* BufferRawAccessorSubData::getBuffer() { return buffer.get(); }
 
-const Buffer& BufferRawAccessorSubData::getBuffer() const { return *buffer; }
+const Buffer* BufferRawAccessorSubData::getBuffer() const { return buffer.get(); }
 
 std::unique_ptr<Buffer> BufferRawAccessorSubData::releaseBuffer() {
     return std::move(buffer);

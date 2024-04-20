@@ -1,9 +1,14 @@
+#include <array>
+
 #include "Mat4x4Storage.hpp"
 #include "gl/container/BufferRawAccessorSubData.hpp"
 #include "gl/container/BufferReflAccessor.hpp"
 #include "gl/container/BufferReflArray.hpp"
+#include "gl/container/BufferReflManagedArray.hpp"
 #include "glm/ext/matrix_float4x4.hpp"
+#include "glm/ext/vector_float4.hpp"
 #include "util/Logger.hpp"
+#include "util/Reflection.hpp"
 #ifdef WIN32
 #include <vld.h>
 #endif
@@ -186,21 +191,22 @@ quill::Logger* initLogger() {
     return logger;
 }
 
-template <auto A, auto B>
-struct EqAssert {
-    static_assert(A == B);
-    static constexpr bool value = (A == B);
-};
+struct Camera {
+    static constexpr unsigned int InvalidIndex = std::numeric_limits<unsigned int>::max();
 
-template <typename A, typename B>
-struct CmpTypes {
-    static constexpr bool value = []() {
-        static_assert(std::is_same_v<A, B>);
-        return std::is_same_v<A, B>;
-    }();
+    struct MatIndexes {
+        glm::uint view = InvalidIndex;
+        glm::uint proj = InvalidIndex;
+    };
+
+    refl::Aligned<glm::vec3, 16> position = {{0, 0, 0}};
+    refl::Aligned<glm::vec3, 16> direction = {{1, 0, 0}};
+    refl::Aligned<glm::vec3, 16> top = {{0, 1, 0}};
+    refl::Aligned<MatIndexes, 16> mats;
 };
 
 int main(int argc, const char** argv) {
+
     // auto current_dir = std::filesystem::current_path();
     // Log::init();
 
@@ -208,17 +214,41 @@ int main(int argc, const char** argv) {
     GlfwWindow wnd(1024, 768, initLogger());
     quill::start();
 
-    // Mat4x4Storage mat4x4_storage
-
+    std::unique_ptr<Mat4x4Storage> mat4x4_storage;
     {
         auto buffer = std::make_unique<gl::Buffer>();
         buffer->initStorage(100 * sizeof(glm::mat4x4),
                             nullptr,
                             gl::BufferStorageFlags::DYNAMIC_STORAGE_BIT);
         auto accessor = std::make_unique<gl::BufferRawAccessorSubData>(std::move(buffer));
-        Mat4x4Storage mat4x4_storage{std::move(accessor)};
-
+        mat4x4_storage = std::make_unique<Mat4x4Storage>(std::move(accessor));
     }
+
+    std::unique_ptr<gl::BufferReflManagedArray<Camera>> camera_storage;
+    {
+        auto buffer = std::make_unique<gl::Buffer>();
+        buffer->initStorage(4 * sizeof(Camera),
+                            nullptr,
+                            gl::BufferStorageFlags::DYNAMIC_STORAGE_BIT);
+        auto accessor = std::make_unique<gl::BufferRawAccessorSubData>(std::move(buffer));
+        camera_storage =
+            std::make_unique<gl::BufferReflManagedArray<Camera>>(std::move(accessor));
+        camera_storage->fill(Camera{});
+    }
+
+    auto camera_index = camera_storage->reserveIndex();
+    auto camera = camera_storage->at(camera_index.value());
+
+    auto view_mat_index = mat4x4_storage->reserveIndex();
+    auto proj_mat_index = mat4x4_storage->reserveIndex();
+    camera.set<"mats">({.value = {
+                            .view = static_cast<unsigned>(view_mat_index.value()),
+                            .proj = static_cast<unsigned>(proj_mat_index.value()),
+                        }});
+
+                        
+    gl::Ctx::Get().getLogger().log<LogLevel::DEBUG, "{}">(refl::FormatWrapper<Camera>{Camera{}});
+
     gl::Ctx::Get().getLogger().log<LogLevel::DEBUG, "NEXT">();
     // {
     //     auto buffer = std::make_unique<gl::Buffer>();

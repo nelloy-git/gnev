@@ -39,7 +39,7 @@ public:
         }
 
         std::size_t left = capacity() - iters * batch;
-        if (left == 0){
+        if (left == 0) {
             return;
         }
 
@@ -59,12 +59,17 @@ private:
     std::size_t cap;
     std::shared_ptr<IBufferRawAccessor> accessor;
 
-    static std::size_t initCap(const Buffer& buffer) {
-        auto buffer_size = buffer.getSize();
+    static std::size_t initCap(const Buffer* buffer) {
+        auto buffer_size = buffer ? buffer->getSize() : 0;
         if (buffer_size <= 0) {
-            Ctx::Get()
-                .getLogger()
-                .logMsg<LogLevel::ERROR, "Invalid size of Buffer<{}>">(buffer.handle());
+            if (buffer) {
+                Ctx::Get()
+                    .getLogger()
+                    .logMsg<LogLevel::ERROR,
+                            "Invalid size of Buffer<{}>">(buffer->handle());
+            } else {
+                Ctx::Get().getLogger().logMsg<LogLevel::ERROR, "No buffer">();
+            }
         }
         return std::max(buffer_size, 0) / sizeof(T);
     }

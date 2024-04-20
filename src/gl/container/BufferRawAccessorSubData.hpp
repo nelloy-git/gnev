@@ -10,8 +10,8 @@ class EXPORT BufferRawAccessorSubData : public IBufferRawAccessor {
 public:
     BufferRawAccessorSubData(std::unique_ptr<Buffer>&& buffer = nullptr);
 
-    Buffer& getBuffer() override;
-    const Buffer& getBuffer() const override;
+    Buffer* getBuffer() override;
+    const Buffer* getBuffer() const override;
 
     std::unique_ptr<Buffer> releaseBuffer() override;
     void resetBuffer(std::unique_ptr<Buffer>&& buffer) override;

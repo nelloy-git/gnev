@@ -1,13 +1,24 @@
 #pragma once
 
+#include <array>
 #include <cstddef>
+#include <iostream>
 #include <limits>
 #include <utility>
 
 #include "pfr/core.hpp"
 #include "pfr/core_name.hpp"
 #include "pfr/traits.hpp"
+#include "quill/bundled/fmt/compile.h"
+#include "quill/bundled/fmt/core.h"
 #include "util/CtString.hpp"
+#include "util/Logger.hpp"
+
+#ifdef WIN32
+#define GNEV_NO_UNIQUE_ADDRESS [[msvc::no_unique_address]]
+#else
+#define GNEV_NO_UNIQUE_ADDRESS [[no_unique_address]]
+#endif
 
 namespace gnev::refl {
 
@@ -20,8 +31,8 @@ static constexpr bool HasDefaultAlignmentV =
 }; // namespace details
 
 template <typename T>
-static constexpr bool IsReflectableV = [](){
-    if constexpr (pfr::is_implicitly_reflectable_v<T, void>){
+static constexpr bool IsReflectableV = []() {
+    if constexpr (pfr::is_implicitly_reflectable_v<T, void>) {
         return details::HasDefaultAlignmentV<T>;
     }
     return false;
@@ -132,17 +143,62 @@ struct Meta {
 
     template <Key K, Key... Next>
     using MemberName = MemberInfo<K, Next...>::Name;
-    
+
     template <Key K>
-    static consteval std::size_t MemberOffset(std::size_t base = 0){
+    static consteval std::size_t MemberOffset(std::size_t base = 0) {
         return base + MemberInfo<K>::Offset;
     };
 
     template <Key K, Key... Next>
         requires(sizeof...(Next) > 0)
-    static consteval std::size_t MemberOffset(std::size_t base = 0){
+    static consteval std::size_t MemberOffset(std::size_t base = 0) {
         return MemberMeta<K>::template MemberOffset<Next...>(base + MemberOffset<K>());
     };
 };
+
+template <typename T, std::size_t Align>
+struct Aligned {
+    static consteval std::size_t GetReserveSize() {
+        std::size_t n = sizeof(T) / Align;
+        return n * Align == sizeof(T) ? 0 : (n + 1) * Align - sizeof(T);
+    }
+
+    template <std::size_t Size>
+    struct Reserve {
+        std::array<std::byte, Size> _;
+    };
+
+    template <>
+    struct Reserve<0> {};
+
+    T value;
+    GNEV_NO_UNIQUE_ADDRESS Reserve<GetReserveSize()> reserve;
+};
+
+template <refl::IsReflectable T>
+struct FormatWrapper {
+    T value;
+};
+
+template <refl::IsReflectable T>
+std::string format_as(const FormatWrapper<T>& val) {
+    constexpr std::size_t FieldsN = pfr::tuple_size_v<T>;
+    constexpr CtString Fmt =
+        "{"_cts +
+        []<std::size_t... I>(std::index_sequence<I...>) {
+            return ((CtString<pfr::get_name<I, T>().size() + 1>(pfr::get_name<I, T>()) +
+                     ": , "_cts) +
+                    ...);
+        }(std::make_index_sequence<FieldsN - 1>{}) +
+        CtString<pfr::get_name<FieldsN - 1, T>().size() +
+                 1>(pfr::get_name<FieldsN - 1, T>()) +
+        ": "_cts + "}"_cts;
+    constexpr std::string_view fff = Fmt.to_string_view();
+    return fmtquill::format(FMTQUILL_COMPILE(fff));
+
+    // std::cout << Fmt.to_string_view().begin() << std::endl;
+    // gl::Ctx::Get().getLogger().log<LogLevel::DEBUG, Fmt>();
+    // return std::string{Fmt.to_string_view().begin(), Fmt.to_string_view().size()};
+}
 
 } // namespace gnev::refl

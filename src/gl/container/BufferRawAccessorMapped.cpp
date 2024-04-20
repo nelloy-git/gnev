@@ -11,9 +11,9 @@ BufferRawAccessorMapped::BufferRawAccessorMapped(BufferMapRangeAccess access,
     resetBuffer(std::move(buffer));
 }
 
-Buffer& BufferRawAccessorMapped::getBuffer() { return *buffer; }
+Buffer* BufferRawAccessorMapped::getBuffer() { return buffer.get(); }
 
-const Buffer& BufferRawAccessorMapped::getBuffer() const { return *buffer; }
+const Buffer* BufferRawAccessorMapped::getBuffer() const { return buffer.get(); }
 
 std::unique_ptr<Buffer> BufferRawAccessorMapped::releaseBuffer() {
     if (buffer) {
