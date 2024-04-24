@@ -1,6 +1,6 @@
 #pragma once
 
-#include "gl/Ctx.hpp"
+#include "Ctx.hpp"
 #include "magic_enum/magic_enum.hpp"
 
 namespace gnev::gl {

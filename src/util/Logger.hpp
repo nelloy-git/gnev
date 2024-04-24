@@ -1,7 +1,6 @@
 #pragma once
 
 #include <atomic>
-#include <memory>
 
 #include "quill/Quill.h"
 #include "util/CtString.hpp"
@@ -20,13 +19,13 @@ enum class LogLevel {
     CRITICAL
 };
 
-class Logger final {
+class EXPORT Logger final {
 public:
     Logger();
     ~Logger() = default;
 
     void setQuillLogger(quill::Logger* quill_logger);
-    quill::Logger* getQuillLogger();
+    quill::Logger* getQuillLogger() const ;
 
     template <LogLevel Level, CtString Fmt, typename... Args>
     inline void log(Args&&... args) const {

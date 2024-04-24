@@ -1,6 +1,6 @@
 #pragma once
 
-#include "gl/Ctx.hpp"
+#include "Ctx.hpp"
 
 namespace gnev::gl {
 
@@ -15,4 +15,4 @@ enum class TextureMinFilter : GLenum {
 
 std::string_view format_as(TextureMinFilter value);
 
-} // namespace gnev
+} // namespace gnev::gl

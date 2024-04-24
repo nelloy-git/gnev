@@ -1,6 +1,6 @@
 #pragma once
 
-#include "gl/Ctx.hpp"
+#include "Ctx.hpp"
 
 namespace gnev::gl {
 
@@ -20,4 +20,4 @@ enum class TextureTarget : GLenum {
 
 std::string_view format_as(TextureTarget value);
 
-} // namespace gnev
+} // namespace gnev::gl

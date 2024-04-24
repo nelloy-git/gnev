@@ -1,6 +1,6 @@
 #pragma once
 
-#include "gl/Ctx.hpp"
+#include "Ctx.hpp"
 #include "gl/enum/TextureFormat.hpp"
 #include "gl/enum/TextureType.hpp"
 #include "util/Export.hpp"

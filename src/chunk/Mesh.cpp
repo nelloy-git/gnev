@@ -46,9 +46,9 @@ void Mesh::bindAttribute(Loc shader_loc, Loc attrib_loc) {
 void Mesh::draw(std::size_t n_triangles, std::size_t first) const {
     auto offset = gl::GetIndexSize(index_type) * first;
 
-    gl::Ctx::Get().glDrawElements(GL_TRIANGLES,
-                                  3 * n_triangles,
-                                  index_type,
-                                  reinterpret_cast<const void*>(offset));
+    Ctx::Get().glDrawElements(GL_TRIANGLES,
+                              3 * n_triangles,
+                              index_type,
+                              reinterpret_cast<const void*>(offset));
 }
 } // namespace gnev

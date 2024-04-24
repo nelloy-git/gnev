@@ -8,13 +8,17 @@
 #include "GLFW/glfw3native.h"
 #include "gl/Debug.hpp"
 
-OpenGLContext::OpenGLContext(unsigned int width, unsigned int height, bool visible, quill::Logger* logger)
+OpenGLContext::OpenGLContext(unsigned int width,
+                             unsigned int height,
+                             bool visible,
+                             quill::Logger* logger)
     : window(createWindow(width, height, visible)) {
 
-    if (!gnev::gl::Ctx::IsInited()) {
-        gnev::gl::Ctx::Init(glfwGetProcAddress, logger);
+    if (!gnev::Ctx::IsInited()) {
+        gnev::Ctx::Init(glfwGetProcAddress, logger);
     }
-    auto& ctx = gnev::gl::Ctx::Get();
+    auto& ctx = gnev::Ctx::Get();
+    ctx.setQuillLogger(logger);
 
     GLint context_flags;
     ctx.glGetIntegerv(GL_CONTEXT_FLAGS, &context_flags);
@@ -39,7 +43,7 @@ OpenGLContext::OpenGLContext(unsigned int width, unsigned int height, bool visib
 
 OpenGLContext::~OpenGLContext() {}
 
-const gnev::gl::Ctx& OpenGLContext::getCtx() { return gnev::gl::Ctx::Get(); }
+const gnev::Ctx& OpenGLContext::getCtx() { return gnev::Ctx::Get(); }
 
 GLFWwindow& OpenGLContext::getWindow() { return *window; }
 

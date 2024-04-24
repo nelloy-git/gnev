@@ -2,8 +2,8 @@
 
 #include <vector>
 
+#include "Ctx.hpp"
 #include "gl/Buffer.hpp"
-#include "gl/Ctx.hpp"
 #include "gl/container/BufferReflAccessor.hpp"
 #include "gl/container/IBufferRawAccessor.hpp"
 #include "util/Logger.hpp"
@@ -63,12 +63,12 @@ private:
         auto buffer_size = buffer ? buffer->getSize() : 0;
         if (buffer_size <= 0) {
             if (buffer) {
-                Ctx::Get()
-                    .getLogger()
-                    .logMsg<LogLevel::ERROR,
-                            "Invalid size of Buffer<{}>">(buffer->handle());
+                // Ctx::Get()
+                //     .getLogger()
+                //     .logMsg<LogLevel::ERROR,
+                //             "Invalid size of Buffer<{}>">(buffer->handle());
             } else {
-                Ctx::Get().getLogger().logMsg<LogLevel::ERROR, "No buffer">();
+                // Ctx::Get().getLogger().logMsg<LogLevel::ERROR, "No buffer">();
             }
         }
         return std::max(buffer_size, 0) / sizeof(T);

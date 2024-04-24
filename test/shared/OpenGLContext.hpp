@@ -2,7 +2,7 @@
 
 #include <memory>
 
-#include "gl/Ctx.hpp"
+#include "Ctx.hpp"
 #include "util/Util.hpp"
 
 struct GLFWwindow;
@@ -15,7 +15,7 @@ public:
                   quill::Logger* logger = nullptr);
     virtual ~OpenGLContext();
 
-    static const gnev::gl::Ctx& getCtx();
+    static const gnev::Ctx& getCtx();
     GLFWwindow& getWindow();
 
 private:

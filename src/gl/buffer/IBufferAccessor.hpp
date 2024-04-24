@@ -3,7 +3,7 @@
 // #include <functional>
 
 // #include "gl/Buffer.hpp"
-// #include "gl/Ctx.hpp"
+// #include "Ctx.hpp"
 // #include "util/Export.hpp"
 
 // namespace gnev::gl {
@@ -13,7 +13,7 @@
 //     using Changer = std::function<void(void*, GLintptr size)>;
 
 //     virtual ~IBufferAccessor() = default;
-    
+
 //     virtual void bindBuffer(Buffer& buffer);
 
 //     virtual void set(GLintptr offset, GLintptr size, const void* data) = 0;

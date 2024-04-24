@@ -9,6 +9,8 @@
 #include "pfr/core.hpp"
 #include "pfr/core_name.hpp"
 #include "pfr/traits.hpp"
+#include "pfr/tuple_size.hpp"
+#include "quill/Fmt.h"
 #include "quill/bundled/fmt/compile.h"
 #include "quill/bundled/fmt/core.h"
 #include "util/CtString.hpp"
@@ -77,6 +79,17 @@ struct Key {
                 }
             }
             throw std::out_of_range("Key not found");
+        } else {
+            throw std::out_of_range("Unknown variant");
+        }
+    }
+
+    template <IsReflectable T>
+    consteval std::string_view name() const {
+        if (variant == Variant::Index) {
+            return pfr::names_as_array<T>()[value_index];
+        } else if (variant == Variant::Name) {
+            return value_name.to_string_view();
         } else {
             throw std::out_of_range("Unknown variant");
         }
@@ -174,31 +187,5 @@ struct Aligned {
     T value;
     GNEV_NO_UNIQUE_ADDRESS Reserve<GetReserveSize()> reserve;
 };
-
-template <refl::IsReflectable T>
-struct FormatWrapper {
-    T value;
-};
-
-template <refl::IsReflectable T>
-std::string format_as(const FormatWrapper<T>& val) {
-    constexpr std::size_t FieldsN = pfr::tuple_size_v<T>;
-    constexpr CtString Fmt =
-        "{"_cts +
-        []<std::size_t... I>(std::index_sequence<I...>) {
-            return ((CtString<pfr::get_name<I, T>().size() + 1>(pfr::get_name<I, T>()) +
-                     ": , "_cts) +
-                    ...);
-        }(std::make_index_sequence<FieldsN - 1>{}) +
-        CtString<pfr::get_name<FieldsN - 1, T>().size() +
-                 1>(pfr::get_name<FieldsN - 1, T>()) +
-        ": "_cts + "}"_cts;
-    constexpr std::string_view fff = Fmt.to_string_view();
-    return fmtquill::format(FMTQUILL_COMPILE(fff));
-
-    // std::cout << Fmt.to_string_view().begin() << std::endl;
-    // gl::Ctx::Get().getLogger().log<LogLevel::DEBUG, Fmt>();
-    // return std::string{Fmt.to_string_view().begin(), Fmt.to_string_view().size()};
-}
 
 } // namespace gnev::refl

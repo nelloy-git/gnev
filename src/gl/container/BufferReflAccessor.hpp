@@ -4,8 +4,10 @@
 #include <memory>
 #include <string_view>
 #include <type_traits>
+#include <typeinfo>
 #include <utility>
 
+#include "Ctx.hpp"
 #include "gl/container/IBufferRawAccessor.hpp"
 #include "pfr/core.hpp"
 #include "pfr/core_name.hpp"
@@ -14,6 +16,7 @@
 #include "util/CtString.hpp"
 #include "util/Logger.hpp"
 #include "util/Reflection.hpp"
+#include "util/SrcLoc.hpp"
 
 namespace gnev::gl {
 
@@ -33,33 +36,41 @@ public:
         : accessor{accessor}
         , base_offset{base_offset} {}
 
+    GLuint handle() const { return accessor->getBuffer()->handle(); }
+
     void set(const T& value) {
+        GNEV_HANDLER_LOG_L1(getTypeName<T>());
         bool success = accessor->set(base_offset, sizeof(T), &value);
         if (not success) {
-            Ctx::Get().getLogger().logMsg<LogLevel::ERROR, "Failed">();
+            // GNEV_LOG_ERROR(fmt, ...)
+            // GNEV_HANDLER_LOG_ERROR("")
+            // Ctx::Get().getLogger().logMsg<LogLevel::ERROR, "Failed">();
         }
     }
 
     T get() const {
+        GNEV_HANDLER_LOG_L1();
         T dst;
         bool success = accessor->get(base_offset, sizeof(T), &dst);
         if (not success) {
-            Ctx::Get().getLogger().log<LogLevel::ERROR, "Failed">();
+            // Ctx::Get().getLogger().log<LogLevel::ERROR, "Failed">();
         }
         return dst;
     }
 
     void change(const Changer<T>& changer) const {
+        GNEV_HANDLER_LOG_L1(getTypeName<Changer<T>>());
         bool success = accessor->change(base_offset, sizeof(T), changer);
         if (not success) {
-            Ctx::Get().getLogger().logMsg<LogLevel::ERROR, "Failed">();
+            // Ctx::Get().getLogger().logMsg<LogLevel::ERROR, "Failed">();
         }
     }
 
     void copy(const BufferReflAccessorImpl<T>& src) {
+        GNEV_HANDLER_LOG_L1(getTypeName<BufferReflAccessorImpl<T>>());
         bool success = accessor->copy(src.base_offset, base_offset, sizeof(T));
         if (not success) {
-            Ctx::Get().getLogger().logMsg<LogLevel::ERROR, "Failed">();
+            // Ctx::Get().getLogger().logMsg<LogLevel::ERROR, "Failed">();
         }
     }
 
@@ -87,6 +98,7 @@ public:
     template <refl::Key... Keys>
     using MemberT = Meta::template DeduceMemberInfo<Keys...>::Type::Type;
 
+    using details::BufferReflAccessorImpl<T>::handle;
     using details::BufferReflAccessorImpl<T>::get;
     using details::BufferReflAccessorImpl<T>::set;
     using details::BufferReflAccessorImpl<T>::change;
@@ -99,6 +111,7 @@ public:
     template <refl::Key... Keys>
         requires(sizeof...(Keys) > 0)
     auto sub() {
+        GNEV_HANDLER_LOG_L1();
         return BufferReflAccessor<MemberT<Keys...>>{
             details::BufferReflAccessorImpl<T>::accessor,
             details::BufferReflAccessorImpl<T>::base_offset +
@@ -108,13 +121,14 @@ public:
     template <refl::Key... Keys>
         requires(sizeof...(Keys) > 0)
     void set(const MemberT<Keys...>& value) {
+        GNEV_HANDLER_LOG_L1(getTypeName<MemberT<Keys...>>(), Keys.template name<T>()...);
         bool success = details::BufferReflAccessorImpl<T>::accessor
                            ->set(details::BufferReflAccessorImpl<T>::base_offset +
                                      Meta::template MemberOffset<Keys...>(),
                                  sizeof(MemberT<Keys...>),
                                  &value);
         if (not success) {
-            Ctx::Get().getLogger().logMsg<LogLevel::ERROR, "Failed">();
+            // Ctx::Get().getLogger().logMsg<LogLevel::ERROR, "Failed">();
         }
     }
 
@@ -129,7 +143,7 @@ public:
                                  sizeof(MemberT),
                                  &dst);
         if (not success) {
-            Ctx::Get().getLogger().log<LogLevel::ERROR, "Failed">();
+            // Ctx::Get().getLogger().log<LogLevel::ERROR, "Failed">();
         }
         return dst;
     }
@@ -145,7 +159,7 @@ public:
                                     sizeof(MemberT<Keys...>),
                                     changer);
         if (not success) {
-            Ctx::Get().getLogger().logMsg<LogLevel::ERROR, "Failed">();
+            // Ctx::Get().getLogger().logMsg<LogLevel::ERROR, "Failed">();
         }
     }
 
@@ -159,7 +173,7 @@ public:
                            Meta::template MemberOffset<Keys...>(),
                        sizeof(MemberT<Keys...>));
         if (not success) {
-            Ctx::Get().getLogger().logMsg<LogLevel::ERROR, "Failed">();
+            // Ctx::Get().getLogger().logMsg<LogLevel::ERROR, "Failed">();
         }
     }
 };

@@ -7,6 +7,7 @@
 #include "gl/container/BufferReflManagedArray.hpp"
 #include "glm/ext/matrix_float4x4.hpp"
 #include "glm/ext/vector_float4.hpp"
+#include "magic_enum/magic_enum.hpp"
 #include "util/Logger.hpp"
 #include "util/Reflection.hpp"
 #ifdef WIN32
@@ -35,7 +36,7 @@
 
 #include "GlfwWindow.hpp"
 // #include "MaterialPbrStorage.hpp"
-#include "gl/Ctx.hpp"
+#include "Ctx.hpp"
 // #include "gl/Program.hpp"
 // #include "gl/Sampler.hpp"
 #include "image/ImageLoaderStb.hpp"
@@ -175,10 +176,10 @@ std::shared_ptr<quill::Handler> initLoggerFileHandler(const quill::fs::path& pat
         cfg.set_open_mode('w');
         return cfg;
     }());
-    handler->set_pattern("%(ascii_time) [%(thread)] %(logger_name:<9) %(level_name:<12)"
-                         "%(message)",              // format
-                         "%H:%M:%S.%Qms",           // timestamp format
-                         quill::Timezone::GmtTime); // timestamp's timezone
+    handler->set_pattern("%(ascii_time) [%(thread)] %(logger_name:<9) %(level_name:<12) "
+                         "%(filename):%(lineno) %(message)", // format
+                         "%H:%M:%S.%Qms",                    // timestamp format
+                         quill::Timezone::GmtTime);          // timestamp's timezone
     handler->set_log_level(level);
     return handler;
 }
@@ -241,15 +242,13 @@ int main(int argc, const char** argv) {
 
     auto view_mat_index = mat4x4_storage->reserveIndex();
     auto proj_mat_index = mat4x4_storage->reserveIndex();
+    camera.set<"position">({.value = {0, 0, 0}});
+    camera.set<"direction">({.value = {0, 0, 0}});
     camera.set<"mats">({.value = {
                             .view = static_cast<unsigned>(view_mat_index.value()),
                             .proj = static_cast<unsigned>(proj_mat_index.value()),
                         }});
 
-                        
-    gl::Ctx::Get().getLogger().log<LogLevel::DEBUG, "{}">(refl::FormatWrapper<Camera>{Camera{}});
-
-    gl::Ctx::Get().getLogger().log<LogLevel::DEBUG, "NEXT">();
     // {
     //     auto buffer = std::make_unique<gl::Buffer>();
     //     buffer->initStorage(100 * sizeof(GlmMat4x4Meta),

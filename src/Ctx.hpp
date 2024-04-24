@@ -1,17 +1,15 @@
 #pragma once
 
 #include <memory>
-#include <stdexcept>
 
-#include "gl/logger/CtxLogger.hpp"
 #include "glad/gl.h"
+#include "quill/Logger.h"
+#include "quill/Quill.h"
 #include "util/Export.hpp"
-#include "util/Logger.hpp"
-#include "util/SrcLoc.hpp"
 
 struct GladGLContext;
 
-namespace gnev::gl {
+namespace gnev {
 
 class CtxLogger;
 
@@ -25,9 +23,10 @@ public:
     static Ctx& Get();
     virtual ~Ctx() = default;
 
-public:
-    CtxLogger getLogger(const SrcLoc& src_loc = SrcLoc::Current()) const;
+    void setQuillLogger(quill::Logger*);
+    quill::Logger* getQuillLogger() const;
 
+public:
     // Global
 
     void glActiveTexture(GLenum texture) const;
@@ -246,9 +245,61 @@ private:
     Ctx(LoadFunc load_func);
 
     std::unique_ptr<GladGLContext> glad;
-    Logger logger;
-
-    // CtxLogger getLogger(const SrcLoc& src_loc = SrcLoc::Current()) const;
+    quill::Logger* quill_logger = nullptr;
 };
 
-} // namespace gnev::gl
+#define GNEV_LOG_L3(fmt, ...)                                                            \
+    do {                                                                                 \
+        auto* quill_logger = gnev::Ctx::Get().getQuillLogger();                          \
+        if (quill_logger) {                                                              \
+            QUILL_LOG_TRACE_L3(quill_logger, fmt, ##__VA_ARGS__);                        \
+        }                                                                                \
+                                                                                         \
+    } while (0)
+
+#define GNEV_LOG_L2(fmt, ...)                                                            \
+    do {                                                                                 \
+        auto* quill_logger = gnev::Ctx::Get().getQuillLogger();                          \
+        if (quill_logger) {                                                              \
+            QUILL_LOG_TRACE_L2(quill_logger, fmt, ##__VA_ARGS__);                        \
+        }                                                                                \
+                                                                                         \
+    } while (0)
+
+#define GNEV_LOG_L1(fmt, ...)                                                            \
+    do {                                                                                 \
+        auto* quill_logger = gnev::Ctx::Get().getQuillLogger();                          \
+        if (quill_logger) {                                                              \
+            QUILL_LOG_TRACE_L1(quill_logger, fmt, ##__VA_ARGS__);                        \
+        }                                                                                \
+                                                                                         \
+    } while (0)
+
+#define GNEV_LOG_INFO(fmt, ...)                                                          \
+    do {                                                                                 \
+        auto* quill_logger = gnev::Ctx::Get().getQuillLogger();                          \
+        if (quill_logger) {                                                              \
+            QUILL_LOG_INFO(quill_logger, fmt, ##__VA_ARGS__);                            \
+        }                                                                                \
+                                                                                         \
+    } while (0)
+
+#define GNEV_LOG_ERROR(fmt, ...)                                                         \
+    do {                                                                                 \
+        auto* quill_logger = gnev::Ctx::Get().getQuillLogger();                          \
+        if (quill_logger) {                                                              \
+            QUILL_LOG_ERROR(quill_logger, fmt, ##__VA_ARGS__);                           \
+        }                                                                                \
+                                                                                         \
+    } while (0)
+
+#define GNEV_LOG_CRITICAL(fmt, ...)                                                      \
+    do {                                                                                 \
+        auto* quill_logger = gnev::Ctx::Get().getQuillLogger();                          \
+        if (quill_logger) {                                                              \
+            QUILL_LOG_CRITICAL(quill_logger, fmt, ##__VA_ARGS__);                        \
+        }                                                                                \
+                                                                                         \
+    } while (0)
+
+} // namespace gnev

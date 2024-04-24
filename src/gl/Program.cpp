@@ -2,7 +2,6 @@
 
 #include "gl/fmt/Enum.hpp"
 #include "gl/fmt/String.hpp"
-#include "gl/logger/HandlerLogger.hpp"
 // #include "gl/program/ProgramBinding.hpp"
 
 using enum gnev::LogLevel;
@@ -18,47 +17,47 @@ Program::Program()
 // , shader_texture_samplers(std::make_unique<
 //                           ProgramBinding<Texture>>(getMaxTextureImageUnits()))
 {
-    getLogger().logFunc<L2>();
+    GNEV_HANDLER_LOG_L2();
 }
 
-Program::~Program() { getLogger().logFunc<L2>(); }
+Program::~Program() { GNEV_HANDLER_LOG_L2(); }
 
 void Program::attach(const Shader& shader) {
-    getLogger().logFunc<L2>(shader.handle());
+    GNEV_HANDLER_LOG_L2(shader.handle());
     Ctx::Get().glAttachShader(handle(), shader.handle());
 }
 
 void Program::validate() {
-    getLogger().logFunc<L2>();
+    GNEV_HANDLER_LOG_L2();
     Ctx::Get().glValidateProgram(handle());
 }
 
 bool Program::isValidateSucceed() const {
-    getLogger().logFunc<L2>();
+    GNEV_HANDLER_LOG_L2();
     GLint is_valid;
     Ctx::Get().glGetProgramiv(handle(), GL_VALIDATE_STATUS, &is_valid);
     return is_valid == GL_TRUE;
 }
 
 void Program::link() {
-    getLogger().logFunc<L2>();
+    GNEV_HANDLER_LOG_L2();
     Ctx::Get().glLinkProgram(handle());
 }
 
 bool Program::isLinkSucceed() const {
-    getLogger().logFunc<L2>();
+    GNEV_HANDLER_LOG_L2();
     GLint is_linked;
     Ctx::Get().glGetProgramiv(handle(), GL_LINK_STATUS, &is_linked);
     return is_linked == GL_TRUE;
 }
 
 void Program::use() const {
-    getLogger().logFunc<L2>();
+    GNEV_HANDLER_LOG_L2();
     Ctx::Get().glUseProgram(handle());
 }
 
 GLsizei Program::getInfoLogLength() const {
-    getLogger().logFunc<L2>();
+    GNEV_HANDLER_LOG_L2();
     GLsizei len;
     Ctx::Get().glGetProgramiv(handle(),
                               GL_INFO_LOG_LENGTH,
@@ -67,7 +66,7 @@ GLsizei Program::getInfoLogLength() const {
 }
 
 std::string Program::getInfoLog() const {
-    getLogger().logFunc<L2>();
+    GNEV_HANDLER_LOG_L2();
 
     std::string info_log{};
     GLsizei len;
@@ -83,28 +82,27 @@ std::string Program::getInfoLog() const {
 }
 
 GLint Program::getAttributeLoc(const GLchar* name) const {
-    getLogger().logFunc<L2>(fmt::String{name});
+    GNEV_HANDLER_LOG_L2(fmt::String{name});
     GLint index = Ctx::Get().glGetAttribLocation(handle(), name);
     return index;
 }
 
 GLint Program::getUniformLoc(const GLchar* name) const {
-    getLogger().logFunc<L2>(fmt::String{name});
+    GNEV_HANDLER_LOG_L2(fmt::String{name});
     GLint index = Ctx::Get().glGetUniformLocation(handle(), name);
     return index;
 }
 
 GLint Program::getResourceIndex(GLenum interface, const GLchar* name) const {
-    getLogger().logFunc<L2>(fmt::Enum{interface,
-                                      fmt::Enum::Group::GetProgramResourceIndex},
-                            fmt::String{name});
+    GNEV_HANDLER_LOG_L2((fmt::Enum{interface, fmt::Enum::Group::GetProgramResourceIndex}),
+                        fmt::String{name});
     GLint index = Ctx::Get().glGetProgramResourceIndex(handle(), interface, name);
     return index;
 }
 
 void Program::bindShaderStorageBlockBuffer(const GLchar* storage_block_name,
                                            const std::shared_ptr<Buffer>& buffer) {
-    getLogger().logFunc<L2>(fmt::String{storage_block_name}, buffer->handle());
+    GNEV_HANDLER_LOG_L2(fmt::String{storage_block_name}, buffer->handle());
     bindShaderStorageBlockBuffer(getResourceIndex(GL_SHADER_STORAGE_BLOCK,
                                                   storage_block_name),
                                  buffer);
@@ -112,6 +110,7 @@ void Program::bindShaderStorageBlockBuffer(const GLchar* storage_block_name,
 
 void Program::bindShaderStorageBlockBuffer(GLuint storage_block_index,
                                            const std::shared_ptr<Buffer>& buffer) {
+    GNEV_LOG_CRITICAL("WIP");
     // Log().Func(storage_block_index, buffer->handle());
     // std::optional<GLuint> binding_index_opt =
     //     shader_storage_blocks->set(storage_block_index, buffer);
@@ -129,14 +128,14 @@ void Program::bindShaderStorageBlockBuffer(GLuint storage_block_index,
 
 void Program::bindShaderUniformBlockBuffer(const GLchar* uniform_block_name,
                                            const std::shared_ptr<Buffer>& buffer) {
-    getLogger().logFunc<L2>(fmt::String{uniform_block_name}, buffer->handle());
+    GNEV_HANDLER_LOG_L2(fmt::String{uniform_block_name}, buffer->handle());
     bindShaderUniformBlockBuffer(getResourceIndex(GL_UNIFORM_BLOCK, uniform_block_name),
                                  buffer);
 }
 
 void Program::bindShaderUniformBlockBuffer(GLuint uniform_block_index,
                                            const std::shared_ptr<Buffer>& buffer) {
-    getLogger().logMsg<CRITICAL>("WIP");
+    GNEV_LOG_CRITICAL("WIP");
     // Log().Func(uniform_block_index, buffer->handle());
     // std::optional<GLuint> binding_index_opt =
     //     shader_uniform_blocks->set(uniform_block_index, buffer);
@@ -155,13 +154,13 @@ void Program::bindShaderUniformBlockBuffer(GLuint uniform_block_index,
 
 void Program::bindShaderTextureSampler(const GLchar* texture_sampler_name,
                                        const std::shared_ptr<Texture>& texture) {
-    getLogger().logFunc<L2>(fmt::String{texture_sampler_name}, texture->handle());
+    GNEV_HANDLER_LOG_L2(fmt::String{texture_sampler_name}, texture->handle());
     bindShaderTextureSampler(getUniformLoc(texture_sampler_name), texture);
 }
 
 void Program::bindShaderTextureSampler(GLuint texture_sampler_index,
                                        const std::shared_ptr<Texture>& texture) {
-    getLogger().logMsg<CRITICAL>("WIP");
+    GNEV_LOG_CRITICAL("WIP");
     // Log().Func(texture_sampler_index, texture->handle());
     // std::optional<GLuint> binding_index_opt =
     //     shader_texture_samplers->set(texture_sampler_index, texture);
@@ -175,33 +174,33 @@ void Program::bindShaderTextureSampler(GLuint texture_sampler_index,
 }
 
 GLuint Program::getMaxShaderStorageBufferBindings() {
-    getLogger().logFunc<L2>();
-    static GLuint MAX_SHADER_STORAGE_BUFFER_BINDINGS = [logger = getLogger()]() {
+    GNEV_HANDLER_LOG_L2();
+    static GLuint MAX_SHADER_STORAGE_BUFFER_BINDINGS = []() {
         GLint value;
         Ctx::Get().glGetIntegerv(GL_MAX_SHADER_STORAGE_BUFFER_BINDINGS, &value);
-        logger.log<INFO, "GL_MAX_SHADER_STORAGE_BUFFER_BINDINGS: {}">(value);
+        GNEV_LOG_INFO("GL_MAX_SHADER_STORAGE_BUFFER_BINDINGS: {}", value);
         return value;
     }();
     return MAX_SHADER_STORAGE_BUFFER_BINDINGS;
 }
 
 GLuint Program::getMaxUniformBufferBindings() {
-    getLogger().logFunc<L2>();
-    static GLuint MAX_UNIFORM_BUFFER_BINDINGS = [logger = getLogger()]() {
+    GNEV_HANDLER_LOG_L2();
+    static GLuint MAX_UNIFORM_BUFFER_BINDINGS = []() {
         GLint value;
         Ctx::Get().glGetIntegerv(GL_MAX_UNIFORM_BUFFER_BINDINGS, &value);
-        logger.log<INFO, "GL_MAX_UNIFORM_BUFFER_BINDINGS: {}">(value);
+        GNEV_LOG_INFO("GL_MAX_UNIFORM_BUFFER_BINDINGS: {}", value);
         return value;
     }();
     return MAX_UNIFORM_BUFFER_BINDINGS;
 }
 
 GLuint Program::getMaxTextureImageUnits() {
-    getLogger().logFunc<L2>();
-    static GLuint MAX_TEXTURE_IMAGE_UNITS = [logger = getLogger()]() {
+    GNEV_HANDLER_LOG_L2();
+    static GLuint MAX_TEXTURE_IMAGE_UNITS = []() {
         GLint value;
         Ctx::Get().glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &value);
-        logger.log<INFO, "GL_MAX_TEXTURE_IMAGE_UNITS: {}">(value);
+        GNEV_LOG_INFO("GL_MAX_TEXTURE_IMAGE_UNITS: {}", value);
         return value;
     }();
     return MAX_TEXTURE_IMAGE_UNITS;

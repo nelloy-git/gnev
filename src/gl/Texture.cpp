@@ -1,25 +1,19 @@
 #include "gl/Texture.hpp"
 
-#include "gl/fmt/BitFlags.hpp"
-#include "gl/fmt/Enum.hpp"
-#include "gl/logger/HandlerLogger.hpp"
-
-using enum gnev::LogLevel;
-
 namespace gnev::gl {
 
 Texture::Texture(TextureTarget target)
-    : Handler(createHandle(static_cast<GLenum>(target)), &deleteHandle) {}
+    : Handler(createHandle(static_cast<GLenum>(target)), &deleteHandle) {GNEV_HANDLER_LOG_L2();}
 
-Texture::~Texture() { getLogger().logFunc<L2>(); }
+Texture::~Texture() { GNEV_HANDLER_LOG_L2(); }
 
 void Texture::bind(TextureTarget target) const {
-    getLogger().logFunc<L2>(target);
+    GNEV_HANDLER_LOG_L2(target);
     Ctx::Get().glBindTexture(static_cast<GLenum>(target), handle());
 }
 
 TextureTarget Texture::getTarget() const {
-    getLogger().logFunc<L2>();
+    GNEV_HANDLER_LOG_L2();
     TextureTarget target;
     Ctx::Get().glGetTextureParameteriv(handle(),
                                        GL_TEXTURE_TARGET,
@@ -28,56 +22,56 @@ TextureTarget Texture::getTarget() const {
 }
 
 GLuint Texture::getWidth(GLuint level) const {
-    getLogger().logFunc<L2>(level);
+    GNEV_HANDLER_LOG_L2(level);
     GLint width;
     Ctx::Get().glGetTextureLevelParameteriv(handle(), level, GL_TEXTURE_WIDTH, &width);
     return width;
 }
 
 GLuint Texture::getHeight(GLuint level) const {
-    getLogger().logFunc<L2>(level);
+    GNEV_HANDLER_LOG_L2(level);
     GLint height;
     Ctx::Get().glGetTextureLevelParameteriv(handle(), level, GL_TEXTURE_HEIGHT, &height);
     return height;
 }
 
 GLuint Texture::getDepth(GLuint level) const {
-    getLogger().logFunc<L2>(level);
+    GNEV_HANDLER_LOG_L2(level);
     GLint depth;
     Ctx::Get().glGetTextureLevelParameteriv(handle(), level, GL_TEXTURE_DEPTH, &depth);
     return depth;
 }
 
 void Texture::setWrapS(TextureWrapS wrap) {
-    getLogger().logFunc<L2>(wrap);
+    GNEV_HANDLER_LOG_L2(wrap);
     Ctx::Get().glTextureParameteri(handle(),
                                    GL_TEXTURE_WRAP_S,
                                    static_cast<GLenum>(wrap));
 }
 
 void Texture::setWrapT(TextureWrapT wrap) {
-    getLogger().logFunc<L2>(wrap);
+    GNEV_HANDLER_LOG_L2(wrap);
     Ctx::Get().glTextureParameteri(handle(),
                                    GL_TEXTURE_WRAP_T,
                                    static_cast<GLenum>(wrap));
 }
 
 void Texture::setMinFilter(TextureMinFilter filter) {
-    getLogger().logFunc<L2>(filter);
+    GNEV_HANDLER_LOG_L2(filter);
     Ctx::Get().glTextureParameteri(handle(),
                                    GL_TEXTURE_MIN_FILTER,
                                    static_cast<GLenum>(filter));
 }
 
 void Texture::setMagFilter(TextureMagFilter filter) {
-    getLogger().logFunc<L2>(filter);
+    GNEV_HANDLER_LOG_L2(filter);
     Ctx::Get().glTextureParameteri(handle(),
                                    GL_TEXTURE_MAG_FILTER,
                                    static_cast<GLenum>(filter));
 }
 
 void Texture::generateMipmap() {
-    getLogger().logFunc<L2>();
+    GNEV_HANDLER_LOG_L2();
     Ctx::Get().glGenerateTextureMipmap(handle());
 }
 
@@ -86,7 +80,7 @@ void Texture::initStorage3D(GLuint levels,
                             GLuint width,
                             GLuint height,
                             GLuint depth) {
-    getLogger().logFunc<L2>(levels, internal_format, width, height, depth);
+    GNEV_HANDLER_LOG_L2(levels, internal_format, width, height, depth);
     Ctx::Get().glTextureStorage3D(handle(),
                                   levels,
                                   static_cast<GLenum>(internal_format),
@@ -105,7 +99,7 @@ void Texture::setSubImage3D(GLuint level,
                             TextureFormat format,
                             TextureType type,
                             const void* pixels) {
-    getLogger().logFunc<L2>(level, x, y, z, width, height, depth, format, type, pixels);
+    GNEV_HANDLER_LOG_L2(level, x, y, z, width, height, depth, format, type, pixels);
     Ctx::Get().glTextureSubImage3D(handle(),
                                    level,
                                    x,
@@ -130,8 +124,7 @@ void Texture::getSubImage(GLuint level,
                           TextureType type,
                           GLuint bufSize,
                           void* pixels) const {
-    getLogger()
-        .logFunc<L2>(level, x, y, z, width, height, depth, format, type, bufSize, pixels);
+    GNEV_HANDLER_LOG_L2(level, x, y, z, width, height, depth, format, type, bufSize, pixels);
     Ctx::Get().glGetTextureSubImage(handle(),
                                     level,
                                     x,
@@ -158,7 +151,7 @@ void Texture::copyTo(Texture& dst,
                      GLuint src_width,
                      GLuint src_height,
                      GLuint src_depth) const {
-    getLogger().logFunc<L2>(dst.handle(),
+    GNEV_HANDLER_LOG_L2(dst.handle(),
                             src_level,
                             src_x,
                             src_y,

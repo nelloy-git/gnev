@@ -1,6 +1,6 @@
 #pragma once
 
-#include "gl/Ctx.hpp"
+#include "Ctx.hpp"
 #include "util/Logger.hpp"
 
 namespace gnev::fmt {
@@ -39,7 +39,7 @@ private:
     const char* searchGetProgramResourceIndex() const;
 };
 
-} // namespace gnev
+} // namespace gnev::fmt
 
 template <>
 struct fmtquill::formatter<gnev::fmt::Enum> : ostream_formatter {};

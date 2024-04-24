@@ -1,6 +1,6 @@
 #include "image/ImageLoaderStb.hpp"
 
-#include "gl/Ctx.hpp"
+#include "Ctx.hpp"
 #include "image/ImageLoaderStbResult.hpp"
 
 #define STB_IMAGE_IMPLEMENTATION

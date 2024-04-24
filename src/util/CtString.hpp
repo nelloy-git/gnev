@@ -36,7 +36,7 @@ struct CtString {
         : length(str.back() == '\0' ? str.length() : str.length() + 1)
         , array(initArray(str)) {}
 
-    constexpr std::string_view to_string_view() const {
+    consteval std::string_view to_string_view() const {
         return std::string_view(array.data(), length - 1);
     }
 
@@ -60,6 +60,14 @@ struct CtString {
     consteval CtString<Size + OtherSize - 1>
     operator+(const char (&str)[OtherSize]) const {
         return operator+(CtString{str});
+    }
+
+    template<std::size_t SepSize, std::size_t FirstSize, std::size_t... OtherSize>
+        requires(sizeof...(OtherSize) > 0)
+    static consteval auto AddSep(const CtString<SepSize>& sep,
+                                     const CtString<FirstSize>& first,
+                                     const CtString<OtherSize>&... other){
+        return first + ((sep + other) + ...);
     }
 
     template <std::size_t N>

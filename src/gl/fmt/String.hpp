@@ -1,6 +1,6 @@
 #pragma once
 
-#include "gl/Ctx.hpp"
+#include "Ctx.hpp"
 #include "util/Logger.hpp"
 
 namespace gnev::fmt {

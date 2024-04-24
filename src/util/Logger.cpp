@@ -8,7 +8,7 @@ void Logger::setQuillLogger(quill::Logger* quill_logger_) {
     quill_logger = quill_logger_;
 }
 
-quill::Logger* Logger::getQuillLogger() { return quill_logger; }
+quill::Logger* Logger::getQuillLogger() const { return quill_logger; }
 
 
 } // namespace gnev

@@ -1,7 +1,7 @@
 #pragma once
 
+#include "Ctx.hpp"
 #include "gl/Buffer.hpp"
-#include "gl/Ctx.hpp"
 #include "gl/VertexArray.hpp"
 #include "gl/data/Index.hpp"
 #include "gl/data/VertexInfo.hpp"
