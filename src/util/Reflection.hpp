@@ -22,6 +22,14 @@
 #define GNEV_NO_UNIQUE_ADDRESS [[no_unique_address]]
 #endif
 
+
+namespace gnev {
+
+template <typename T>
+concept IsTriviallyCopyable = std::is_trivially_copyable_v<T>;
+
+}
+
 namespace gnev::refl {
 
 namespace details {

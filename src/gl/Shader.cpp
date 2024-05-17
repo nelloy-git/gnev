@@ -4,60 +4,61 @@ namespace gnev::gl {
 
 Shader::Shader(ShaderType type)
     : Handler(createHandle(type), &deleteHandle) {
-    GNEV_HANDLER_LOG_L2(type);
+    GNEV_HANDLER_LOG(L2, type);
 }
 
-Shader::~Shader() { GNEV_HANDLER_LOG_L2(); }
+Shader::~Shader() { GNEV_HANDLER_LOG(L2); }
 
 void Shader::setSource(GLsizei count, const GLchar* const* string, const GLint* length) {
-    GNEV_HANDLER_LOG_L2(count,
-                        std::vector<std::string>(string, string + count),
-                        std::vector(length, length + count));
+    GNEV_HANDLER_LOG(L2,
+                     count,
+                     std::vector<std::string>(string, string + count),
+                     std::vector(length, length + count));
     Ctx::Get().glShaderSource(handle(), count, string, length);
 }
 
 void Shader::compile() {
-    GNEV_HANDLER_LOG_L2();
+    GNEV_HANDLER_LOG(L2);
     Ctx::Get().glCompileShader(handle());
 }
 
 ShaderType Shader::getType() const {
-    GNEV_HANDLER_LOG_L2();
+    GNEV_HANDLER_LOG(L2);
     ShaderType type;
     Ctx::Get().glGetShaderiv(handle(), GL_SHADER_TYPE, reinterpret_cast<GLint*>(&type));
     return type;
 }
 
 bool Shader::hasDeleteFlag() const {
-    GNEV_HANDLER_LOG_L2();
+    GNEV_HANDLER_LOG(L2);
     GLint has_delete_flag;
     Ctx::Get().glGetShaderiv(handle(), GL_DELETE_STATUS, &has_delete_flag);
     return has_delete_flag == GL_TRUE;
 }
 
 bool Shader::isCompileSucceed() const {
-    GNEV_HANDLER_LOG_L2();
+    GNEV_HANDLER_LOG(L2);
     GLint is_compiled;
     Ctx::Get().glGetShaderiv(handle(), GL_COMPILE_STATUS, &is_compiled);
     return is_compiled == GL_TRUE;
 }
 
 GLsizei Shader::getInfoLogLenth() const {
-    GNEV_HANDLER_LOG_L2();
+    GNEV_HANDLER_LOG(L2);
     GLsizei len;
     Ctx::Get().glGetShaderiv(handle(), GL_INFO_LOG_LENGTH, &len);
     return len;
 }
 
 GLsizei Shader::getSourceLenth() const {
-    GNEV_HANDLER_LOG_L2();
+    GNEV_HANDLER_LOG(L2);
     GLsizei len;
     Ctx::Get().glGetShaderiv(handle(), GL_SHADER_SOURCE_LENGTH, &len);
     return len;
 }
 
 std::string Shader::getInfoLog() const {
-    GNEV_HANDLER_LOG_L2();
+    GNEV_HANDLER_LOG(L2);
     std::string info_log;
     GLsizei len;
     Ctx::Get().glGetShaderiv(handle(), GL_INFO_LOG_LENGTH, &len);

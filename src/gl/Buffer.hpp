@@ -39,4 +39,6 @@ private:
     static void deleteHandle(GLuint* handle);
 };
 
+std::string format_as(const Buffer&);
+
 } // namespace gnev::gl

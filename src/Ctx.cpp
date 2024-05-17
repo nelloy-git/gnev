@@ -4,13 +4,10 @@
 #include <memory>
 #include <string_view>
 
-#include "boost/preprocessor/repetition/repeat.hpp"
-#include "boost/preprocessor/seq/enum.hpp"
-#include "boost/preprocessor/stringize.hpp"
-#include "boost/preprocessor/variadic/size.hpp"
 #include "gl/fmt/BitFlags.hpp"
 #include "gl/fmt/CharPtr.hpp"
 #include "gl/fmt/Enum.hpp"
+#include "util/Log.hpp"
 
 #ifdef WIN32
 #include <windows.h>
@@ -18,29 +15,12 @@
 
 #ifdef GNEV_DO_NOT_LOG_FUNC_NAME
 #define GNEV_CTX_LOG_L3_CALL(...)                                                        \
-    GNEV_LOG_L3("(" BOOST_PP_STRINGIZE(                   \
-            BOOST_PP_SEQ_ENUM(                              \
-                BOOST_PP_REPEAT(                            \
-                    BOOST_PP_VARIADIC_SIZE(__VA_ARGS__),    \
-                    GNEV_CTX_LOG_L3_CALL_HELPER,            \
-                    _                                       \
-                )                                           \
-            )                                               \
-        ) ")",        \
-                                       ##__VA_ARGS__)
+    GNEV_LOG_L3(GNEV_ARGS_STR(BOOST_PP_VARIADIC_SIZE(__VA_ARGS__)), ##__VA_ARGS__)
 #else
 #define GNEV_CTX_LOG_L3_CALL(...)                                                        \
-    GNEV_LOG_L3("{}(" BOOST_PP_STRINGIZE(                   \
-            BOOST_PP_SEQ_ENUM(                              \
-                BOOST_PP_REPEAT(                            \
-                    BOOST_PP_VARIADIC_SIZE(__VA_ARGS__),    \
-                    GNEV_CTX_LOG_L3_CALL_HELPER,            \
-                    _                                       \
-                )                                           \
-            )                                               \
-        ) ")",        \
-                                         __FUNCTION__,                                   \
-                                         ##__VA_ARGS__)
+    GNEV_LOG_L3("{}" GNEV_ARGS_STR(BOOST_PP_VARIADIC_SIZE(__VA_ARGS__)),                 \
+                GNEV_GET_FUNC_NAME,                                                      \
+                ##__VA_ARGS__)
 #endif
 
 #define GNEV_CTX_LOG_L3_CALL_HELPER(z, i, _) ({})
@@ -111,7 +91,7 @@ void Ctx::Init(LoadFunc load_func, quill::Logger* quill_logger) {
     thread_ctx = std::unique_ptr<Ctx>(new Ctx(load_func));
     Ctx* p_ctx = thread_ctx.get();
 #endif
-    if (quill_logger){
+    if (quill_logger) {
         QUILL_LOG_INFO(quill_logger, "Quill logger in use");
     }
 }
@@ -167,7 +147,7 @@ void Ctx::glClearColor(GLfloat red, GLfloat green, GLfloat blue, GLfloat alpha) 
 void Ctx::glGetIntegerv(GLenum pname, GLint* params) const {
     GNEV_CTX_LOG_L3_CALL(fmt::Enum{pname}, static_cast<void*>(params));
     glad->GetIntegerv(pname, params);
-    GNEV_LOG_L3("{} -> {}", static_cast<void*>(params), *params);
+    GNEV_LOG_L3("\t{} -> {}", static_cast<void*>(params), *params);
 }
 
 void Ctx::glEnable(GLenum pname) const {
@@ -210,14 +190,14 @@ void Ctx::glDrawElements(GLenum mode,
 void Ctx::glCreateBuffers(GLsizei n, GLuint* buffers) const {
     GNEV_CTX_LOG_L3_CALL(n, static_cast<const void*>(buffers));
     glad->CreateBuffers(n, buffers);
-    GNEV_LOG_L3("{} -> {}",
+    GNEV_LOG_L3("\t{} -> {}",
                 static_cast<void*>(buffers),
                 std::vector(buffers, buffers + n));
 }
 
 void Ctx::glDeleteBuffers(GLsizei n, GLuint* buffers) const {
     GNEV_CTX_LOG_L3_CALL(n, static_cast<const void*>(buffers));
-    GNEV_LOG_L3("{} -> {}",
+    GNEV_LOG_L3("\t{} -> {}",
                 static_cast<void*>(buffers),
                 std::vector(buffers, buffers + n));
     glad->DeleteBuffers(n, buffers);
@@ -289,13 +269,13 @@ void Ctx::glCopyNamedBufferSubData(GLuint readBuffer,
 void Ctx::glGetNamedBufferParameteriv(GLuint buffer, GLenum pname, GLint* params) const {
     GNEV_CTX_LOG_L3_CALL(buffer, fmt::Enum{pname}, static_cast<void*>(params));
     glad->GetNamedBufferParameteriv(buffer, pname, params);
-    GNEV_LOG_L3("{} -> {}", static_cast<void*>(params), *params);
+    GNEV_LOG_L3("\t{} -> {}", static_cast<void*>(params), *params);
 }
 
 void* Ctx::glMapNamedBuffer(GLuint buffer, GLenum access) const {
     GNEV_CTX_LOG_L3_CALL(buffer, fmt::Enum{access});
     void* map = glad->MapNamedBuffer(buffer, access);
-    GNEV_LOG_L3(" return {}", map);
+    GNEV_LOG_L3("\treturn {}", map);
     return map;
 }
 
@@ -305,7 +285,7 @@ void* Ctx::glMapNamedBufferRange(GLuint buffer,
                                  GLbitfield access) const {
     GNEV_CTX_LOG_L3_CALL(buffer, offset, length, access);
     void* map = glad->MapNamedBufferRange(buffer, offset, length, access);
-    GNEV_CTX_LOG_L3_CALL(buffer, offset, length, access, map);
+    GNEV_LOG_L3("\treturn {}", map);
     return map;
 }
 
@@ -352,7 +332,7 @@ void Ctx::glCompileShader(GLuint shader) const {
 void Ctx::glGetShaderiv(GLuint shader, GLenum pname, GLint* params) const {
     GNEV_CTX_LOG_L3_CALL(shader, fmt::Enum{pname}, static_cast<void*>(params));
     glad->GetShaderiv(shader, pname, params);
-    GNEV_LOG_L3("{} -> {}", static_cast<void*>(params), *params);
+    GNEV_LOG_L3("\t{} -> {}", static_cast<void*>(params), *params);
 }
 
 void Ctx::glGetShaderInfoLog(GLuint shader,
@@ -364,14 +344,14 @@ void Ctx::glGetShaderInfoLog(GLuint shader,
                          static_cast<void*>(length),
                          static_cast<void*>(infoLog));
     glad->GetShaderInfoLog(shader, bufSize, length, infoLog);
-    GNEV_LOG_L3("{} -> {}", static_cast<void*>(length), *length);
-    GNEV_LOG_L3("{} -> {}", static_cast<void*>(infoLog), fmt::CharPtr{infoLog});
+    GNEV_LOG_L3("\t{} -> {}", static_cast<void*>(length), *length);
+    GNEV_LOG_L3("\t{} -> {}", static_cast<void*>(infoLog), fmt::CharPtr{infoLog});
 }
 
 GLuint Ctx::glCreateProgram() const {
     GNEV_CTX_LOG_L3_CALL();
     GLuint program = glad->CreateProgram();
-    GNEV_LOG_L3(" return {}", program);
+    GNEV_LOG_L3("\treturn {}", program);
     return program;
 }
 
@@ -403,7 +383,7 @@ void Ctx::glUseProgram(GLuint program) const {
 void Ctx::glGetProgramiv(GLuint program, GLenum pname, GLint* params) const {
     GNEV_CTX_LOG_L3_CALL(program, fmt::Enum{pname}, static_cast<const void*>(params));
     glad->GetProgramiv(program, pname, params);
-    GNEV_LOG_L3("{} -> {}", static_cast<const void*>(params), *params);
+    GNEV_LOG_L3("\t{} -> {}", static_cast<const void*>(params), *params);
 }
 
 void Ctx::glGetProgramInfoLog(GLuint program,
@@ -415,8 +395,8 @@ void Ctx::glGetProgramInfoLog(GLuint program,
                          static_cast<void*>(length),
                          static_cast<void*>(infoLog));
     glad->GetProgramInfoLog(program, bufSize, length, infoLog);
-    GNEV_LOG_L3("{} -> {}", static_cast<void*>(length), *length);
-    GNEV_LOG_L3("{} -> {}", static_cast<void*>(infoLog), fmt::CharPtr{infoLog});
+    GNEV_LOG_L3("\t{} -> {}", static_cast<void*>(length), *length);
+    GNEV_LOG_L3("\t{} -> {}", static_cast<void*>(infoLog), fmt::CharPtr{infoLog});
 }
 
 void Ctx::glUniform1i(GLint location, GLint v0) const {
@@ -464,14 +444,14 @@ GLint Ctx::glGetAttribLocation(GLuint program, const GLchar* name) const {
 GLint Ctx::glGetUniformLocation(GLuint program, const GLchar* name) const {
     GNEV_CTX_LOG_L3_CALL(program, fmt::CharPtr{name});
     GLint loc = glad->GetUniformLocation(program, name);
-    GNEV_LOG_L3(" return {}", loc);
+    GNEV_LOG_L3("\treturn {}", loc);
     return loc;
 }
 
 void Ctx::glCreateTextures(GLenum target, GLsizei n, GLuint* textures) const {
     GNEV_CTX_LOG_L3_CALL(n, static_cast<void*>(textures));
     glad->CreateTextures(target, n, textures);
-    GNEV_LOG_L3("{} -> {}",
+    GNEV_LOG_L3("\t{} -> {}",
                 static_cast<void*>(textures),
                 std::vector(textures, textures + n));
 }
@@ -494,7 +474,7 @@ void Ctx::glTextureParameteri(GLuint texture, GLenum pname, GLint param) const {
 void Ctx::glGetTextureParameteriv(GLuint texture, GLenum pname, GLint* param) const {
     GNEV_CTX_LOG_L3_CALL(texture, fmt::Enum{pname}, static_cast<const void*>(param));
     glad->GetTextureParameteriv(texture, pname, param);
-    GNEV_LOG_L3("{} -> {}", static_cast<const void*>(param), *param);
+    GNEV_LOG_L3("\t{} -> {}", static_cast<const void*>(param), *param);
 }
 
 void Ctx::glGetTextureLevelParameteriv(GLuint texture,
@@ -506,13 +486,13 @@ void Ctx::glGetTextureLevelParameteriv(GLuint texture,
                          fmt::Enum{pname},
                          static_cast<const void*>(param));
     glad->GetTextureLevelParameteriv(texture, level, pname, param);
-    GNEV_LOG_L3("{} -> {}", static_cast<const void*>(param), *param);
+    GNEV_LOG_L3("\t{} -> {}", static_cast<const void*>(param), *param);
 }
 
 void Ctx::glTextureParameterfv(GLuint texture, GLenum pname, const GLfloat* param) const {
     GNEV_CTX_LOG_L3_CALL(texture, fmt::Enum{pname}, static_cast<const void*>(param));
     glad->TextureParameterfv(texture, pname, param);
-    GNEV_LOG_L3("{} -> {}", static_cast<const void*>(param), param[0]);
+    GNEV_LOG_L3("\t{} -> {}", static_cast<const void*>(param), param[0]);
 }
 
 void Ctx::glTexImage3D(GLenum target,
@@ -690,7 +670,7 @@ void Ctx::glGetTextureSubImage(GLuint texture,
 void Ctx::glCreateSamplers(GLsizei n, GLuint* samplers) const {
     GNEV_CTX_LOG_L3_CALL(n, static_cast<const void*>(samplers));
     glad->CreateSamplers(n, samplers);
-    GNEV_LOG_L3("{} -> {}",
+    GNEV_LOG_L3("\t{} -> {}",
                 static_cast<const void*>(samplers),
                 std::vector(samplers, samplers + n));
 }
@@ -721,13 +701,13 @@ void Ctx::glSamplerParameterfv(GLuint sampler, GLuint pname, const GLfloat* para
                          static_cast<const void*>(param),
                          *param);
     glad->SamplerParameterfv(sampler, pname, param);
-    GNEV_LOG_L3("{} -> {}", static_cast<const void*>(param), param[0]);
+    GNEV_LOG_L3("\t{} -> {}", static_cast<const void*>(param), param[0]);
 }
 
 void Ctx::glCreateVertexArrays(GLsizei n, GLuint* arrays) const {
     GNEV_CTX_LOG_L3_CALL(n, static_cast<const void*>(arrays));
     glad->CreateVertexArrays(n, arrays);
-    GNEV_LOG_L3("{} -> {}",
+    GNEV_LOG_L3("\t{} -> {}",
                 static_cast<const void*>(arrays),
                 std::vector(arrays, arrays + n));
 }
@@ -800,7 +780,7 @@ void Ctx::glDisableVertexArrayAttrib(GLuint vaobj, GLuint index) const {
     glad->DisableVertexArrayAttrib(vaobj, index);
 }
 
-} // namespace gnev::gl
+} // namespace gnev
 
 #undef GNEV_CTX_LOG_L3_CALL
 #undef GNEV_CTX_LOG_L3_CALL_HELPER

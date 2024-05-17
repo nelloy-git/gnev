@@ -49,7 +49,7 @@ inline constexpr BufferStorageFlags operator^=(BufferStorageFlags lhs,
     return magic_enum::bitwise_operators::operator^=(lhs, rhs);
 }
 
-std::string_view format_as(BufferStorageFlags value);
+std::string format_as(BufferStorageFlags value);
 
 } // namespace gnev::gl
 

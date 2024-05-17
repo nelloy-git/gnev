@@ -1,123 +1,88 @@
-#include <array>
-
-#include "Mat4x4Storage.hpp"
-#include "gl/container/BufferRawAccessorSubData.hpp"
-#include "gl/container/BufferReflAccessor.hpp"
-#include "gl/container/BufferReflArray.hpp"
-#include "gl/container/BufferReflManagedArray.hpp"
 #include "glm/ext/matrix_float4x4.hpp"
-#include "glm/ext/vector_float4.hpp"
-#include "magic_enum/magic_enum.hpp"
-#include "util/Logger.hpp"
-#include "util/Reflection.hpp"
 #ifdef WIN32
 #include <vld.h>
 #endif
 
 #include <filesystem>
-#include <fstream>
-#include <iostream>
 #include <memory>
-#include <optional>
-#include <stdexcept>
-
-//
-
-#include "glm/mat4x4.hpp"
-#define GLM_ENABLE_EXPERIMENTAL
-#include "glm/gtx/rotate_vector.hpp"
-#include "glm/gtx/string_cast.hpp"
-#include "glm/gtx/transform.hpp"
-
-#define GLFW_INCLUDE_NONE
-#include "GLFW/glfw3.h"
-
-//
 
 #include "GlfwWindow.hpp"
-// #include "MaterialPbrStorage.hpp"
-#include "Ctx.hpp"
-// #include "gl/Program.hpp"
-// #include "gl/Sampler.hpp"
-#include "image/ImageLoaderStb.hpp"
-#include "material/pbr/MaterialStorage_PBR.hpp"
-#include "mesh/3d/QuadMesh_3D.hpp"
-#include "mesh/Mesh.hpp"
-#include "mesh/SubMesh.hpp"
-#include "shader/ProgramBuilder.hpp"
-#include "view/Camera.hpp"
-
-//
-
-#include "Mat4x4Storage.hpp"
+#include "Mat4x4.hpp"
+#include "gl/container/BufferAccessorMapped.hpp"
+#include "gl/container/BufferAllocatorStorage.hpp"
+#include "gl/container/BufferPool.hpp"
+#include "gl/container/BufferPoolElement.hpp"
+#include "gl/enum/BufferMapRangeAccess.hpp"
+#include "gl/enum/BufferStorageFlags.hpp"
 
 using namespace gnev;
 
-void readTextFile(std::string& dst, const std::filesystem::path& path) {
-    std::cout << "Loading shader " << path.string().c_str() << std::endl;
-    if (!std::filesystem::exists(path)) {
-        throw std::runtime_error("File not found");
-    }
+// void readTextFile(std::string& dst, const std::filesystem::path& path) {
+//     std::cout << "Loading shader " << path.string().c_str() << std::endl;
+//     if (!std::filesystem::exists(path)) {
+//         throw std::runtime_error("File not found");
+//     }
 
-    std::ifstream t(path);
-    t.seekg(0, std::ios::end);
-    size_t size = t.tellg();
-    dst.resize(size, ' ');
-    t.seekg(0);
-    t.read(dst.data(), size);
-}
+//     std::ifstream t(path);
+//     t.seekg(0, std::ios::end);
+//     size_t size = t.tellg();
+//     dst.resize(size, ' ');
+//     t.seekg(0);
+//     t.read(dst.data(), size);
+// }
 
-Ref<gl::Program> buildProgram() {
-    ProgramBuilder program_builder;
+// Ref<gl::Program> buildProgram() {
+//     ProgramBuilder program_builder;
 
-    auto current_dir = std::filesystem::current_path();
-    std::string vertex_shader_src;
-    readTextFile(vertex_shader_src, current_dir / "sample" / "shader" / "vertex.vs");
-    std::string fragment_shader_src;
-    readTextFile(fragment_shader_src, current_dir / "sample" / "shader" / "fragment.fs");
+//     auto current_dir = std::filesystem::current_path();
+//     std::string vertex_shader_src;
+//     readTextFile(vertex_shader_src, current_dir / "sample" / "shader" / "vertex.vs");
+//     std::string fragment_shader_src;
+//     readTextFile(fragment_shader_src, current_dir / "sample" / "shader" /
+//     "fragment.fs");
 
-    auto program = program_builder.build({
-        {gl::ShaderType::VERTEX_SHADER, vertex_shader_src},
-        {gl::ShaderType::FRAGMENT_SHADER, fragment_shader_src},
-    });
+//     auto program = program_builder.build({
+//         {gl::ShaderType::VERTEX_SHADER, vertex_shader_src},
+//         {gl::ShaderType::FRAGMENT_SHADER, fragment_shader_src},
+//     });
 
-    if (not program) {
-        std::cout << "ProgramBuilder: " << program_builder.reason().c_str() << std::endl;
-        throw std::runtime_error("Failed init program");
-    }
+//     if (not program) {
+//         std::cout << "ProgramBuilder: " << program_builder.reason().c_str() <<
+//         std::endl; throw std::runtime_error("Failed init program");
+//     }
 
-    if (program_builder.help().size() > 0) {
-        std::cout << program_builder.help().c_str() << std::endl;
-    }
+//     if (program_builder.help().size() > 0) {
+//         std::cout << program_builder.help().c_str() << std::endl;
+//     }
 
-    return program;
-}
+//     return program;
+// }
 
-Ref<base::ImageLoaderResult> loadImg(ImageLoaderStb& loader,
-                                     const std::filesystem::path& path,
-                                     const ImageInfo& store_info) {
-    static constexpr ImageInfo read_info{.format = gl::TextureFormat::RGBA,
-                                         .type = gl::TextureType::UNSIGNED_BYTE};
+// Ref<base::ImageLoaderResult> loadImg(ImageLoaderStb& loader,
+//                                      const std::filesystem::path& path,
+//                                      const ImageInfo& store_info) {
+//     static constexpr ImageInfo read_info{.format = gl::TextureFormat::RGBA,
+//                                          .type = gl::TextureType::UNSIGNED_BYTE};
 
-    auto result = loader.load(path, read_info, store_info);
+//     auto result = loader.load(path, read_info, store_info);
 
-    auto stbi_result_opt = result.dynamicCast<ImageLoaderStbResult>();
-    if (not stbi_result_opt.has_value()) {
-        throw std::runtime_error("");
-    }
-    std::cout << *stbi_result_opt.value() << std::endl;
+//     auto stbi_result_opt = result.dynamicCast<ImageLoaderStbResult>();
+//     if (not stbi_result_opt.has_value()) {
+//         throw std::runtime_error("");
+//     }
+//     std::cout << *stbi_result_opt.value() << std::endl;
 
-    if (result->getStatus() != OperationStatus::Done) {
-        throw std::runtime_error("");
-    }
+//     if (result->getStatus() != OperationStatus::Done) {
+//         throw std::runtime_error("");
+//     }
 
-    for (int i = 0; i < 4; i++) {
-        std::cout << int(result->image.data.buffer[i]) << " ";
-    }
-    std::cout << std::endl;
+//     for (int i = 0; i < 4; i++) {
+//         std::cout << int(result->image.data.buffer[i]) << " ";
+//     }
+//     std::cout << std::endl;
 
-    return result;
-}
+//     return result;
+// }
 
 // MaterialPbr
 // createMaterial(MaterialPbrStorage& storage,
@@ -161,13 +126,13 @@ Ref<base::ImageLoaderResult> loadImg(ImageLoaderStb& loader,
 //     return material;
 // }
 
-struct PointLight {
-    alignas(16) glm::vec3 pos = {0, 1, 0};
-    alignas(16) glm::vec3 constant_linearic_quadratic = {1.0, 0.18, 0.032};
-    alignas(16) glm::vec3 ambient = {1.0f, 1.0f, 1.0f};
-    alignas(16) glm::vec3 diffuse = {1.0f, 1.0f, 1.0f};
-    alignas(16) glm::vec3 specular = {1.0f, 1.0f, 1.0f};
-};
+// struct PointLight {
+//     alignas(16) glm::vec3 pos = {0, 1, 0};
+//     alignas(16) glm::vec3 constant_linearic_quadratic = {1.0, 0.18, 0.032};
+//     alignas(16) glm::vec3 ambient = {1.0f, 1.0f, 1.0f};
+//     alignas(16) glm::vec3 diffuse = {1.0f, 1.0f, 1.0f};
+//     alignas(16) glm::vec3 specular = {1.0f, 1.0f, 1.0f};
+// };
 
 std::shared_ptr<quill::Handler> initLoggerFileHandler(const quill::fs::path& path,
                                                       quill::LogLevel level) {
@@ -177,9 +142,9 @@ std::shared_ptr<quill::Handler> initLoggerFileHandler(const quill::fs::path& pat
         return cfg;
     }());
     handler->set_pattern("%(ascii_time) [%(thread)] %(logger_name:<9) %(level_name:<12) "
-                         "%(filename):%(lineno) %(message)", // format
-                         "%H:%M:%S.%Qms",                    // timestamp format
-                         quill::Timezone::GmtTime);          // timestamp's timezone
+                         "%(message)",              // format
+                         "%H:%M:%S.%Qms",           // timestamp format
+                         quill::Timezone::GmtTime); // timestamp's timezone
     handler->set_log_level(level);
     return handler;
 }
@@ -188,23 +153,41 @@ quill::Logger* initLogger() {
     auto logger =
         quill::create_logger("gnev",
                              initLoggerFileHandler("gnev.log", quill::LogLevel::TraceL3));
-    logger->set_log_level(quill::LogLevel::TraceL3);
+    logger->set_log_level(quill::LogLevel::TraceL2);
     return logger;
 }
 
-struct Camera {
-    static constexpr unsigned int InvalidIndex = std::numeric_limits<unsigned int>::max();
+// struct Camera {
+//     static constexpr unsigned int InvalidIndex = std::numeric_limits<unsigned
+//     int>::max();
 
-    struct MatIndexes {
-        glm::uint view = InvalidIndex;
-        glm::uint proj = InvalidIndex;
-    };
+//     struct MatIndexes {
+//         glm::uint view = InvalidIndex;
+//         glm::uint proj = InvalidIndex;
+//     };
 
-    refl::Aligned<glm::vec3, 16> position = {{0, 0, 0}};
-    refl::Aligned<glm::vec3, 16> direction = {{1, 0, 0}};
-    refl::Aligned<glm::vec3, 16> top = {{0, 1, 0}};
-    refl::Aligned<MatIndexes, 16> mats;
-};
+//     refl::Aligned<glm::vec3, 16> position = {{0, 0, 0}};
+//     refl::Aligned<glm::vec3, 16> direction = {{1, 0, 0}};
+//     refl::Aligned<glm::vec3, 16> top = {{0, 1, 0}};
+//     refl::Aligned<MatIndexes, 16> mats;
+// };
+
+template <typename T>
+std::shared_ptr<gnev::gl::BufferPool<T>> makeBufferPoolMapped() {
+    using namespace gnev::gl;
+    auto accessor = std::make_unique<
+        gnev::gl::BufferAccessorMapped>(BufferMapRangeAccess::MAP_READ_BIT |
+                                        BufferMapRangeAccess::MAP_WRITE_BIT |
+                                        BufferMapRangeAccess::MAP_PERSISTENT_BIT |
+                                        BufferMapRangeAccess::MAP_COHERENT_BIT);
+    auto allocator = std::make_unique<
+        gnev::gl::BufferAllocatorStorage>(BufferStorageFlags::DYNAMIC_STORAGE_BIT |
+                                          BufferStorageFlags::MAP_READ_BIT |
+                                          BufferStorageFlags::MAP_WRITE_BIT |
+                                          BufferStorageFlags::MAP_PERSISTENT_BIT |
+                                          BufferStorageFlags::MAP_COHERENT_BIT);
+    return std::make_shared<BufferPool<T>>(std::move(accessor), std::move(allocator), 1);
+}
 
 int main(int argc, const char** argv) {
 
@@ -215,39 +198,17 @@ int main(int argc, const char** argv) {
     GlfwWindow wnd(1024, 768, initLogger());
     quill::start();
 
-    std::unique_ptr<Mat4x4Storage> mat4x4_storage;
-    {
-        auto buffer = std::make_unique<gl::Buffer>();
-        buffer->initStorage(100 * sizeof(glm::mat4x4),
-                            nullptr,
-                            gl::BufferStorageFlags::DYNAMIC_STORAGE_BIT);
-        auto accessor = std::make_unique<gl::BufferRawAccessorSubData>(std::move(buffer));
-        mat4x4_storage = std::make_unique<Mat4x4Storage>(std::move(accessor));
-    }
+    auto mat4x4_storage = makeBufferPoolMapped<Mat4x4::GL>();
+    Mat4x4 mat1{mat4x4_storage};
+    Mat4x4 mat2{mat4x4_storage};
+    Mat4x4 mat3{mat4x4_storage};
+    gnev::gl::BufferPoolElement<glm::mat4x4> mat4{mat4x4_storage, glm::mat4x4{1.f}};
+    gnev::gl::BufferPoolElement<glm::mat4x4> mat5{mat4x4_storage, glm::mat4x4{1.f}};
+    gnev::gl::BufferPoolElement<glm::mat4x4> mat6{mat4x4_storage, glm::mat4x4{1.f}};
 
-    std::unique_ptr<gl::BufferReflManagedArray<Camera>> camera_storage;
-    {
-        auto buffer = std::make_unique<gl::Buffer>();
-        buffer->initStorage(4 * sizeof(Camera),
-                            nullptr,
-                            gl::BufferStorageFlags::DYNAMIC_STORAGE_BIT);
-        auto accessor = std::make_unique<gl::BufferRawAccessorSubData>(std::move(buffer));
-        camera_storage =
-            std::make_unique<gl::BufferReflManagedArray<Camera>>(std::move(accessor));
-        camera_storage->fill(Camera{});
-    }
-
-    auto camera_index = camera_storage->reserveIndex();
-    auto camera = camera_storage->at(camera_index.value());
-
-    auto view_mat_index = mat4x4_storage->reserveIndex();
-    auto proj_mat_index = mat4x4_storage->reserveIndex();
-    camera.set<"position">({.value = {0, 0, 0}});
-    camera.set<"direction">({.value = {0, 0, 0}});
-    camera.set<"mats">({.value = {
-                            .view = static_cast<unsigned>(view_mat_index.value()),
-                            .proj = static_cast<unsigned>(proj_mat_index.value()),
-                        }});
+    mat1->set(glm::mat4x4{2.f});
+    mat2->set(glm::mat4x4{2.f});
+    mat3->set(glm::mat4x4{2.f});
 
     // {
     //     auto buffer = std::make_unique<gl::Buffer>();

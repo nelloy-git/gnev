@@ -6,6 +6,7 @@
 namespace gnev::gl {
 
 enum class BufferMapRangeAccess : GLenum {
+    EMPTY = 0,
     MAP_READ_BIT = GL_MAP_READ_BIT,
     MAP_WRITE_BIT = GL_MAP_WRITE_BIT,
     MAP_PERSISTENT_BIT = GL_MAP_PERSISTENT_BIT,
@@ -50,7 +51,7 @@ inline constexpr BufferMapRangeAccess operator^=(BufferMapRangeAccess lhs,
     return magic_enum::bitwise_operators::operator^=(lhs, rhs);
 }
 
-std::string_view format_as(BufferMapRangeAccess value);
+std::string format_as(BufferMapRangeAccess value);
 
 } // namespace gnev::gl
 

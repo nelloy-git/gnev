@@ -14,7 +14,7 @@ constexpr bool IsValidIndexType =
     std::is_same_v<T, GLubyte> || std::is_same_v<T, GLushort> || std::is_same_v<T, GLuint>;
 
 template <typename T>
-constexpr GLenum GetIndexEnum() {
+consteval GLenum GetIndexEnum() {
     if constexpr (std::is_same_v<T, GLubyte>) {
         return GL_UNSIGNED_BYTE;
     } else if constexpr (std::is_same_v<T, GLushort>) {
