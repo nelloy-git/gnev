@@ -1,9 +1,11 @@
 #pragma once
 
 #include <glm/vec3.hpp>
+#include <glm/mat4x4.hpp>
 #include <memory>
 
 #include "gl/container/BufferPool.hpp"
+#include "gl/container/BufferPoolElement.hpp"
 #include "gl/container/BufferReflAccessor.hpp"
 
 class Camera {
@@ -26,7 +28,7 @@ public:
     using Container = gnev::gl::BufferPool<GL>;
     using Accessor = gnev::gl::BufferReflAccessor<GL>;
 
-    Camera(const std::shared_ptr<Container>& container, const GL& initial);
+    Camera(const std::shared_ptr<Container>& container, gnev::gl::BufferPoolElement<glm::mat4x4> view_mat,  const GL& initial);
 
     Accessor operator->();
     const Accessor operator->() const;

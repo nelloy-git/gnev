@@ -206,9 +206,11 @@ int main(int argc, const char** argv) {
     gnev::gl::BufferPoolElement<glm::mat4x4> mat5{mat4x4_storage, glm::mat4x4{1.f}};
     gnev::gl::BufferPoolElement<glm::mat4x4> mat6{mat4x4_storage, glm::mat4x4{1.f}};
 
-    mat1->set(glm::mat4x4{2.f});
-    mat2->set(glm::mat4x4{2.f});
-    mat3->set(glm::mat4x4{2.f});
+    auto t = mat4;
+
+    mat4->set(glm::mat4x4{2.f});
+    mat5->set(glm::mat4x4{2.f});
+    mat6->set(glm::mat4x4{2.f});
 
     // {
     //     auto buffer = std::make_unique<gl::Buffer>();

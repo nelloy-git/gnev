@@ -4,7 +4,7 @@
 
 namespace gnev::gl {
 
-class BufferAllocatorStorage : public IBufferAllocator {
+class EXPORT BufferAllocatorStorage : public IBufferAllocator {
 public:
     BufferAllocatorStorage(BufferStorageFlags flags);
 

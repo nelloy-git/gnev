@@ -70,7 +70,7 @@ public:
     }
 
     void fill(Range range, const T& val, unsigned batch = 0) {
-        GNEV_BUFFER_POOL_LOG(L1, range, GNEV_GET_TYPE_NAME(T), batch);
+        GNEV_BUFFER_POOL_LOG(L1, range, GNEV_GET_TYPE_NAME(val), batch);
         batch = batch == 0 ? range.size : batch;
 
         unsigned iters = range.size / batch;

@@ -15,7 +15,7 @@ std::string format_as(Range value) {
     } else if (value.size == 1) {
         return "[" + std::to_string(value.begin) + "]";
     } else {
-        return "[]";
+        return "[-]";
     }
 }
 

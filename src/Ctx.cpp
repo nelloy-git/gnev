@@ -18,7 +18,7 @@
     GNEV_LOG_L3(GNEV_ARGS_STR(BOOST_PP_VARIADIC_SIZE(__VA_ARGS__)), ##__VA_ARGS__)
 #else
 #define GNEV_CTX_LOG_L3_CALL(...)                                                        \
-    GNEV_LOG_L3("{}" GNEV_ARGS_STR(BOOST_PP_VARIADIC_SIZE(__VA_ARGS__)),                 \
+    GNEV_LOG_L3("{}" GNEV_ARGS_STR(GNEV_VA_SIZE(__VA_ARGS__)),                           \
                 GNEV_GET_FUNC_NAME,                                                      \
                 ##__VA_ARGS__)
 #endif

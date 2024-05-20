@@ -3,6 +3,8 @@
 #include <vector>
 #include <string>
 
+#include "util/Export.hpp"
+
 namespace gnev::gl {
 
 struct Range {
@@ -10,9 +12,9 @@ struct Range {
     unsigned size;
 };
 
-std::string format_as(Range value);
+std::string EXPORT format_as(Range value);
 
-class PoolController {
+class EXPORT PoolController {
 public:
     PoolController(unsigned size);
 

@@ -15,7 +15,7 @@ add_compile_definitions(GLWPP_DEBUG)
 
 if (WIN32)
     add_compile_definitions("IMGUI_API=__declspec(dllexport)")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Zi /WX /D_DEBUG /DEBUG:FULL /std:c++20")
+    # set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Zi /WX /D_DEBUG /DEBUG:FULL /std:c++20 ")
 else ()
     set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++23 -gdwarf-4")
@@ -47,7 +47,8 @@ target_link_libraries(${PROJECT_NAME}
     nlohmann_json
     quill
 )
-target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_20)
+target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_23)
+target_compile_options(${PROJECT_NAME} PRIVATE "/Zi" "/WX" "/D_DEBUG" "/DEBUG:FULL")
 
 set_property (TARGET ${PROJECT_NAME}
   PROPERTY

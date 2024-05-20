@@ -9,17 +9,17 @@
 #include "util/Reflection.hpp"
 #include "util/SrcLoc.hpp"
 
-#define GNEV_REFL_ACCESSOR_LOG(Level, Type, ...)                                            \
-    BOOST_PP_CAT(GNEV_LOG_, Level)                                                          \
-    (BOOST_PP_IF(BOOST_PP_GREATER(BOOST_PP_VARIADIC_SIZE(__VA_ARGS__), 0),                  \
-                 "{}#{}::{}<{}>|" GNEV_REPEAT_STR("{}",                                     \
-                                                  "->",                                     \
-                                                  BOOST_PP_VARIADIC_SIZE(__VA_ARGS__)) "|", \
-                 "{}#{}::{}<{}>"),                                                          \
-     GNEV_GET_TYPE_NAME(std::remove_pointer_t<decltype(this)>),                             \
-     this->getBuffer().handle(),                                                            \
-     GNEV_GET_FUNC_NAME,                                                                    \
-     GNEV_GET_TYPE_NAME(Type),                                                              \
+#define GNEV_REFL_ACCESSOR_LOG(Level, Type, ...)                                         \
+    BOOST_PP_CAT(GNEV_LOG_, Level)                                                       \
+    (BOOST_PP_IF(BOOST_PP_GREATER(GNEV_VA_SIZE(__VA_ARGS__), 0),                         \
+                 "{}#{}::{}<{}>|" GNEV_REPEAT_STR("{}",                                  \
+                                                  "->",                                  \
+                                                  GNEV_VA_SIZE(__VA_ARGS__)) "|",        \
+                 "{}#{}::{}<{}>"),                                                       \
+     GNEV_GET_TYPE_NAME(std::remove_pointer_t<decltype(this)>),                          \
+     this->getBuffer().handle(),                                                         \
+     GNEV_GET_FUNC_NAME,                                                                 \
+     GNEV_GET_TYPE_NAME(Type),                                                           \
      ##__VA_ARGS__)
 
 namespace gnev::gl {
@@ -39,12 +39,14 @@ public:
         , accessor{accessor}
         , base_offset{base_offset} {}
 
+    virtual ~BufferReflAccessorImpl() = default;
+
     Buffer& getBuffer() { return buffer; }
 
     const Buffer& getBuffer() const { return buffer; }
 
     void set(const T& value) {
-        GNEV_REFL_ACCESSOR_LOG(L1, T);
+        GNEV_REFL_ACCESSOR_LOG(L1, value);
         bool success = accessor.set(buffer, base_offset, sizeof(T), &value);
         if (not success) {
             GNEV_LOG_ERROR("Failed");
@@ -90,10 +92,6 @@ class BufferReflAccessor : public details::BufferReflAccessorImpl<T> {
 public:
     BufferReflAccessor(Buffer& buffer, IBufferAccessor& accessor, std::size_t base_offset)
         : details::BufferReflAccessorImpl<T>{buffer, accessor, base_offset} {}
-
-    BufferReflAccessor* operator->() { return this; }
-
-    const BufferReflAccessor* operator->() const { return this; }
 };
 
 template <IsTriviallyCopyable T>
@@ -105,6 +103,9 @@ public:
     template <refl::Key... Keys>
     using MemberT = Meta::template DeduceMemberInfo<Keys...>::Type::Type;
 
+    template <typename V>
+    using Changer = details::BufferReflAccessorImpl<T>::Changer<V>;
+
     using details::BufferReflAccessorImpl<T>::get;
     using details::BufferReflAccessorImpl<T>::set;
     using details::BufferReflAccessorImpl<T>::change;
@@ -112,10 +113,6 @@ public:
 
     BufferReflAccessor(Buffer& buffer, IBufferAccessor& accessor, std::size_t base_offset)
         : details::BufferReflAccessorImpl<T>{buffer, accessor, base_offset} {}
-
-    BufferReflAccessor* operator->() { return this; }
-
-    const BufferReflAccessor* operator->() const { return this; }
 
     template <refl::Key... Keys>
         requires(sizeof...(Keys) > 0)
@@ -161,9 +158,7 @@ public:
 
     template <auto... Keys>
         requires(sizeof...(Keys) > 0)
-    void
-    change(const details::BufferReflAccessorImpl<T>::template Changer<MemberT<Keys...>>&
-               changer) {
+    void change(const Changer<MemberT<Keys...>>& changer) {
         GNEV_REFL_ACCESSOR_LOG(L1, MemberT<Keys...>, Keys.template name<T>()...);
         bool success = details::BufferReflAccessorImpl<T>::accessor
                            ->change(details::BufferReflAccessorImpl<T>::base_offset +

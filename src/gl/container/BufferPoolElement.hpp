@@ -34,20 +34,21 @@ public:
 
     unsigned index() const { return pool_index; }
 
-    gnev::gl::BufferReflAccessor<T> operator->() {
+    auto operator->() {
         auto pool = weak_pool.lock();
         if (not pool) {
             throw std::runtime_error("");
         }
-        return pool->at(pool_index);
+        return std::make_unique<gnev::gl::BufferReflAccessor<T>>(pool->at(pool_index));
     }
 
-    const gnev::gl::BufferReflAccessor<T> operator->() const {
+    const auto operator->() const {
         auto pool = weak_pool.lock();
         if (not pool) {
             throw std::runtime_error("");
         }
-        return pool->at(pool_index);
+        return std::make_unique<
+            const gnev::gl::BufferReflAccessor<T>>(pool->at(pool_index));
     }
 
 private:

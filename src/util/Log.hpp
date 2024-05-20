@@ -34,8 +34,11 @@ constexpr auto getTypeName() {
 
 } // namespace gnev::details
 
-#define GNEV_GET_TYPE_NAME(T) gnev::details::getTypeName<std::remove_cvref_t<typeof(T)>>()
+#define GNEV_GET_TYPE_NAME(V) gnev::details::getTypeName<std::remove_cvref_t<decltype(V)>>()
 #endif
+
+#define GNEV_VA_SIZE(...)                                                                \
+    BOOST_PP_IF(BOOST_PP_IS_EMPTY(__VA_ARGS__), 0, BOOST_PP_VARIADIC_SIZE(__VA_ARGS__))
 
 #define GNEV_LOG_L3(fmt, ...)                                                            \
     do {                                                                                 \
