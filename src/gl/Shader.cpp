@@ -26,6 +26,7 @@ ShaderType Shader::getType() const {
     GNEV_HANDLER_LOG(L2);
     ShaderType type;
     Ctx::Get().glGetShaderiv(handle(), GL_SHADER_TYPE, reinterpret_cast<GLint*>(&type));
+    GNEV_LOG(L2, "\treturn {}", type);
     return type;
 }
 
@@ -33,6 +34,7 @@ bool Shader::hasDeleteFlag() const {
     GNEV_HANDLER_LOG(L2);
     GLint has_delete_flag;
     Ctx::Get().glGetShaderiv(handle(), GL_DELETE_STATUS, &has_delete_flag);
+    GNEV_LOG(L2, "\treturn {}", (has_delete_flag == GL_TRUE));
     return has_delete_flag == GL_TRUE;
 }
 
@@ -40,6 +42,7 @@ bool Shader::isCompileSucceed() const {
     GNEV_HANDLER_LOG(L2);
     GLint is_compiled;
     Ctx::Get().glGetShaderiv(handle(), GL_COMPILE_STATUS, &is_compiled);
+    GNEV_LOG(L2, "\treturn {}", (is_compiled == GL_TRUE));
     return is_compiled == GL_TRUE;
 }
 
@@ -47,6 +50,7 @@ GLsizei Shader::getInfoLogLenth() const {
     GNEV_HANDLER_LOG(L2);
     GLsizei len;
     Ctx::Get().glGetShaderiv(handle(), GL_INFO_LOG_LENGTH, &len);
+    GNEV_LOG(L2, "\treturn {}", len);
     return len;
 }
 
@@ -54,6 +58,7 @@ GLsizei Shader::getSourceLenth() const {
     GNEV_HANDLER_LOG(L2);
     GLsizei len;
     Ctx::Get().glGetShaderiv(handle(), GL_SHADER_SOURCE_LENGTH, &len);
+    GNEV_LOG(L2, "\treturn {}", len);
     return len;
 }
 
@@ -76,6 +81,10 @@ GLuint* Shader::createHandle(ShaderType type) {
 void Shader::deleteHandle(GLuint* handle) {
     Ctx::Get().glDeleteShader(*handle);
     delete handle;
+}
+
+std::string format_as(const Shader& shader) {
+    return "Shader#" + fmtquill::to_string(shader.handle());
 }
 
 } // namespace gnev::gl

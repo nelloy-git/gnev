@@ -48,7 +48,13 @@ target_link_libraries(${PROJECT_NAME}
     quill
 )
 target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_23)
-target_compile_options(${PROJECT_NAME} PRIVATE "/Zi" "/WX" "/D_DEBUG" "/DEBUG:FULL")
+if (WIN32)
+    target_compile_options(${PROJECT_NAME} PRIVATE "/Zi" "/WX" "/D_DEBUG" "/DEBUG:FULL")
+else ()
+    # set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+    # target_compile_options(${PROJECT_NAME} PRIVATE "-gdwarf-4")
+endif ()
+
 
 set_property (TARGET ${PROJECT_NAME}
   PROPERTY
@@ -88,6 +94,13 @@ else()
     )
 endif (WIN32)
 target_compile_features(auto_test PUBLIC cxx_std_20)
+target_compile_features(auto_test PUBLIC cxx_std_23)
+if (WIN32)
+    target_compile_options(auto_test PRIVATE "/Zi" "/WX" "/D_DEBUG" "/DEBUG:FULL")
+else ()
+    # set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+    # target_compile_options(auto_test PRIVATE "-gdwarf-4")
+endif ()
 
 include(GoogleTest)
 gtest_discover_tests(auto_test)
@@ -120,3 +133,10 @@ else()
 endif (WIN32)
 
 target_compile_features(manual_test PUBLIC cxx_std_20)
+target_compile_features(manual_test PUBLIC cxx_std_23)
+if (WIN32)
+    target_compile_options(manual_test PRIVATE "/Zi" "/WX" "/D_DEBUG" "/DEBUG:FULL")
+else ()
+    # set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+    # target_compile_options(manual_test PRIVATE "-gdwarf-4")
+endif ()

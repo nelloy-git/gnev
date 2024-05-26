@@ -25,4 +25,6 @@ private:
     static void deleteHandle(GLuint* handle);
 };
 
+std::string format_as(const Shader&);
+
 } // namespace gnev::gl

@@ -1,13 +1,12 @@
 #pragma once
 
 #include <cstddef>
-#include <memory>
+#include <utility>
 
 #include "boost/preprocessor/comparison/greater.hpp"
 #include "gl/container/IBufferAccessor.hpp"
 #include "util/Log.hpp"
 #include "util/Reflection.hpp"
-#include "util/SrcLoc.hpp"
 
 #define GNEV_REFL_ACCESSOR_LOG(Level, Type, ...)                                         \
     BOOST_PP_CAT(GNEV_LOG_, Level)                                                       \
@@ -16,10 +15,10 @@
                                                   "->",                                  \
                                                   GNEV_VA_SIZE(__VA_ARGS__)) "|",        \
                  "{}#{}::{}<{}>"),                                                       \
-     GNEV_GET_TYPE_NAME(std::remove_pointer_t<decltype(this)>),                          \
+     GNEV_GET_TYPE_NAME(*this),                                                          \
      this->getBuffer().handle(),                                                         \
      GNEV_GET_FUNC_NAME,                                                                 \
-     GNEV_GET_TYPE_NAME(Type),                                                           \
+     GNEV_GET_TYPE_NAME(std::declval<Type>()),                                           \
      ##__VA_ARGS__)
 
 namespace gnev::gl {
@@ -46,7 +45,7 @@ public:
     const Buffer& getBuffer() const { return buffer; }
 
     void set(const T& value) {
-        GNEV_REFL_ACCESSOR_LOG(L1, value);
+        GNEV_REFL_ACCESSOR_LOG(L1, T);
         bool success = accessor.set(buffer, base_offset, sizeof(T), &value);
         if (not success) {
             GNEV_LOG_ERROR("Failed");
@@ -104,7 +103,7 @@ public:
     using MemberT = Meta::template DeduceMemberInfo<Keys...>::Type::Type;
 
     template <typename V>
-    using Changer = details::BufferReflAccessorImpl<T>::Changer<V>;
+    using Changer = details::BufferReflAccessorImpl<T>::template Changer<V>;
 
     using details::BufferReflAccessorImpl<T>::get;
     using details::BufferReflAccessorImpl<T>::set;
@@ -130,10 +129,11 @@ public:
     void set(const MemberT<Keys...>& value) {
         GNEV_REFL_ACCESSOR_LOG(L1, MemberT<Keys...>, Keys.template name<T>()...);
         bool success = details::BufferReflAccessorImpl<T>::accessor
-                           ->set(details::BufferReflAccessorImpl<T>::base_offset +
-                                     Meta::template MemberOffset<Keys...>(),
-                                 sizeof(MemberT<Keys...>),
-                                 &value);
+                           .set(details::BufferReflAccessorImpl<T>::buffer,
+                                details::BufferReflAccessorImpl<T>::base_offset +
+                                    Meta::template MemberOffset<Keys...>(),
+                                sizeof(MemberT<Keys...>),
+                                &value);
         if (not success) {
             GNEV_LOG_ERROR("Failed");
         }
@@ -146,10 +146,11 @@ public:
         GNEV_REFL_ACCESSOR_LOG(L1, MemberT, Keys.template name<T>()...);
         MemberT dst;
         bool success = details::BufferReflAccessorImpl<T>::accessor
-                           ->get(details::BufferReflAccessorImpl<T>::base_offset +
-                                     Meta::template MemberOffset<Keys...>(),
-                                 sizeof(MemberT),
-                                 &dst);
+                           .get(details::BufferReflAccessorImpl<T>::buffer,
+                                details::BufferReflAccessorImpl<T>::base_offset +
+                                    Meta::template MemberOffset<Keys...>(),
+                                sizeof(MemberT),
+                                &dst);
         if (not success) {
             GNEV_LOG_ERROR("Failed");
         }
@@ -161,10 +162,11 @@ public:
     void change(const Changer<MemberT<Keys...>>& changer) {
         GNEV_REFL_ACCESSOR_LOG(L1, MemberT<Keys...>, Keys.template name<T>()...);
         bool success = details::BufferReflAccessorImpl<T>::accessor
-                           ->change(details::BufferReflAccessorImpl<T>::base_offset +
-                                        Meta::template MemberOffset<Keys...>(),
-                                    sizeof(MemberT<Keys...>),
-                                    changer);
+                           .change(details::BufferReflAccessorImpl<T>::buffer,
+                                   details::BufferReflAccessorImpl<T>::base_offset +
+                                       Meta::template MemberOffset<Keys...>(),
+                                   sizeof(MemberT<Keys...>),
+                                   changer);
         if (not success) {
             GNEV_LOG_ERROR("Failed");
         }
@@ -173,12 +175,12 @@ public:
     template <auto... Keys>
         requires(sizeof...(Keys) > 0)
     void copy(const BufferReflAccessor<T>& src) {
-        bool success =
-            details::BufferReflAccessorImpl<T>::accessor
-                ->copy(src.base_offset + Meta::template MemberOffset<Keys...>(),
-                       details::BufferReflAccessorImpl<T>::base_offset +
-                           Meta::template MemberOffset<Keys...>(),
-                       sizeof(MemberT<Keys...>));
+        bool success = details::BufferReflAccessorImpl<T>::accessor
+                           .copy(details::BufferReflAccessorImpl<T>::buffer,
+                                 src.base_offset + Meta::template MemberOffset<Keys...>(),
+                                 details::BufferReflAccessorImpl<T>::base_offset +
+                                     Meta::template MemberOffset<Keys...>(),
+                                 sizeof(MemberT<Keys...>));
         if (not success) {
             GNEV_LOG_ERROR("Failed");
         }

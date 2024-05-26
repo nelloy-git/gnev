@@ -1,8 +1,11 @@
 #include "gl/enum/AttributeType.hpp"
 
+#include <string>
+#include <type_traits>
+
 namespace gnev::gl {
 
-std::string_view format_as(AttributeType value) {
+std::string format_as(AttributeType value) {
     switch (value) {
         using enum AttributeType;
     case BYTE:
@@ -32,7 +35,9 @@ std::string_view format_as(AttributeType value) {
     case UNSIGNED_INT_10F_11F_11F_REV:
         return "UNSIGNED_INT_10F_11F_11F_REV";
     default:
-        return "UNKNOWN";
+        return "UNKNOWN(" +
+               std::to_string(static_cast<std::underlying_type_t<AttributeType>>(value)) +
+               ")";
     }
 }
 

@@ -25,6 +25,12 @@ public:
         pool_index = range.begin;
     }
 
+    BufferPoolElement(const BufferPoolElement&) = delete;
+
+    BufferPoolElement(BufferPoolElement&& other)
+        : weak_pool(std::move(other.weak_pool))
+        , pool_index(other.pool_index) {}
+
     virtual ~BufferPoolElement() {
         auto pool = weak_pool.lock();
         if (pool) {
@@ -55,5 +61,9 @@ private:
     std::weak_ptr<Pool> weak_pool;
     unsigned pool_index;
 };
+
+template <typename T>
+BufferPoolElement(const std::shared_ptr<BufferPool<T>>& pool,
+                  const T& initial) -> BufferPoolElement<T>;
 
 } // namespace gnev::gl

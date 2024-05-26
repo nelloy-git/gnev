@@ -1,4 +1,10 @@
+#include <type_traits>
+
+#include "gl/data/VertexAttribute.hpp"
+#include "gl/enum/AttributeType.hpp"
+#include "gl/enum/ShaderType.hpp"
 #include "glm/ext/matrix_float4x4.hpp"
+#include "util/Reflection.hpp"
 #ifdef WIN32
 #include <vld.h>
 #endif
@@ -12,24 +18,33 @@
 #include "gl/container/BufferAllocatorStorage.hpp"
 #include "gl/container/BufferPool.hpp"
 #include "gl/container/BufferPoolElement.hpp"
+#include "gl/data/Vertex.hpp"
+#include "gl/data/VertexAttributeInfo.hpp"
 #include "gl/enum/BufferMapRangeAccess.hpp"
 #include "gl/enum/BufferStorageFlags.hpp"
+#include "gl/pipeline/Pipeline.hpp"
 
 using namespace gnev;
 
-// void readTextFile(std::string& dst, const std::filesystem::path& path) {
-//     std::cout << "Loading shader " << path.string().c_str() << std::endl;
-//     if (!std::filesystem::exists(path)) {
-//         throw std::runtime_error("File not found");
-//     }
+static constexpr gl::VertexAttributeInfo VERTEX_ATTR_0{
+    2, gl::AttributeType::HALF_FLOAT, false};
+static constexpr gl::VertexAttributeInfo VERTEX_ATTR_1{4, gl::AttributeType::BYTE, false};
+static constexpr gl::VertexAttributeInfo VERTEX_ATTR_2{4, gl::AttributeType::INT, false};
 
-//     std::ifstream t(path);
-//     t.seekg(0, std::ios::end);
-//     size_t size = t.tellg();
-//     dst.resize(size, ' ');
-//     t.seekg(0);
-//     t.read(dst.data(), size);
-// }
+std::string readTextFile(const std::filesystem::path& path) {
+    std::cout << "Loading shader " << path.string().c_str() << std::endl;
+    if (!std::filesystem::exists(path)) {
+        throw std::runtime_error("File not found");
+    }
+
+    std::ifstream t(path);
+    t.seekg(0, std::ios::end);
+    size_t size = t.tellg();
+    std::string dst(size, ' ');
+    t.seekg(0);
+    t.read(dst.data(), size);
+    return dst;
+}
 
 // Ref<gl::Program> buildProgram() {
 //     ProgramBuilder program_builder;
@@ -189,28 +204,43 @@ std::shared_ptr<gnev::gl::BufferPool<T>> makeBufferPoolMapped() {
     return std::make_shared<BufferPool<T>>(std::move(accessor), std::move(allocator), 1);
 }
 
-int main(int argc, const char** argv) {
+// GNEV_VERTEX(Vert, (VERTEX_ATTR_0)(attr_0), (VERTEX_ATTR_1)(attr_1));
 
-    // auto current_dir = std::filesystem::current_path();
-    // Log::init();
+struct Vert2 {
+    gl::VertexAttribute<VERTEX_ATTR_0> attr_0;
+    gl::VertexAttribute<VERTEX_ATTR_1> attr_1;
+};
+
+int main(int argc, const char** argv) {
 
     bool close_window = false;
     GlfwWindow wnd(1024, 768, initLogger());
     quill::start();
 
     auto mat4x4_storage = makeBufferPoolMapped<Mat4x4::GL>();
-    Mat4x4 mat1{mat4x4_storage};
-    Mat4x4 mat2{mat4x4_storage};
-    Mat4x4 mat3{mat4x4_storage};
-    gnev::gl::BufferPoolElement<glm::mat4x4> mat4{mat4x4_storage, glm::mat4x4{1.f}};
-    gnev::gl::BufferPoolElement<glm::mat4x4> mat5{mat4x4_storage, glm::mat4x4{1.f}};
-    gnev::gl::BufferPoolElement<glm::mat4x4> mat6{mat4x4_storage, glm::mat4x4{1.f}};
 
-    auto t = mat4;
+    // using Vert = gl::Vertex<VERTEX_INFO>;
+    auto mesh_vert = makeBufferPoolMapped<Vert2>();
+    auto v = mesh_vert->pull(1);
+    mesh_vert->at(v.begin).set<"attr_0">({0, 2});
 
-    mat4->set(glm::mat4x4{2.f});
-    mat5->set(glm::mat4x4{2.f});
-    mat6->set(glm::mat4x4{2.f});
+    gl::BufferPoolElement e{mesh_vert, {{0, 0}, {0, 0, 0, 0}}};
+    e->set<"attr_1">({1, 1, 1, 1});
+
+    auto current_dir = std::filesystem::current_path();
+    auto vertex_shader_src =
+        readTextFile(current_dir / "sample" / "shader" / "vertex_2d.vs");
+    auto fragment_shader_src =
+        readTextFile(current_dir / "sample" / "shader" / "fragment_2d.fs");
+
+    gl::Pipeline pipeline;
+    pipeline.setShader(gl::ShaderType::VERTEX_SHADER,
+                       vertex_shader_src.data(),
+                       vertex_shader_src.size());
+    pipeline.setShader(gl::ShaderType::FRAGMENT_SHADER,
+                       fragment_shader_src.data(),
+                       fragment_shader_src.size());
+    pipeline.build();
 
     // {
     //     auto buffer = std::make_unique<gl::Buffer>();

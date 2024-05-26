@@ -1,5 +1,3 @@
-#include "gl/enum/BufferStorageFlags.hpp"
-#include "gl/enum/ShaderType.hpp"
 #include "gl/enum/TextureFormat.hpp"
 #include "gl/enum/TextureInternalFormat.hpp"
 #include "gl/enum/TextureMagFilter.hpp"
@@ -11,8 +9,6 @@
 #include "magic_enum/magic_enum.hpp"
 
 namespace gnev::gl {
-
-std::string_view format_as(ShaderType value) { return magic_enum::enum_name(value); }
 
 std::string_view format_as(TextureFormat value) { return magic_enum::enum_name(value); }
 

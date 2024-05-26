@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Ctx.hpp"
+#include "magic_enum/magic_enum.hpp"
 
 namespace gnev::gl {
 
@@ -16,3 +17,9 @@ enum class ShaderType : GLenum {
 std::string_view format_as(ShaderType value);
 
 } // namespace gnev::gl
+
+template<>
+struct magic_enum::customize::enum_range<gnev::gl::ShaderType> {
+    static constexpr int min = 35000;
+    static constexpr int max = 38000;
+};

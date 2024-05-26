@@ -1,75 +1,36 @@
 #pragma once
 
-#include "gl/data/VertexInfo.hpp"
-#include "util/Util.hpp"
+#include "boost/preprocessor/punctuation/remove_parens.hpp"
+#include "boost/preprocessor/seq/elem.hpp"
+#include "boost/preprocessor/seq/for_each.hpp"
+#include "boost/preprocessor/seq/for_each_i.hpp"
+#include "boost/preprocessor/seq/to_tuple.hpp"
 
 namespace gnev::gl {
 
-template <VertexAttributeInfo... A>
-struct EXPORT Vertex final {
-public:
-    static constexpr VertexInfo info{A...};
-    static constexpr auto size = info.size;
-    static constexpr auto count = info.count;
-
-    template <std::size_t I>
-        requires(I >= 0 && I < count)
-    using attribute_type = VertexAttribute<info.attributes[I]>;
-
-    template <std::size_t I>
-        requires(I >= 0 && I < count)
-    static constexpr auto attribute_size = info.attributes[I];
-
-    template <std::size_t I>
-        requires(I >= 0 && I < count)
-    static constexpr auto attribute_offset = info.offsets[I];
-
-    Vertex() { std::fill_n(data, size, 0); }
-
-    Vertex(const VertexAttribute<A>&... input) {
-        static_assert(sizeof(Vertex<A...>) == info.size);
-        _init_data(std::forward_as_tuple(input...), std::make_index_sequence<sizeof...(A)>{});
-    }
-
-    template <std::size_t I>
-        requires(I >= 0 && I < count)
-    auto& get() {
-        return *reinterpret_cast<attribute_type<I>*>(&data[attribute_offset<I>]);
-    }
-
-    template <std::size_t I>
-        requires(I >= 0 && I < count)
-    const auto& get() const {
-        return *reinterpret_cast<const attribute_type<I>*>(&data[attribute_offset<I>]);
-    }
-
-    GLbyte data[size];
-
-private:
-    template <std::size_t... Is>
-    void _init_data(const auto& input, const std::index_sequence<Is...>&) {
-        (_init_attrib_data<Is>(input), ...);
-    }
-
-    template <std::size_t I>
-    void _init_attrib_data(const auto& input) {
-        get<I>() = std::get<I>(input);
-    }
-};
-
 namespace details {
 
-template <typename derived>
-struct is_Vertex {
-    template <VertexAttributeInfo... Ts>
-    static constexpr std::true_type test(const Vertex<Ts...>*);
-    static constexpr std::false_type test(...);
-    static constexpr bool value = decltype(test(std::declval<derived*>()))::value;
-};
+#define GNEV_VERTEX_INFO(seq)                                                            \
+    static constexpr std::array<gnev::gl::VertexAttributeInfo, BOOST_PP_SEQ_SIZE(seq)>   \
+        Info = {BOOST_PP_REMOVE_PARENS(BOOST_PP_SEQ_TO_TUPLE(                            \
+            BOOST_PP_SEQ_FOR_EACH(GNEV_VERTEX_INFO_LIST, _, seq)))}
+
+#define GNEV_VERTEX_INFO_LIST(r, data, elem) (BOOST_PP_SEQ_ELEM(0, elem))
+
+#define GNEV_VERTEX_ATTR(r, data, i, elem)                                               \
+    gnev::gl::DeduceVertexAttributeType<BOOST_PP_SEQ_ELEM(0, elem)>::Buffer              \
+        BOOST_PP_SEQ_ELEM(1, elem);
 
 } // namespace details
 
-template <typename T>
-concept IsVertex = details::is_Vertex<T>::value;
+#define GNEV_VERTEX(name, ...)                                                           \
+    struct name {                                                                        \
+        GNEV_VERTEX_INFO(BOOST_PP_VARIADIC_TO_SEQ(__VA_ARGS__));                         \
+        BOOST_PP_SEQ_FOR_EACH_I(GNEV_VERTEX_ATTR,                                        \
+                                _,                                                       \
+                                BOOST_PP_VARIADIC_TO_SEQ(__VA_ARGS__))                   \
+    }
 
-} // namespace gnev::gl::data
+// GNEV_TEMPLATE_CONCEPT(Vertex, ...)
+
+} // namespace gnev::gl

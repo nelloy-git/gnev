@@ -36,6 +36,7 @@ bool Program::isValidateSucceed() const {
     GNEV_HANDLER_LOG(L2);
     GLint is_valid;
     Ctx::Get().glGetProgramiv(handle(), GL_VALIDATE_STATUS, &is_valid);
+    GNEV_LOG(L2, "\treturn {}", (is_valid == GL_TRUE));
     return is_valid == GL_TRUE;
 }
 
@@ -48,6 +49,7 @@ bool Program::isLinkSucceed() const {
     GNEV_HANDLER_LOG(L2);
     GLint is_linked;
     Ctx::Get().glGetProgramiv(handle(), GL_LINK_STATUS, &is_linked);
+    GNEV_LOG(L2, "\treturn {}", (is_linked == GL_TRUE));
     return is_linked == GL_TRUE;
 }
 
@@ -62,6 +64,7 @@ GLsizei Program::getInfoLogLength() const {
     Ctx::Get().glGetProgramiv(handle(),
                               GL_INFO_LOG_LENGTH,
                               reinterpret_cast<GLint*>(&len));
+    GNEV_LOG(L2, "\treturn {}", len);
     return len;
 }
 
@@ -84,12 +87,14 @@ std::string Program::getInfoLog() const {
 GLint Program::getAttributeLoc(const GLchar* name) const {
     GNEV_HANDLER_LOG(L2, fmt::String{name});
     GLint index = Ctx::Get().glGetAttribLocation(handle(), name);
+    GNEV_LOG(L2, "\treturn {}", index);
     return index;
 }
 
 GLint Program::getUniformLoc(const GLchar* name) const {
     GNEV_HANDLER_LOG(L2, fmt::String{name});
     GLint index = Ctx::Get().glGetUniformLocation(handle(), name);
+    GNEV_LOG(L2, "\treturn {}", index);
     return index;
 }
 
@@ -98,6 +103,7 @@ GLint Program::getResourceIndex(GLenum interface, const GLchar* name) const {
                      (fmt::Enum{interface, fmt::Enum::Group::GetProgramResourceIndex}),
                      fmt::String{name});
     GLint index = Ctx::Get().glGetProgramResourceIndex(handle(), interface, name);
+    GNEV_LOG(L2, "\treturn {}", index);
     return index;
 }
 

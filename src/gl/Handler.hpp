@@ -5,7 +5,14 @@
 #include "Ctx.hpp"
 #include "util/Export.hpp"
 #include "util/Log.hpp"
-#include "util/SrcLoc.hpp"
+
+#define GNEV_HANDLER_LOG(Level, ...)                                                     \
+    GNEV_LOG(Level,                                                                      \
+             "{}#{}::{}" GNEV_ARGS_STR(GNEV_VA_SIZE(__VA_ARGS__)),                       \
+             GNEV_GET_TYPE_NAME(*this),                                                  \
+             this->handle(),                                                             \
+             GNEV_GET_FUNC_NAME,                                                         \
+             ##__VA_ARGS__)
 
 namespace gnev::gl {
 
@@ -25,13 +32,5 @@ public:
 private:
     std::unique_ptr<GLuint, void (*)(GLuint*)> handle_;
 };
-
-#define GNEV_HANDLER_LOG(Level, ...)                                                     \
-    GNEV_LOG(Level,                                                                      \
-             "{}#{}::{}" GNEV_ARGS_STR(GNEV_VA_SIZE(__VA_ARGS__)),                       \
-             GNEV_GET_TYPE_NAME(*this),                                                  \
-             this->handle(),                                                             \
-             GNEV_GET_FUNC_NAME,                                                         \
-             ##__VA_ARGS__)
 
 } // namespace gnev::gl

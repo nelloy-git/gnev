@@ -14,7 +14,7 @@
 #define GNEV_BUFFER_POOL_LOG(level, ...)                                                 \
     BOOST_PP_CAT(GNEV_LOG_, level)                                                       \
     ("{}#{}::{}" GNEV_ARGS_STR(BOOST_PP_VARIADIC_SIZE(__VA_ARGS__)),                     \
-     GNEV_GET_TYPE_NAME(std::remove_pointer_t<decltype(this)>),                          \
+     GNEV_GET_TYPE_NAME(*this),                                                          \
      this->handle(),                                                                     \
      GNEV_GET_FUNC_NAME,                                                                 \
      ##__VA_ARGS__)
