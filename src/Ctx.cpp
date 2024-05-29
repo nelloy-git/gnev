@@ -175,6 +175,18 @@ void Ctx::glDebugMessageControl(GLenum source,
     glad->DebugMessageControl(source, type, severity, count, ids, enabled);
 }
 
+GLsync Ctx::glFenceSync() const {
+    GNEV_CTX_LOG_L3_CALL();
+    return glad->FenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
+}
+
+GLenum Ctx::glClientWaitSync(GLsync sync, GLbitfield flags, GLuint64 timeout) const {
+    GNEV_CTX_LOG_L3_CALL("GLsync", flags, timeout);
+    auto status = glad->ClientWaitSync(sync, flags, timeout);
+    GNEV_LOG_L3("\treturn {}", fmt::Enum{status});
+    return status;
+}
+
 void Ctx::glDrawElements(GLenum mode,
                          GLsizei count,
                          GLenum type,
@@ -778,6 +790,16 @@ void Ctx::glEnableVertexArrayAttrib(GLuint vaobj, GLuint index) const {
 void Ctx::glDisableVertexArrayAttrib(GLuint vaobj, GLuint index) const {
     GNEV_CTX_LOG_L3_CALL(vaobj, index);
     glad->DisableVertexArrayAttrib(vaobj, index);
+}
+
+void Ctx::glVertexAttribPointer(GLuint index,
+                                GLint size,
+                                GLenum type,
+                                GLboolean normalized,
+                                GLsizei stride,
+                                const void* pointer) const {
+    GNEV_CTX_LOG_L3_CALL(index, size, fmt::Enum{type}, normalized, stride, pointer);
+    glad->VertexAttribPointer(index, size, type, normalized, stride, pointer);
 }
 
 } // namespace gnev

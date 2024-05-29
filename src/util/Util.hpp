@@ -22,10 +22,10 @@
     };                                                                                   \
     }                                                                                    \
     template <typename T>                                                                \
-    static constexpr bool BOOST_PP_CAT(is, name) =                                       \
+    static constexpr bool BOOST_PP_CAT(BOOST_PP_CAT(is, name), V) =                      \
         details::BOOST_PP_CAT(test, name)<T>::value;                                     \
     template <typename T>                                                                \
-    concept BOOST_PP_CAT(Is, name) = BOOST_PP_CAT(is, name)<T>;
+    concept BOOST_PP_CAT(Is, name) = BOOST_PP_CAT(BOOST_PP_CAT(is, name), V)<T>;
 
 #define GNEV_TEMPLATE_CONCEPT_NAMED_ARGS(seq)                                            \
     BOOST_PP_REMOVE_PARENS(BOOST_PP_SEQ_TO_TUPLE(                                        \

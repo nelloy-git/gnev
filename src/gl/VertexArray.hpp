@@ -2,6 +2,7 @@
 
 #include "gl/Buffer.hpp"
 #include "gl/Handler.hpp"
+#include "gl/enum/AttributeType.hpp"
 
 namespace gnev::gl {
 
@@ -19,8 +20,8 @@ public:
     void setAttributeBinding(GLuint attrib_index, GLuint binding_index);
     void setAttributeFormat(GLuint attrib_index,
                             GLint size,
-                            GLenum type,
-                            GLboolean normalized,
+                            AttributeType type,
+                            bool normalized,
                             GLuint relative_offset);
     void setBindingDivisor(GLuint binding_index, GLuint divisor);
     void enableAttribute(GLuint index);

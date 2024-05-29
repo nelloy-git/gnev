@@ -1,9 +1,16 @@
+#include <sstream>
+#include <string>
 #include <type_traits>
 
+#include "Ctx.hpp"
+#include "gl/VertexArray.hpp"
+#include "gl/container/BufferReflAccessor.hpp"
+#include "gl/container/IBufferContainer.hpp"
 #include "gl/data/VertexAttribute.hpp"
 #include "gl/enum/AttributeType.hpp"
 #include "gl/enum/ShaderType.hpp"
 #include "glm/ext/matrix_float4x4.hpp"
+#include "util/CtString.hpp"
 #include "util/Reflection.hpp"
 #ifdef WIN32
 #include <vld.h>
@@ -12,8 +19,10 @@
 #include <filesystem>
 #include <memory>
 
+#include "GLFW/glfw3.h"
 #include "GlfwWindow.hpp"
 #include "Mat4x4.hpp"
+#include "Mesh.hpp"
 #include "gl/container/BufferAccessorMapped.hpp"
 #include "gl/container/BufferAllocatorStorage.hpp"
 #include "gl/container/BufferPool.hpp"
@@ -25,11 +34,6 @@
 #include "gl/pipeline/Pipeline.hpp"
 
 using namespace gnev;
-
-static constexpr gl::VertexAttributeInfo VERTEX_ATTR_0{
-    2, gl::AttributeType::HALF_FLOAT, false};
-static constexpr gl::VertexAttributeInfo VERTEX_ATTR_1{4, gl::AttributeType::BYTE, false};
-static constexpr gl::VertexAttributeInfo VERTEX_ATTR_2{4, gl::AttributeType::INT, false};
 
 std::string readTextFile(const std::filesystem::path& path) {
     std::cout << "Loading shader " << path.string().c_str() << std::endl;
@@ -172,6 +176,66 @@ quill::Logger* initLogger() {
     return logger;
 }
 
+void initControl(GlfwWindow& wnd, bool& close_window) {
+    wnd.setKeyCB([&close_window](GlfwWindow& window,
+                                 int key,
+                                 int scancode,
+                                 int action,
+                                 int mods) {
+        static constexpr float speed = 0.1;
+
+        switch (key) {
+        case GLFW_KEY_ESCAPE:
+            close_window = true;
+            return;
+        // case GLFW_KEY_W:
+        //     cam.setPosition(cam.getPosition() + speed * cam.getDirection());
+        //     return;
+        // case GLFW_KEY_S:
+        //     cam.setPosition(cam.getPosition() - speed * cam.getDirection());
+        //     return;
+        // case GLFW_KEY_D:
+        //     cam.setPosition(cam.getPosition() +
+        //                     speed * glm::cross(cam.getDirection(), cam.getTop()));
+        //     return;
+        // case GLFW_KEY_A:
+        //     cam.setPosition(cam.getPosition() -
+        //                     speed * glm::cross(cam.getDirection(), cam.getTop()));
+        //     return;
+        // case GLFW_KEY_LEFT_CONTROL:
+        //     cam.setPosition(cam.getPosition() - speed * cam.getTop());
+        //     return;
+        // case GLFW_KEY_LEFT_SHIFT:
+        //     cam.setPosition(cam.getPosition() + speed * cam.getTop());
+        //     return;
+        // case GLFW_KEY_UP:
+        //     cam.setDirection(glm::rotate(cam.getDirection(),
+        //                                  glm::pi<float>() / 36,
+        //                                  glm::cross(cam.getDirection(),
+        //                                  cam.getTop())));
+        //     return;
+        // case GLFW_KEY_DOWN:
+        //     cam.setDirection(glm::rotate(cam.getDirection(),
+        //                                  -glm::pi<float>() / 36,
+        //                                  glm::cross(cam.getDirection(),
+        //                                  cam.getTop())));
+        //     return;
+        // case GLFW_KEY_LEFT:
+        //     cam.setDirection(glm::rotate(cam.getDirection(),
+        //                                  glm::pi<float>() / 36,
+        //                                  cam.getTop()));
+        //     return;
+        // case GLFW_KEY_RIGHT:
+        //     cam.setDirection(glm::rotate(cam.getDirection(),
+        //                                  -glm::pi<float>() / 36,
+        //                                  cam.getTop()));
+        //     return;
+        default:
+            return;
+        }
+    });
+}
+
 // struct Camera {
 //     static constexpr unsigned int InvalidIndex = std::numeric_limits<unsigned
 //     int>::max();
@@ -204,28 +268,25 @@ std::shared_ptr<gnev::gl::BufferPool<T>> makeBufferPoolMapped() {
     return std::make_shared<BufferPool<T>>(std::move(accessor), std::move(allocator), 1);
 }
 
-// GNEV_VERTEX(Vert, (VERTEX_ATTR_0)(attr_0), (VERTEX_ATTR_1)(attr_1));
+static constexpr gl::VertexAttributeInfo VERTEX_ATTR_0{
+    2, gl::AttributeType::FLOAT, false};
+static constexpr gl::VertexAttributeInfo VERTEX_ATTR_1{
+    3, gl::AttributeType::FLOAT, false};
+GNEV_VERTEX(Vert2D, (VERTEX_ATTR_0)(pos), (VERTEX_ATTR_1)(color));
 
-struct Vert2 {
-    gl::VertexAttribute<VERTEX_ATTR_0> attr_0;
-    gl::VertexAttribute<VERTEX_ATTR_1> attr_1;
-};
+std::string format_as(const Vert2D& val) {
+    std::stringstream str;
+    str << "{" << val.pos.x << ", " << val.pos.y << "}," << "{" << val.color.x << ", "
+        << val.color.y << ", " << val.color.z << "}";
+    return str.str();
+}
 
 int main(int argc, const char** argv) {
 
     bool close_window = false;
     GlfwWindow wnd(1024, 768, initLogger());
     quill::start();
-
-    auto mat4x4_storage = makeBufferPoolMapped<Mat4x4::GL>();
-
-    // using Vert = gl::Vertex<VERTEX_INFO>;
-    auto mesh_vert = makeBufferPoolMapped<Vert2>();
-    auto v = mesh_vert->pull(1);
-    mesh_vert->at(v.begin).set<"attr_0">({0, 2});
-
-    gl::BufferPoolElement e{mesh_vert, {{0, 0}, {0, 0, 0, 0}}};
-    e->set<"attr_1">({1, 1, 1, 1});
+    initControl(wnd, close_window);
 
     auto current_dir = std::filesystem::current_path();
     auto vertex_shader_src =
@@ -241,6 +302,81 @@ int main(int argc, const char** argv) {
                        fragment_shader_src.data(),
                        fragment_shader_src.size());
     pipeline.build();
+    pipeline.use();
+
+    // auto mat4x4_storage = makeBufferPoolMapped<Mat4x4::GL>();
+
+    auto vertexes = makeBufferPoolMapped<Vert2D>();
+    gl::BufferPoolElement v0{vertexes, {{0, 0}, {0, 0, 0}}};
+    gl::BufferPoolElement v1{vertexes, {{0.5, 0}, {1.0, 0, 0}}};
+    gl::BufferPoolElement v2{vertexes, {{0.5, 0.5}, {0, 1.0, 0}}};
+    gl::BufferPoolElement v3{vertexes, {{0, 0.5}, {0, 0, 1.0}}};
+
+    Vert2D read_v;
+    Ctx::Get().glGetNamedBufferSubData(vertexes->getBuffer().handle(),
+                                       2 * sizeof(Vert2D),
+                                       sizeof(Vert2D),
+                                       &read_v);
+    GNEV_LOG_INFO("read_v: {}", read_v);
+
+    auto indexes = makeBufferPoolMapped<unsigned>();
+    gl::BufferPoolElement i0{indexes, v0.index()};
+    gl::BufferPoolElement i1{indexes, v2.index()};
+    gl::BufferPoolElement i2{indexes, v1.index()};
+
+    gl::BufferPoolElement i3{indexes, v0.index()};
+    gl::BufferPoolElement i4{indexes, v3.index()};
+    gl::BufferPoolElement i5{indexes, v2.index()};
+
+    Mesh mesh;
+    mesh.setIndexes(GL_TRIANGLES, indexes);
+    mesh.addAttribute<0>(pipeline.getAttribLoc("inPos"), vertexes);
+    // mesh.addAttribute<1>(pipeline.getAttribLoc("inColor"), vertexes);
+
+    unsigned tes_indexes[6] = {0, 2, 1, 0, 3, 2};
+    Vert2D test_vertexes[4] = {{{0, 0}, {0, 0, 0}},
+                               {{0.5, 0}, {1.0, 0, 0}},
+                               {{0.5, 0.5}, {0, 1.0, 0}},
+                               {{0, 0.5}, {0, 0, 1.0}}};
+
+    unsigned vao;
+    Ctx::Get().glCreateVertexArrays(1, &vao);
+    Ctx::Get().glBindVertexArray(vao);
+    unsigned ebo;
+    Ctx::Get().glCreateBuffers(1, &ebo);
+    Ctx::Get().glNamedBufferData(ebo,
+                                 sizeof(test_vertexes),
+                                 tes_indexes,
+                                 GL_DYNAMIC_DRAW);
+    Ctx::Get().glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
+    Ctx::Get().glVertexArrayElementBuffer(vao, ebo);
+
+    unsigned vbo;
+    Ctx::Get().glCreateBuffers(1, &vbo);
+    Ctx::Get().glNamedBufferData(vbo,
+                                 sizeof(test_vertexes),
+                                 test_vertexes,
+                                 GL_DYNAMIC_DRAW);
+    Ctx::Get().glBindBuffer(GL_ARRAY_BUFFER, vbo);
+    Ctx::Get().glEnableVertexArrayAttrib(vao, 0);
+    Ctx::Get().glVertexArrayVertexBuffer(vao, 0, vbo, 0, sizeof(Vert2D));
+    Ctx::Get().glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(Vert2D), (void*)0);
+
+    // vao.enableAttribute(1);
+    // Ctx::Get().glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vert2D),
+    // (void*)sizeof(Vert2D::pos));
+
+    gnev::Ctx::Get().glClearColor(0, 0, 0.2f, 1.f);
+    while (not close_window) {
+        wnd.pollEvents();
+        wnd.swapBuffers();
+
+        Ctx::Get().glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        mesh.draw();
+
+        Ctx::Get().glBindVertexArray(vao);
+        Ctx::Get().glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
+    }
 
     // {
     //     auto buffer = std::make_unique<gl::Buffer>();

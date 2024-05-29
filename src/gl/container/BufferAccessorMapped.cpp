@@ -58,6 +58,9 @@ bool BufferAccessorMapped::copy(Buffer& buffer,
 
 void BufferAccessorMapped::checkMap(Buffer& buffer) {
     if (buffer.handle() != current_buffer) {
+        GNEV_LOG_L2("\tremap from Buffer#{} to {}",
+                    current_buffer,
+                    fmtquill::to_string(buffer));
         current_buffer = buffer.handle();
         map = static_cast<GLbyte*>(buffer.mapRange(0, buffer.getSize(), access));
     }

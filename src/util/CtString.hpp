@@ -9,16 +9,60 @@ namespace gnev {
 
 template <std::size_t Size>
 struct CtString {
-    consteval CtString(const char (&str)[Size])
-        : length(initLength(str))
-        , array(initArray(str)) {}
+private:
+    template <std::size_t S>
+    static consteval std::size_t initLength(const char (&str)[S]) {
+        auto term = std::find(std::begin(str), std::end(str), '\0');
+        if (term == std::end(str)) {
+            throw std::logic_error("CtString supports nullterm strings only");
+        }
+        return std::min<std::size_t>(std::min(Size, S),
+                                     std::distance(std::begin(str), term + 1));
+    }
 
-    consteval CtString(const std::array<char, Size>& str)
-        : length(initLength(str))
-        , array(initArray(str)) {}
+    template <std::size_t S>
+    static consteval std::size_t initLength(const std::array<char, S>& str) {
+        auto term = std::find(std::begin(str), std::end(str), '\0');
+        if (term == std::end(str)) {
+            throw std::logic_error("CtString supports nullterm strings only");
+        }
+        return std::min<std::size_t>(std::min(Size, S),
+                                     std::distance(std::begin(str), term) + 1);
+    }
+
+    template <std::size_t S>
+    static consteval std::array<char, Size> initArray(const char (&str)[S]) {
+        std::array<char, Size> res = {};
+        std::copy(std::begin(str), std::end(str), res.begin());
+        return res;
+    }
+
+    template <std::size_t S>
+    static consteval std::array<char, Size> initArray(const std::array<char, S>& str) {
+        std::array<char, Size> res = {};
+        std::copy(std::begin(str), std::end(str), res.begin());
+        return res;
+    }
+
+    static consteval std::array<char, Size> initArray(const std::string_view& str) {
+        std::array<char, Size> res = {};
+        std::fill(res.begin(), res.end(), '\0');
+        std::copy(str.data(), str.data() + std::min(str.length(), Size), res.begin());
+        res[Size - 1] = '\0';
+        return res;
+    }
+
+public:
+    consteval CtString(const char (&str)[Size])
+        : length(CtString<Size>::initLength(str))
+        , array(CtString<Size>::initArray(str)) {}
 
     template <std::size_t S>
     consteval CtString(const char (&str)[S])
+        : length(CtString<Size>::initLength(str))
+        , array(CtString<Size>::initArray(str)) {}
+
+    consteval CtString(const std::array<char, Size>& str)
         : length(initLength(str))
         , array(initArray(str)) {}
 
@@ -62,11 +106,11 @@ struct CtString {
         return operator+(CtString{str});
     }
 
-    template<std::size_t SepSize, std::size_t FirstSize, std::size_t... OtherSize>
+    template <std::size_t SepSize, std::size_t FirstSize, std::size_t... OtherSize>
         requires(sizeof...(OtherSize) > 0)
     static consteval auto AddSep(const CtString<SepSize>& sep,
-                                     const CtString<FirstSize>& first,
-                                     const CtString<OtherSize>&... other){
+                                 const CtString<FirstSize>& first,
+                                 const CtString<OtherSize>&... other) {
         return first + ((sep + other) + ...);
     }
 
@@ -159,49 +203,6 @@ struct CtString {
 
     const std::size_t length;
     const std::array<char, Size> array;
-
-private:
-    template <std::size_t S>
-    static consteval std::size_t initLength(const char (&str)[S]) {
-        auto term = std::find(std::begin(str), std::end(str), '\0');
-        if (term == std::end(str)) {
-            throw std::logic_error("CtString supports nullterm strings only");
-        }
-        return std::min<std::size_t>(std::min(Size, S),
-                                     std::distance(std::begin(str), term + 1));
-    }
-
-    template <std::size_t S>
-    static consteval std::array<char, Size> initArray(const char (&str)[S]) {
-        std::array<char, Size> res = {};
-        std::copy(std::begin(str), std::end(str), res.begin());
-        return res;
-    }
-
-    template <std::size_t S>
-    static consteval std::size_t initLength(const std::array<char, S>& str) {
-        auto term = std::find(std::begin(str), std::end(str), '\0');
-        if (term == std::end(str)) {
-            throw std::logic_error("CtString supports nullterm strings only");
-        }
-        return std::min<std::size_t>(std::min(Size, S),
-                                     std::distance(std::begin(str), term) + 1);
-    }
-
-    template <std::size_t S>
-    static consteval std::array<char, Size> initArray(const std::array<char, S>& str) {
-        std::array<char, Size> res = {};
-        std::copy(std::begin(str), std::end(str), res.begin());
-        return res;
-    }
-
-    static consteval std::array<char, Size> initArray(const std::string_view& str) {
-        std::array<char, Size> res = {};
-        std::fill(res.begin(), res.end(), '\0');
-        std::copy(str.data(), str.data() + std::min(str.length(), Size), res.begin());
-        res[Size - 1] = '\0';
-        return res;
-    }
 };
 
 template <CtString R>

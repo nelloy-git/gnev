@@ -63,9 +63,38 @@ struct DeduceUnpackedElement<AttributeType::DOUBLE> {
 };
 
 template <AttributeType T, std::size_t S>
+struct Vec;
+
+template <AttributeType T>
+struct Vec<T, 1> {
+    DeduceUnpackedElement<T>::Type x;
+};
+
+template <AttributeType T>
+struct Vec<T, 2> {
+    DeduceUnpackedElement<T>::Type x;
+    DeduceUnpackedElement<T>::Type y;
+};
+
+template <AttributeType T>
+struct Vec<T, 3> {
+    DeduceUnpackedElement<T>::Type x;
+    DeduceUnpackedElement<T>::Type y;
+    DeduceUnpackedElement<T>::Type z;
+};
+
+template <AttributeType T>
+struct Vec<T, 4> {
+    DeduceUnpackedElement<T>::Type x;
+    DeduceUnpackedElement<T>::Type y;
+    DeduceUnpackedElement<T>::Type z;
+    DeduceUnpackedElement<T>::Type w;
+};
+
+template <AttributeType T, std::size_t S>
     requires(S > 0 and S <= 4)
 struct DeduceUnpackedAttributeType {
-    using Type = glm::vec<S, typename DeduceUnpackedElement<T>::Type>;
+    using Type = Vec<T, S>;
 };
 
 template <AttributeType T>

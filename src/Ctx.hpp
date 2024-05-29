@@ -42,6 +42,11 @@ public:
                                const GLuint* ids,
                                GLboolean enabled) const;
 
+    // Sync
+
+    GLsync glFenceSync() const;
+    GLenum glClientWaitSync(GLsync sync, GLbitfield flags, GLuint64 timeout) const;
+
     // Draw
 
     void
@@ -234,6 +239,13 @@ public:
                                      GLuint divisor) const;
     void glEnableVertexArrayAttrib(GLuint vaobj, GLuint index) const;
     void glDisableVertexArrayAttrib(GLuint vaobj, GLuint index) const;
+
+    void glVertexAttribPointer(GLuint index,
+                               GLint size,
+                               GLenum type,
+                               GLboolean normalized,
+                               GLsizei stride,
+                               const void* pointer) const;
 
 private:
 #ifdef WIN32

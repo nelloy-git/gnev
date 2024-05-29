@@ -38,14 +38,14 @@ void VertexArray::setAttributeBinding(GLuint attrib_index, GLuint binding_index)
 
 void VertexArray::setAttributeFormat(GLuint attrib_index,
                                      GLint size,
-                                     GLenum type,
-                                     GLboolean normalized,
+                                     AttributeType type,
+                                     bool normalized,
                                      GLuint relative_offset) {
     GNEV_HANDLER_LOG(L2, attrib_index, size, type, normalized, relative_offset);
     Ctx::Get().glVertexArrayAttribFormat(handle(),
                                          attrib_index,
                                          size,
-                                         type,
+                                         static_cast<GLenum>(type),
                                          normalized,
                                          relative_offset);
 }

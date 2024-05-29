@@ -5,7 +5,7 @@
 namespace gnev::gl {
 
 struct VertexAttributeInfo {
-    consteval VertexAttributeInfo(GLuint elements, AttributeType type, bool normalized)
+    constexpr VertexAttributeInfo(GLuint elements, AttributeType type, bool normalized)
         : elements(elements)
         , type(type)
         , normalized(normalized)
@@ -37,13 +37,13 @@ struct VertexAttributeInfo {
     bool is_signed;
 
 private:
-    static consteval void check(bool cond, const std::string& msg) {
+    static constexpr void check(bool cond, const std::string& msg) {
         if (not cond) {
             throw msg;
         }
     }
 
-    static consteval bool is_packed_type(AttributeType type) {
+    static constexpr bool is_packed_type(AttributeType type) {
         switch (type) {
         case AttributeType::HALF_FLOAT:
         case AttributeType::FLOAT:
@@ -66,7 +66,7 @@ private:
         }
     };
 
-    static consteval bool is_signed_type(AttributeType type) {
+    static constexpr bool is_signed_type(AttributeType type) {
         switch (type) {
         case AttributeType::HALF_FLOAT:
         case AttributeType::FLOAT:

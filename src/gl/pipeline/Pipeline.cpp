@@ -1,6 +1,7 @@
 #include "gl/pipeline/Pipeline.hpp"
 
 #include <memory>
+#include <string_view>
 
 namespace gnev::gl {
 
@@ -35,6 +36,10 @@ bool Pipeline::setShader(ShaderType type, const GLchar* const source, GLint leng
     return status;
 }
 
+unsigned Pipeline::getAttribLoc(const std::string_view& name) const {
+    return program.getAttributeLoc(name.data());
+}
+
 bool Pipeline::build() {
     for (auto& shader : active_shader) {
         if (shader) {
@@ -55,6 +60,10 @@ bool Pipeline::build() {
     }
 
     return true;
+}
+
+void Pipeline::use() const {
+    program.use();
 }
 
 } // namespace gnev::gl

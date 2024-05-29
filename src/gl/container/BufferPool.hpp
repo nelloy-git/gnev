@@ -5,24 +5,28 @@
 #include <vector>
 
 #include "gl/Buffer.hpp"
+#include "gl/Handler.hpp"
+#include "gl/SyncFence.hpp"
 #include "gl/container/BufferReflAccessor.hpp"
 #include "gl/container/IBufferAccessor.hpp"
 #include "gl/container/IBufferAllocator.hpp"
 #include "gl/container/IBufferContainer.hpp"
 #include "gl/container/PoolController.hpp"
+#include "gl/enum/SyncStatus.hpp"
+#include "quill/bundled/fmt/format.h"
 
 #define GNEV_BUFFER_POOL_LOG(level, ...)                                                 \
     BOOST_PP_CAT(GNEV_LOG_, level)                                                       \
     ("{}#{}::{}" GNEV_ARGS_STR(BOOST_PP_VARIADIC_SIZE(__VA_ARGS__)),                     \
      GNEV_GET_TYPE_NAME(*this),                                                          \
-     this->handle(),                                                                     \
+     fmtquill::to_string(this->getBuffer()),                                             \
      GNEV_GET_FUNC_NAME,                                                                 \
      ##__VA_ARGS__)
 
 namespace gnev::gl {
 
 template <IsTriviallyCopyable T>
-class BufferPool : IBufferContainer {
+class EXPORT BufferPool : public IBufferContainer<T> {
 public:
     BufferPool(std::unique_ptr<IBufferAccessor>&& accessor,
                std::unique_ptr<IBufferAllocator>&& allocator,
@@ -32,15 +36,13 @@ public:
         , accessor_{std::move(accessor)}
         , allocator_{std::move(allocator)} {}
 
-    GLuint handle() const override { return buffer_->handle(); }
+    gl::Buffer& getBuffer() override { return *buffer_; }
 
-    gl::Buffer& getBuffer() { return *buffer_; }
-
-    const gl::Buffer& getBuffer() const { return *buffer_; }
+    const gl::Buffer& getBuffer() const override { return *buffer_; }
 
     inline unsigned capacity() const { return controller.capacity(); }
 
-    inline unsigned size() const { return controller.size(); }
+    inline unsigned size() const override { return controller.size(); }
 
     Range pull(unsigned size) {
         GNEV_BUFFER_POOL_LOG(L1, size);
@@ -55,6 +57,8 @@ public:
     };
 
     void reserve(unsigned cap) {
+        static constexpr unsigned wait_sync_ns = 1000000000;
+
         GNEV_BUFFER_POOL_LOG(L1, cap);
 
         auto prev_size = controller.size();
@@ -66,6 +70,11 @@ public:
         controller.reserve(new_cap);
         auto resized_buffer = allocator_->allocate(new_cap * sizeof(T), nullptr);
         buffer_->copyTo(*resized_buffer, 0, 0, prev_size * sizeof(T));
+        auto sync_status = SyncFence{}.wait();
+        if (sync_status == SyncStatus::TIMEOUT_EXPIRED or
+            sync_status == SyncStatus::WAIT_FAILED) {
+            GNEV_LOG_WARNING("\tFailed sync buffer resize with reason: {}", sync_status);
+        }
         buffer_.swap(resized_buffer);
     }
 

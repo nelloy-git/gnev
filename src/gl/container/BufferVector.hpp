@@ -13,7 +13,7 @@
 namespace gnev::gl {
 
 template <IsTriviallyCopyable T>
-class BufferVector : IBufferContainer {
+class BufferVector : IBufferContainer<T> {
 public:
     BufferVector(std::unique_ptr<IBufferAccessor>&& accessor,
                  std::unique_ptr<IBufferAllocator>&& allocator,

@@ -22,7 +22,6 @@
 #define GNEV_NO_UNIQUE_ADDRESS [[no_unique_address]]
 #endif
 
-
 namespace gnev {
 
 template <typename T>
@@ -62,7 +61,7 @@ struct Key {
         , value_name{other.value_name} {}
 
     consteval Key(std::size_t index)
-        : variant{Variant::Name}
+        : variant{Variant::Index}
         , value_index{index}
         , value_name{""} {}
 
@@ -138,6 +137,8 @@ struct MemberInfo {
 template <IsReflectable T>
 struct Meta {
     using Type = T;
+
+    static constexpr std::size_t MembersN = pfr::tuple_size<T>();
 
     template <Key K, Key... Next>
     struct DeduceMemberInfo;
